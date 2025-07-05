@@ -5,15 +5,13 @@ import vue from '@vitejs/plugin-vue';
 export default defineConfig({
     plugins: [
         laravel({
-            // The entry points for your package's assets
             input: [
                 'resources/css/app.css',
-                'resources/js/app.js',
+                'resources/js/app.js', // Package's main JS entry point
             ],
-            // Define the build directory for your package's assets
-            // This is crucial to avoid conflicts with the main Laravel app's build
-            buildDirectory: '../../public/vendor/mralston/finance/build',
-            refresh: true,
+            // Build relative to the package's root
+            buildDirectory: 'public/vendor/mralston/finance/build',
+            refresh: true, // For developing the package in isolation
         }),
         vue({
             template: {
@@ -24,7 +22,4 @@ export default defineConfig({
             },
         }),
     ],
-    // If your package's Vite config isn't in the root of your Laravel app,
-    // you might need to adjust the root.
-    // root: __dirname, // This can be useful if your vite.config.js is not in the project root
 });
