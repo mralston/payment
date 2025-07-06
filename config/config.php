@@ -16,4 +16,7 @@ return [
     // Tells the package how to resolve {parent} in routes with route model binding
     // The class used should implement \Mralston\Interfaces\FinanceParentModel
     'parent_model' => env('FINANCE_PARENT_MODEL', null),
+
+    // A helper class, provided by the parent application, which the finance package can use to interface with the parent
+    'helper' => env('FINANCE_HELPER', null),
 ];

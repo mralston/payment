@@ -2,13 +2,19 @@
 
 use Illuminate\Support\Facades\Route;
 use Mralston\Finance\Http\Controllers\FinanceController;
+use Mralston\Finance\Http\Controllers\FinanceSurveyController;
 
-Route::prefix('finance')->group(function () {
+Route::group(['middleware' => ['web', 'auth']], function () {
 
-    Route::get('/', [FinanceController::class, 'index']);
+    Route::resource('finance.surveys', FinanceSurveyController::class)
+        ->parameters(['finance' => 'parent']);
 
-    Route::get('{parent}/choose-method', [FinanceController::class, 'chooseMethod'])->name('finance.choose.method');
+    Route::prefix('finance')->group(function () {
+
+        Route::get('/', [FinanceController::class, 'index']);
+
+        Route::get('{parent}/choose-method', [FinanceController::class, 'chooseMethod'])->name('finance.choose-method');
+
+    });
 
 });
-
-

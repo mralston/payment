@@ -4,6 +4,7 @@ namespace Mralston\Finance\Providers;
 
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Mralston\Finance\Interfaces\FinanceHelper;
 
 class FinanceServiceProvider extends ServiceProvider
 {
@@ -12,6 +13,8 @@ class FinanceServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../../resources/views', 'finance');
 
         $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -35,6 +38,8 @@ class FinanceServiceProvider extends ServiceProvider
         if ($rootViewData = config('finance.inertia_root_view_data')) {
             Inertia::share($rootViewData);
         }
+
+        $this->app->bind(FinanceHelper::class, config('finance.helper'));
     }
 
     public function register()

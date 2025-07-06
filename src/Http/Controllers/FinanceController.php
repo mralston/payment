@@ -3,21 +3,26 @@
 namespace Mralston\Finance\Http\Controllers;
 
 use Inertia\Inertia;
+use Mralston\Finance\Interfaces\FinanceHelper;
 use Mralston\Finance\Interfaces\FinanceParentModel;
+use Mralston\Finance\Traits\BootstrapsFinance;
 
 class FinanceController
 {
+    use BootstrapsFinance;
+
     public function index()
     {
         return Inertia::render('Finance/Index');
     }
 
-    public function chooseMethod(int $parent)
+    public function chooseMethod(int $parent, FinanceHelper $helper)
     {
-        $parentModel = app(config('finance.parent_model'))->findOrFail($parent);
+        $parentModel = $this->bootstrap($parent, $helper);
 
         return Inertia::render('Finance/ChooseMethod', [
             'parentModel' => $parentModel,
-        ]);
+            'customers' => $helper->getCustomers(),
+        ])->withViewData($helper->getViewData());
     }
 }
