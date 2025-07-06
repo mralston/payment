@@ -11,6 +11,7 @@ return new class extends Migration {
             $table->id();
             $table->morphs('parentable');
             $table->json('customers');
+            $table->json('addresses');
             $table->timestamps();
         });
     }

@@ -9,10 +9,12 @@ class FinanceSurvey extends Model
 {
     protected $fillable = [
         'customers',
+        'addresses',
     ];
 
     protected $casts = [
         'customers' => 'collection',
+        'addresses' => 'collection',
     ];
 
     public function parentable(): MorphTo

@@ -2,6 +2,7 @@ import { createApp, h } from 'vue';
 import { createInertiaApp } from '@inertiajs/vue3';
 
 createInertiaApp({
+    title: (title) => `${title}`,
     resolve: name => {
         // Dynamically import your Vue components from the 'Pages' directory
         // This assumes your components are located in resources/js/Pages

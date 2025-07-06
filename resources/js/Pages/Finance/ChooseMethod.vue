@@ -2,6 +2,7 @@
 import { CheckIcon, MinusIcon, PlusIcon } from '@heroicons/vue/16/solid';
 import { Tab, TabGroup, TabList, TabPanel, TabPanels } from '@headlessui/vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
+import {Head} from "@inertiajs/vue3";
 
 const props = defineProps({
     parentModel: Object,
@@ -76,13 +77,18 @@ const sections = [
 </script>
 
 <template>
+
+    <Head>
+        <title>Payment Options</title>
+    </Head>
+
     <div class="p-4">
 
         <h1 class="text-4xl font-bold">Payment Options</h1>
 
         <p class="mt-4">It's make your mind up time. Are you going with what's behind door number one, door number two or door number three?</p>
 
-        <div class="relative pt-6 sm:pt-24">
+        <div class="relative mt-8 mb-8">
             <div class="absolute inset-x-0 bottom-0 top-48 " />
             <div class="relative mx-auto max-w-2xl px-6 lg:max-w-7xl lg:px-8">
                 <div class="grid grid-cols-1 gap-10 lg:grid-cols-3">
@@ -100,21 +106,22 @@ const sections = [
                                 </div>
 
                                 <div class="mt-8">
-                                    <a :href="tier.href" :aria-label="`Start a free trial on the ${tier.name} plan`" class="inline-block rounded-md bg-blue-600 px-3.5 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                        Continue
-                                    </a>
-                                </div>
-                                <div class="mt-8">
                                     <h3 class="text-sm/6 font-medium text-gray-950">Highlights:</h3>
                                     <ul class="mt-3 space-y-3">
                                         <li v-for="highlight in tier.highlights" :key="highlight.description" :data-disabled="highlight.disabled" class="group flex items-start gap-4 text-sm/6 text-gray-600 data-[disabled]:text-gray-400">
-                      <span class="inline-flex h-6 items-center">
-                        <PlusIcon class="size-4 fill-gray-400 group-data-[disabled]:fill-gray-300" aria-hidden="true" />
-                      </span>
+                                            <span class="inline-flex h-6 items-center">
+                                                <PlusIcon class="size-4 fill-gray-400 group-data-[disabled]:fill-gray-300" aria-hidden="true" />
+                                            </span>
                                             <span v-if="highlight.disabled" class="sr-only">Not included:</span>
                                             {{ highlight.description }}
                                         </li>
                                     </ul>
+                                </div>
+
+                                <div class="mt-8 text-center">
+                                    <a :href="tier.href" :aria-label="`Start a free trial on the ${tier.name} plan`" class="inline-block rounded-md bg-blue-600 px-3.5 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                        Continue
+                                    </a>
                                 </div>
                             </div>
                         </div>

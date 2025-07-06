@@ -34,11 +34,6 @@ class FinanceServiceProvider extends ServiceProvider
             Inertia::setRootView('finance::app');
         }
 
-        // Share root view data if provided
-        if ($rootViewData = config('finance.inertia_root_view_data')) {
-            Inertia::share($rootViewData);
-        }
-
         $this->app->bind(FinanceHelper::class, config('finance.helper'));
     }
 

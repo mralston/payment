@@ -27,6 +27,7 @@ class FinanceSurveyController
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'customers' => $helper->getCustomers(),
+            'addresses' => [$helper->getAddress()]
         ])->withViewData($helper->getViewData());
     }
 
@@ -48,7 +49,19 @@ class FinanceSurveyController
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'financeSurvey' => $survey,
-            'customers' => $survey->customers,
+            'customers' => $survey->customers ?? [],
+            'addresses' => $survey->addresses ?? [],
         ])->withViewData($helper->getViewData());
+    }
+
+    public function update(Request $request, int $parent, FinanceHelper $helper)
+    {
+        $parentModel = $this->bootstrap($parent, $helper);
+
+        $parentModel->financeSurvey()
+            ->update($request->all());
+
+        return redirect()
+            ->route('finance.choose-method', ['parent' => $parentModel]);
     }
 }
