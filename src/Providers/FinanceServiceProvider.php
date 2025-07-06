@@ -2,7 +2,6 @@
 
 namespace Mralston\Finance\Providers;
 
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 
@@ -25,7 +24,7 @@ class FinanceServiceProvider extends ServiceProvider
         }
 
         // Conditionally set Inertia root view based on config
-        if ($rootView = Config::get('finance.inertia_root_view')) {
+        if ($rootView = config('finance.inertia_root_view')) {
             Inertia::setRootView($rootView);
         } else {
             // Default package root view
@@ -33,7 +32,7 @@ class FinanceServiceProvider extends ServiceProvider
         }
 
         // Share root view data if provided
-        if ($rootViewData = Config::get('finance.inertia_root_view_data')) {
+        if ($rootViewData = config('finance.inertia_root_view_data')) {
             Inertia::share($rootViewData);
         }
     }

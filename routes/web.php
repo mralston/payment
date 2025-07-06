@@ -7,6 +7,8 @@ Route::prefix('finance')->group(function () {
 
     Route::get('/', [FinanceController::class, 'index']);
 
+    Route::get('{parent}/choose-method', [FinanceController::class, 'chooseMethod'])->name('finance.choose.method');
+
 });
 
 
