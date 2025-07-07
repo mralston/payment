@@ -4,6 +4,7 @@ import { useForm } from '@inertiajs/vue3';
 import {Link} from "@inertiajs/vue3";
 import {router} from "@inertiajs/vue3";
 import { Head } from '@inertiajs/vue3'
+import AddressInput from "../../Components/AddressInput.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -81,7 +82,7 @@ function submit()
 
 function skip()
 {
-    router.get(route('finance.choose-method', {parent: props.parentModel}));
+    router.get(route('finance.choose-payment-option', {parent: props.parentModel}));
 }
 
 </script>
@@ -250,15 +251,7 @@ function skip()
                     </div>
                     <div class="bg-gray-50 p-4">
 
-                        <div class="border border-gray-600 rounded">
-                            <input type="text" v-model="address.houseNumber" :id="'houseNumber.' + index" class="w-[4rem] border-0 border-r-[1px] border-r-gray-600 rounded-tl" />
-                            <input type="text" v-model="address.street" :id="'street.' + index" class="w-[calc(100%-4rem)] border-0 rounded-tr" /><br>
-                            <input type="text" v-model="address.address1" :id="'address1.' + index" class="w-full border-0 border-t-[1px] border-t-gray-600" /><br>
-                            <input type="text" v-model="address.address2" :id="'address2.' + index" class="w-full border-0 border-t-[1px] border-t-gray-600" /><br>
-                            <input type="text" v-model="address.town" :id="'town.' + index" class="w-full border-0 border-t-[1px] border-t-gray-600" /><br>
-                            <input type="text" v-model="address.county" :id="'county.' + index" class="w-full border-0 border-t-[1px] border-t-gray-600" /><br>
-                            <input type="text" v-model="address.postCode" :id="'postCode.' + index" class="w-full border-0 border-t-[1px] border-t-gray-600 rounded-b" />
-                        </div>
+                        <AddressInput v-model:address="form.addresses[index]" :index="index" />
 
                         <div class="mt-4">
                             <label :for="'timeAtAddress.' + index" class="block text-sm/6 font-medium text-gray-900">Time at address</label>

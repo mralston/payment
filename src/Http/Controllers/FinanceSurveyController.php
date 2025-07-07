@@ -39,7 +39,7 @@ class FinanceSurveyController
             ->create($request->all());
 
         return redirect()
-            ->route('finance.choose-method', ['parent' => $parentModel]);
+            ->route('finance.choose-payment-option', ['parent' => $parentModel]);
     }
 
     public function edit(int $parent, FinanceSurvey $survey, FinanceHelper $helper)
@@ -62,6 +62,6 @@ class FinanceSurveyController
             ->update($request->all());
 
         return redirect()
-            ->route('finance.choose-method', ['parent' => $parentModel]);
+            ->route('finance.choose-payment-option', ['parent' => $parentModel]);
     }
 }

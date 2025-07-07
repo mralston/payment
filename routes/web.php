@@ -13,7 +13,7 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
         Route::get('/', [FinanceController::class, 'index']);
 
-        Route::get('{parent}/choose-method', [FinanceController::class, 'chooseMethod'])->name('finance.choose-method');
+        Route::get('{parent}/choose-payment-option', [FinanceController::class, 'choosePaymentOption'])->name('finance.choose-payment-option');
 
     });
 

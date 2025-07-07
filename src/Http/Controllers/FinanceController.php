@@ -16,11 +16,11 @@ class FinanceController
         return Inertia::render('Finance/Index');
     }
 
-    public function chooseMethod(int $parent, FinanceHelper $helper)
+    public function choosePaymentOption(int $parent, FinanceHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        return Inertia::render('Finance/ChooseMethod', [
+        return Inertia::render('Finance/ChoosePaymentOption', [
             'parentModel' => $parentModel,
             'customers' => $helper->getCustomers(),
         ])->withViewData($helper->getViewData());
