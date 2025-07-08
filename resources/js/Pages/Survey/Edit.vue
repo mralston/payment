@@ -95,16 +95,24 @@ function skip()
 
     <div class="p-4">
 
+        <button type="button"
+                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                @click="skip">
+            Skip
+        </button>
+
         <h1 class="text-4xl font-bold">Survey</h1>
 
-        <p class="mt-4">We need to ask you a few basic questions so that we can find out which payment methods are right for you.</p>
+        <p class="mt-4 text-xl">We need to ask you a few basic questions so that we can find out which payment methods are right for you.</p>
 
         <section>
 
             <h2 class="text-xl font-bold mt-4">Section 1: Customers</h2>
 
+            <p class="mt-4">Please tell us about yourself and your partner; whoever is on your mortgage or lease agreement.</p>
+
             <button type="button"
-                    class="mt-4 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    class="mt-4 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                     @click="addCustomer">
                 Add Customer
             </button>
@@ -115,7 +123,7 @@ function skip()
                     <div class="px-3 py-2 font-bold bg-blue-50">
                         Customer {{ index + 1 }}
                         <button type="button"
-                                class="float-end rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                class="float-end rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                                 @click="removeCustomer(index)">
                             X
                         </button>
@@ -128,21 +136,21 @@ function skip()
                             <div>
                                 <label :for="'firstName.' + index" class="block text-sm/6 font-medium text-gray-900">First name</label>
                                 <div class="mt-2">
-                                    <input type="text" v-model="customer.firstName" :id="'firstName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="text" v-model="customer.firstName" :id="'firstName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
 
                             <div>
                                 <label :for="'middleName.' + index" class="block text-sm/6 font-medium text-gray-900">Middle name</label>
                                 <div class="mt-2">
-                                    <input type="text" v-model="customer.middleName" :id="'middleName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="text" v-model="customer.middleName" :id="'middleName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
 
                             <div>
                                 <label :for="'lastName.' + index" class="block text-sm/6 font-medium text-gray-900">Last name</label>
                                 <div class="mt-2">
-                                    <input type="text" v-model="customer.lastName" :id="'lastName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="text" v-model="customer.lastName" :id="'lastName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
 
@@ -153,19 +161,19 @@ function skip()
                             <div>
                                 <label :for="'email.' + index" class="block text-sm/6 font-medium text-gray-900">E-mail</label>
                                 <div class="mt-2">
-                                    <input type="text" v-model="customer.email" :id="'email.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="text" v-model="customer.email" :id="'email.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
                             <div>
                                 <label :for="'phone.' + index" class="block text-sm/6 font-medium text-gray-900">Phone</label>
                                 <div class="mt-2">
-                                    <input type="text" v-model="customer.phone" :id="'phone.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="text" v-model="customer.phone" :id="'phone.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
                             <div>
                                 <label :for="'dateOfBirth.' + index" class="block text-sm/6 font-medium text-gray-900">Date of Birth</label>
                                 <div class="mt-2">
-                                    <input type="date" v-model="customer.dateOfBirth" :id="'dateOfBirth.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="date" v-model="customer.dateOfBirth" :id="'dateOfBirth.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
 
@@ -176,14 +184,14 @@ function skip()
                             <div>
                                 <label :for="'grossAnnualIncome.' + index" class="block text-sm/6 font-medium text-gray-900">Gross Annual Income</label>
                                 <div class="mt-2">
-                                    <input type="number" v-model="customer.grossAnnualIncome" :id="'grossAnnualIncome.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="number" v-model="customer.grossAnnualIncome" :id="'grossAnnualIncome.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
 
                             <div>
                                 <label :for="'netMonthlyIncome.' + index" class="block text-sm/6 font-medium text-gray-900">Net Monthly Income</label>
                                 <div class="mt-2">
-                                    <input type="number" v-model="customer.netMonthlyIncome" :id="'netMonthlyIncome.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="number" v-model="customer.netMonthlyIncome" :id="'netMonthlyIncome.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
 
@@ -194,7 +202,7 @@ function skip()
                             <div>
                                 <label :for="'employmentStatus.' + index" class="block text-sm/6 font-medium text-gray-900">Employment Status</label>
                                 <div class="mt-2">
-                                    <select v-model="customer.employmentStatus" :id="'employmentStatus.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
+                                    <select v-model="customer.employmentStatus" :id="'employmentStatus.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                         <option></option>
                                         <option value="100">Full Time</option>
                                         <option value="200">Part Time</option>
@@ -211,7 +219,7 @@ function skip()
                             <div>
                                 <label :for="'dependants.' + index" class="block text-sm/6 font-medium text-gray-900">Dependants</label>
                                 <div class="mt-2">
-                                    <input type="number" v-model="customer.dependants" :id="'dependants.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                    <input type="number" v-model="customer.dependants" :id="'dependants.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </div>
                             </div>
 
@@ -228,10 +236,10 @@ function skip()
 
             <h2 class="text-xl font-bold mt-4">Section 2: Addresses</h2>
 
-            <p class="mt-4">We need a total of 3 years' address history.</p>
+            <p class="mt-4">Please tell us where you're living now, and if you've not long moved in, where you were before that.<br>We need a total of 3 years' address history.</p>
 
             <button type="button"
-                    class="mt-4 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    class="mt-4 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                     @click="addAddress">
                 Add Address
             </button>
@@ -243,7 +251,7 @@ function skip()
                         <span v-if="index === 0">Current Address</span>
                         <span v-else>Previous Address {{ index }}</span>
                         <button type="button"
-                                class="float-end rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                                class="float-end rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                                 @click="removeAddress(index)">
                             X
                         </button>
@@ -256,7 +264,7 @@ function skip()
                         <div class="mt-4">
                             <label :for="'timeAtAddress.' + index" class="block text-sm/6 font-medium text-gray-900">Time at address</label>
                             <div class="mt-2">
-                                <input type="number" v-model="address.timeAtAddress" :id="'timeAtAddress.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+                                <input type="number" v-model="address.timeAtAddress" :id="'timeAtAddress.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </div>
                         </div>
 
@@ -268,17 +276,11 @@ function skip()
         </section>
 
 
-        <div class="mt-4 mb-4">
+        <div class="my-4 text-end">
             <button type="button"
-                    class="rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-indigo-600"
+                    class="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                     @click="submit">
                 Continue
-            </button>
-
-            <button type="button"
-                    class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                    @click="skip">
-                Skip
             </button>
         </div>
 
