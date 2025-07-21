@@ -1,0 +1,53 @@
+<?php
+
+namespace Mralston\Payment\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use Inertia\Inertia;
+use Mralston\Payment\Integrations\Hometree;
+use Mralston\Payment\Interfaces\PaymentHelper;
+
+class PaymentServiceProvider extends ServiceProvider
+{
+    public function boot()
+    {
+        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'payment');
+
+        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
+
+        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+
+        if ($this->app->runningInConsole()) {
+            $this->publishes([
+                __DIR__ . '/../../config/config.php' => config_path('payment.php'),
+            ], 'payment-config');
+
+            $this->publishes([
+                __DIR__.'/../../public/vendor/mralston/payment/build' => public_path('vendor/mralston/payment/build'),
+            ], 'payment-assets');
+        }
+
+        // Conditionally set Inertia root view based on config
+        if ($rootView = config('payment.inertia_root_view')) {
+            Inertia::setRootView($rootView);
+        } else {
+            // Default package root view
+            Inertia::setRootView('payment::app');
+        }
+
+        $this->app->bind(PaymentHelper::class, config('payment.helper'));
+    }
+
+    public function register()
+    {
+        $this->mergeConfigFrom(__DIR__ . '/../../config/config.php', 'payment');
+
+        $this->app->singleton(Hometree::class, function ($app) {
+            return new Hometree(
+                config('payment.hometree.api_key'),
+                config('payment.hometree.endpoint'),
+            );
+        });
+
+    }
+}

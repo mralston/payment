@@ -10,7 +10,7 @@ export default defineConfig({
                 'resources/js/app.js', // Package's main JS entry point
             ],
             // Build relative to the package's root
-            buildDirectory: 'public/vendor/mralston/finance/build',
+            buildDirectory: 'public/vendor/mralston/payment/build',
             refresh: true, // For developing the package in isolation
         }),
         vue({

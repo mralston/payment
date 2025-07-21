@@ -1,9 +1,9 @@
 <?php
 
-namespace Mralston\Finance\Data;
+namespace Mralston\Payment\Data;
 
 use Carbon\Carbon;
-use Mralston\Finance\Enums\EmploymentStatus;
+use Mralston\Payment\Enums\EmploymentStatus;
 use Spatie\LaravelData\Data;
 
 class CustomerData extends Data

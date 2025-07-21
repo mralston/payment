@@ -1,26 +1,26 @@
 <?php
 
-namespace Mralston\Finance\Http\Controllers;
+namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
-use Mralston\Finance\Interfaces\FinanceHelper;
-use Mralston\Finance\Models\FinanceSurvey;
-use Mralston\Finance\Traits\BootstrapsFinance;
+use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Models\PaymentSurvey;
+use Mralston\Payment\Traits\BootstrapsPayment;
 
-class FinanceSurveyController
+class PaymentSurveyController
 {
-    use BootstrapsFinance;
+    use BootstrapsPayment;
 
-    public function create(int $parent, FinanceHelper $helper)
+    public function create(int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
         // If there is already a survey, redirect to the existing survey
-        if (!empty($parentModel->financeSurvey)) {
-            return redirect()->route('finance.surveys.edit', [
+        if (!empty($parentModel->paymentSurvey)) {
+            return redirect()->route('payment.surveys.edit', [
                 'parent' => $parentModel,
-                'survey' => $parentModel->financeSurvey->id
+                'survey' => $parentModel->paymentSurvey->id
             ]);
         }
 
@@ -31,37 +31,37 @@ class FinanceSurveyController
         ])->withViewData($helper->getViewData());
     }
 
-    public function store(Request $request, int $parent, FinanceHelper $helper)
+    public function store(Request $request, int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        $parentModel->financeSurvey()
+        $parentModel->paymentSurvey()
             ->create($request->all());
 
         return redirect()
-            ->route('finance.choose-payment-option', ['parent' => $parentModel]);
+            ->route('payment.choose-payment-option', ['parent' => $parentModel]);
     }
 
-    public function edit(int $parent, FinanceSurvey $survey, FinanceHelper $helper)
+    public function edit(int $parent, PaymentSurvey $survey, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
-            'financeSurvey' => $survey,
+            'paymentSurvey' => $survey,
             'customers' => $survey->customers ?? [],
             'addresses' => $survey->addresses ?? [],
         ])->withViewData($helper->getViewData());
     }
 
-    public function update(Request $request, int $parent, FinanceHelper $helper)
+    public function update(Request $request, int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        $parentModel->financeSurvey()
+        $parentModel->paymentSurvey()
             ->update($request->all());
 
         return redirect()
-            ->route('finance.choose-payment-option', ['parent' => $parentModel]);
+            ->route('payment.choose-payment-option', ['parent' => $parentModel]);
     }
 }

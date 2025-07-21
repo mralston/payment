@@ -1,12 +1,15 @@
 {
-  "name": "mralston/finance",
-  "description": "Finance application process.",
+  "name": "mralston/payment",
+  "description": "Payment flows for cash, finance and leasing.",
   "version": "0.1",
   "keywords": [
     "mralston",
-    "finance"
+    "payment",
+    "finance",
+    "lease",
+    "leasing"
   ],
-  "homepage": "https://github.com/mralston/finance",
+  "homepage": "https://github.com/mralston/payment",
   "license": "MIT",
   "authors": [
     {
@@ -25,7 +28,7 @@
   },
   "autoload": {
     "psr-4": {
-      "Mralston\\Finance\\": "src"
+      "Mralston\\Payment\\": "src"
     }
   },
   "config": {
@@ -34,7 +37,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Mralston\\Finance\\Providers\\FinanceServiceProvider"
+        "Mralston\\Payment\\Providers\\PaymentServiceProvider"
       ]
     }
   },

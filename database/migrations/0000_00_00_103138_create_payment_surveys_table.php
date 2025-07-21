@@ -7,7 +7,7 @@ use Illuminate\Support\Facades\Schema;
 return new class extends Migration {
     public function up(): void
     {
-        Schema::create('finance_surveys', function (Blueprint $table) {
+        Schema::create('payment_surveys', function (Blueprint $table) {
             $table->id();
             $table->morphs('parentable');
             $table->json('customers');
@@ -18,6 +18,6 @@ return new class extends Migration {
 
     public function down(): void
     {
-        Schema::dropIfExists('finance_surveys');
+        Schema::dropIfExists('payment_surveys');
     }
 };

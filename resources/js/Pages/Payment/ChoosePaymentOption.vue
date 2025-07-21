@@ -115,7 +115,7 @@ function proceed(e) {
 
 function skip()
 {
-    router.get(route('finance.choose-payment-option', {parent: props.parentModel}));
+    router.get(route('payment.choose-payment-option', {parent: props.parentModel}));
 }
 
 </script>

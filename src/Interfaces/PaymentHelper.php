@@ -1,11 +1,11 @@
 <?php
 
-namespace Mralston\Finance\Interfaces;
+namespace Mralston\Payment\Interfaces;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 
-interface FinanceHelper
+interface PaymentHelper
 {
     public function setParentModel(Model $parentModel);
 

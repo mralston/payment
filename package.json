@@ -1,5 +1,5 @@
 {
-  "name": "mralston/finance",
+  "name": "mralston/payment",
   "private": true,
   "type": "module",
   "scripts": {
@@ -16,6 +16,7 @@
   },
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
-    "@heroicons/vue": "^2.2.0"
+    "@heroicons/vue": "^2.2.0",
+    "moment": "^2.30.1"
   }
 }

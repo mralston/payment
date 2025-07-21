@@ -1,11 +1,11 @@
 <?php
 
-namespace Mralston\Finance\Models;
+namespace Mralston\Payment\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
-class FinanceSurvey extends Model
+class PaymentSurvey extends Model
 {
     protected $fillable = [
         'customers',

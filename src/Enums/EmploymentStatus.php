@@ -1,6 +1,6 @@
 <?php
 
-namespace Mralston\Finance\Enums;
+namespace Mralston\Payment\Enums;
 
 enum EmploymentStatus: int
 {

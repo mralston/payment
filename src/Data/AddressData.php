@@ -1,6 +1,6 @@
 <?php
 
-namespace Mralston\Finance\Data;
+namespace Mralston\Payment\Data;
 
 use Spatie\LaravelData\Data;
 

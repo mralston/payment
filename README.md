@@ -1,32 +1,32 @@
-# Finance
+# Payment
 
 ## Introduction
 
-Finance application process.
+Payment flows for cash, finance and leasing.
 
 ## Installation
 
 ```bash
-composer require mralston/finance
+composer require mralston/payment
 ```
 
 ## Configuration
 
 Add the following to your .env file
 ```dotenv
-# Configure the parent model for finance applications 
-FINANCE_PARENT_MODEL=\App\Models\Quote
+# Configure the parent model for payment records
+PAYMENT_PARENT_MODEL=\App\Models\Quote
 
 # Optionally configure an Inertia route view from your application
-FINANCE_INERTIA_ROOT_VIEW=/layouts/inertia
+PAYMENT_INERTIA_ROOT_VIEW=/layouts/inertia
 
 # Helper class
-FINANCE_HELPER=\App\Services\FinanceHelper
+PAYMENT_HELPER=\App\Services\PaymentHelper
 ```
 
 ## Parent Model
 
-Finance records are linked to a parent model in your application; a quotation or contract for example. The parent model must implement the `FinanceParentModel` interface which includes a polymorphic relationship linking the two models. The parent model is declared in the `FINANCE_PARENT_MODEL` configuration variable.
+Payment records are linked to a parent model in your application; a quotation or contract for example. The parent model must implement the `PaymentParentModel` interface which includes a polymorphic relationship linking the two models. The parent model is declared in the `PAYMENT_PARENT_MODEL` configuration variable.
 
 ```php
 <?php
@@ -34,21 +34,21 @@ Finance records are linked to a parent model in your application; a quotation or
 namespace App;
 
 use Illuminate\Database\Eloquent\Model;
-use Mralston\Finance\Interfaces\FinanceParentModel;
-use Mralston\Finance\Models\FinanceSurvey;
+use Mralston\Payment\Interfaces\PaymentParentModel;
+use Mralston\Payment\Models\PaymentSurvey;
 
-class Quote extends Model implements FinanceParentModel
+class Quote extends Model implements PaymentParentModel
 {
-    public function financeSurvey(): MorphOne
+    public function paymentSurvey(): MorphOne
     {
-        return $this->morphOne(FinanceSurvey::class, 'parentable');
+        return $this->morphOne(PaymentSurvey::class, 'parentable');
     }
 }
 ```
 
 ## Helper
 
-The Finance package relies on a helper class which your application must provide. The helper class implements the `FinanceHelper` interface and allows the Finance package to understand its parent application. The helper class is declared in the `FINANCE_HELPER` configuration variable.
+The Payment package relies on a helper class which your application must provide. The helper class implements the `PaymentHelper` interface and allows the Payment package to understand its parent application. The helper class is declared in the `PAYMENT_HELPER` configuration variable.
 
 ```php
 <?php
@@ -57,9 +57,9 @@ namespace App\Services;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
-use Mralston\Finance\Data\CustomerData;
+use Mralston\Payment\Data\CustomerData;
 
-class FinanceHelper
+class PaymentHelper
 {
     protected $parentModel;
 

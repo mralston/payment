@@ -8,7 +8,7 @@ import AddressInput from "../../Components/AddressInput.vue";
 
 const props = defineProps({
     parentModel: Object,
-    financeSurvey: Object,
+    paymentSurvey: Object,
     customers: Array,
     addresses: Array,
 });
@@ -56,11 +56,11 @@ function removeAddress(index) {
 
 function submit()
 {
-    if (props.financeSurvey === undefined) {
+    if (props.fpaymentSurvey === undefined) {
         return form.submit(
             'post',
             route(
-                'finance.surveys.store',
+                'payment.surveys.store',
                 {
                     parent: props.parentModel,
                 }
@@ -71,10 +71,10 @@ function submit()
     return form.submit(
         'patch',
         route(
-            'finance.surveys.update',
+            'payment.surveys.update',
             {
                 parent: props.parentModel,
-                survey: props.financeSurvey,
+                survey: props.paymentSurvey,
             }
         )
     );
@@ -82,7 +82,7 @@ function submit()
 
 function skip()
 {
-    router.get(route('finance.choose-payment-option', {parent: props.parentModel}));
+    router.get(route('payment.choose-payment-option', {parent: props.parentModel}));
 }
 
 </script>
