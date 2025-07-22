@@ -1,7 +1,7 @@
 <script setup>
 
 import Pagination from "../../Components/Pagination.vue";
-import { Link } from "@inertiajs/vue3";
+import {Head, Link} from "@inertiajs/vue3";
 import {formatDate} from "../../Helpers/Date.js";
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {titleCase} from "../../Helpers/Strings.js";
@@ -14,6 +14,11 @@ const props = defineProps({
 </script>
 
 <template>
+
+    <Head>
+        <title>Payments</title>
+    </Head>
+
     <div class="p-10">
         <h1 class="text-4xl font-bold">Payments</h1>
 

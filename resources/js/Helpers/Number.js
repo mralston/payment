@@ -21,3 +21,11 @@ export function toMax2DP (value) {
 
     return formatter.format(value);
 }
+
+export function formatNumber (value, precision) {
+    const formatter = new Intl.NumberFormat('en-GB', {
+        maximumFractionDigits: precision ?? 0,
+    });
+
+    return formatter.format(value);
+}

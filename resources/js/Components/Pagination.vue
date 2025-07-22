@@ -1,6 +1,7 @@
 <script setup>
 import { ChevronLeftIcon, ChevronRightIcon } from '@heroicons/vue/20/solid';
 import { Link } from "@inertiajs/vue3";
+import {formatNumber} from "../Helpers/Number.js";
 
 const props = defineProps({
     records: Object,
@@ -46,7 +47,7 @@ const props = defineProps({
                     {{ ' ' }}
                     of
                     {{ ' ' }}
-                    <span class="font-medium">{{ records.total }}</span>
+                    <span class="font-medium">{{ formatNumber(records.total) }}</span>
                     {{ ' ' }}
                     results
                 </p>
