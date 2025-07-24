@@ -12,4 +12,13 @@ class PaymentProvider extends Model
         'name',
         'identifier',
     ];
+
+    public function gateway()
+    {
+        if (empty($this->gateway)) {
+            return null;
+        }
+
+        return app($this->gateway);
+    }
 }

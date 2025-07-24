@@ -4,12 +4,15 @@ namespace Mralston\Payment\Integrations;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Mralston\Payment\Data\PrequalPromiseData;
+use Mralston\Payment\Data\PrequalResultData;
+use Mralston\Payment\Events\PrequalComplete;
 use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
-use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\PaymentSurvey;
 
-class Hometree implements PaymentGateway, LeaseGateway
+class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 {
     /**
      * Endpoints to be used based on environment.
@@ -133,6 +136,8 @@ class Hometree implements PaymentGateway, LeaseGateway
             Log::error('URL: ' . $this->endpoint . '/applications');
             throw $ex;
         }
+
+        return $response;
     }
 
     public function getProducts(): array
@@ -153,6 +158,22 @@ class Hometree implements PaymentGateway, LeaseGateway
         }
 
         return $response;
+    }
+
+    public function prequal(PaymentSurvey $survey): PrequalPromiseData
+    {
+        dispatch(function () use ($survey) {
+            sleep(5); // Fake a delay during development
+
+//            $response = $this->createApplication($survey);
+            $response = collect(); // Mock for actual functionality
+
+            $prequalResultData = new PrequalResultData($survey, $response);
+
+            event(new PrequalComplete($prequalResultData));
+        });
+
+        return new PrequalPromiseData(static::class);
     }
 
 }

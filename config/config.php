@@ -19,16 +19,16 @@ return [
 
     /*
     |--------------------------------------------------------------------------
-    | Allium Finance
+    | Tandem Finance
     |--------------------------------------------------------------------------
     |
-    | The API key and endpoint to be used when talking to the Allium Money API
+    | The API key and endpoint to be used when talking to the Tandem Finance API
     |
     */
 
-    'allium' => [
-        'api_key' => env('ALLIUM_API_KEY'),
-        'endpoint' => env('ALLIUM_ENDPOINT', config('app.env')),
+    'tandem' => [
+        'api_key' => env('TANDEM_API_KEY'),
+        'endpoint' => env('TANDEM_ENDPOINT', config('app.env')),
     ],
 
     /*

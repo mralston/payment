@@ -28,6 +28,9 @@ class PrequalController extends Controller
 
         $survey = $parentModel->paymentSurvey;
 
-        $this->prequalService->run($survey);
+        $results = $this->prequalService->run($survey);
+
+        return response()
+            ->json($results);
     }
 }

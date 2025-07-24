@@ -16,6 +16,7 @@ return new class extends Migration
             $table->string('name');
             $table->string('description')->nullable();
             $table->string('identifier')->unique();
+            $table->string('gateway')->nullable();
             $table->string('logo')->nullable();
             $table->string('intro', 1000)->nullable();
             $table->integer('sort_order')->nullable();

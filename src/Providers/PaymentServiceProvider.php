@@ -5,6 +5,8 @@ namespace Mralston\Payment\Providers;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Mralston\Payment\Integrations\Hometree;
+use Mralston\Payment\Integrations\Propensio;
+use Mralston\Payment\Integrations\Tandem;
 use Mralston\Payment\Interfaces\PaymentHelper;
 
 class PaymentServiceProvider extends ServiceProvider
@@ -41,6 +43,20 @@ class PaymentServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__ . '/../../config/config.php', 'payment');
+
+        $this->app->singleton(Tandem::class, function ($app) {
+            return new Tandem(
+                config('payment.tandem.api_key'),
+                config('payment.tandem.endpoint'),
+            );
+        });
+
+        $this->app->singleton(Propensio::class, function ($app) {
+            return new Propensio(
+                config('payment.propensio.ibc_ref'),
+                config('payment.propensio.endpoint'),
+            );
+        });
 
         $this->app->singleton(Hometree::class, function ($app) {
             return new Hometree(
