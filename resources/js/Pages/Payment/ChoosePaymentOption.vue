@@ -1,11 +1,16 @@
 <script setup>
 import {Head, router} from "@inertiajs/vue3";
 import OptionColumns from "../../Components/OptionColumns/OptionColumns.vue";
+import {onMounted, ref} from "vue";
+import axios from "axios";
+import { ArrowPathIcon } from '@heroicons/vue/24/outline';
 
 const props = defineProps({
     parentModel: Object,
     customers: Array,
 });
+
+const prequalRunning = ref(false);
 
 const columns = [
     {
@@ -109,6 +114,24 @@ const columns = [
     },
 ];
 
+onMounted(() => {
+    initiatePrequal();
+});
+
+function initiatePrequal()
+{
+    prequalRunning.value = true;
+
+    axios.post(route('payment.prequal', {parent: props.parentModel}))
+        .then(response => {
+            //prequalRunning.value = false;
+        })
+        .catch(error => {
+            //prequalRunning.value = false;
+            //alert('There was a problem running starting prequalification process.')
+        });
+}
+
 function proceed(e) {
     alert('Proceed with ' + e.column.name + ' ' + (e.option ?? ''));
 }
@@ -128,7 +151,10 @@ function skip()
 
     <div class="p-4">
 
-        <h1 class="text-4xl font-bold">Payment Options</h1>
+        <h1 class="text-4xl font-bold">
+            Payment Options
+            <ArrowPathIcon v-if="prequalRunning" class="animate-spin h-8 w-8 text-black inline" />
+        </h1>
 
         <p class="mt-4">It's make your mind up time. Are you going with what's behind door number one, door number two or door number three?</p>
 

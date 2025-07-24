@@ -7,6 +7,7 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Services\PrequalService;
 use Mralston\Payment\Traits\BootstrapsPayment;
 
 class PaymentController
@@ -14,7 +15,7 @@ class PaymentController
     use BootstrapsPayment;
 
     public function __construct(
-        private PaymentHelper $helper
+        private PaymentHelper $helper,
     ) {
         //
     }
@@ -45,12 +46,5 @@ class PaymentController
             'parentModel' => $parentModel,
             'customers' => $this->helper->getCustomers(),
         ])->withViewData($this->helper->getViewData());
-    }
-
-    public function prequal(int $parent)
-    {
-        $parentModel = $this->bootstrap($parent, $this->helper);
-
-
     }
 }

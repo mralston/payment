@@ -3,22 +3,24 @@
 use Illuminate\Support\Facades\Route;
 use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\PaymentSurveyController;
+use Mralston\Payment\Http\Controllers\PrequalController;
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 
-    Route::resource('payment.surveys', PaymentSurveyController::class)
-        ->parameters(['payment' => 'parent']);
+    Route::resource('payments', PaymentController::class);
 
-    Route::prefix('payment')->group(function () {
+    Route::prefix('payment')
+        ->name('payment.')
+        ->group(function () {
 
-        Route::get('/', [PaymentController::class, 'index']);
+        Route::resource('{parent}/surveys', PaymentSurveyController::class)
+            ->names('surveys');
 
         Route::get('{parent}/choose-payment-option', [PaymentController::class, 'choosePaymentOption'])
-            ->name('payment.choose-payment-option');
+            ->name('choose-payment-option');
 
-        Route::post('{parent}/prequal', [PaymentController::class, 'prequal']);
-
+        Route::post('{parent}/prequal', PrequalController::class)
+            ->name('prequal');
     });
 
-    Route::resource('payments', PaymentController::class);
 });

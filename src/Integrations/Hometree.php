@@ -7,6 +7,7 @@ use Illuminate\Support\Facades\Log;
 use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentSurvey;
 
 class Hometree implements PaymentGateway, LeaseGateway
 {
@@ -36,8 +37,9 @@ class Hometree implements PaymentGateway, LeaseGateway
         $this->endpoint = $this->endpoints[$endpoint];
     }
 
-    public function apply(Payment $application)
-    {
+    public function createApplication(
+        PaymentSurvey $survey,
+    ) {
         $quote = $application->quote;
         $systemSavings = $quote->system_savings->show;
 
