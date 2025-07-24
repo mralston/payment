@@ -9,6 +9,7 @@ use Spatie\LaravelData\Data;
 class PrequalResultData extends Data
 {
     public function __construct(
+        public string $gateway,
         public PaymentSurvey $survey,
         public Collection $products,
     ) {

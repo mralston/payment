@@ -168,12 +168,19 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 //            $response = $this->createApplication($survey);
             $response = collect(); // Mock for actual functionality
 
-            $prequalResultData = new PrequalResultData($survey, $response);
+            $prequalResultData = new PrequalResultData(
+                gateway: static::class,
+                survey: $survey,
+                products: $response
+            );
 
             event(new PrequalComplete($prequalResultData));
         });
 
-        return new PrequalPromiseData(static::class);
+        return new PrequalPromiseData(
+            gateway: static::class,
+            survey: $survey
+        );
     }
 
 }

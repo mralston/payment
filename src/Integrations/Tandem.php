@@ -608,11 +608,18 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 //            $response = $this->financeProducts();
             $response = collect(); // Mock for actual functionality
 
-            $prequalResultData = new PrequalResultData($survey, $response);
+            $prequalResultData = new PrequalResultData(
+                gateway: static::class,
+                survey: $survey,
+                products: $response
+            );
 
             event(new PrequalComplete($prequalResultData));
         });
 
-        return new PrequalPromiseData(static::class);
+        return new PrequalPromiseData(
+            gateway: static::class,
+            survey: $survey,
+        );
     }
 }

@@ -12,11 +12,18 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Mralston\Payment\Data\PrequalData;
+use Mralston\Payment\Data\PrequalPromiseData;
+use Mralston\Payment\Data\PrequalResultData;
+use Mralston\Payment\Events\PrequalComplete;
 use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
+use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\PaymentProvider;
+use Mralston\Payment\Models\PaymentSurvey;
 use Spatie\ArrayToXml\ArrayToXml;
 
-class Propensio implements PaymentGateway, FinanceGateway
+class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 {
     public const UNEXPECTED_ERROR = 0; // Any error that we were not expecting. i.e. an Exception
     public const TARGET_REFERENCE_UNKNOWN = 1; // Target reference not recognised
@@ -963,5 +970,28 @@ class Propensio implements PaymentGateway, FinanceGateway
     {
         // TODO: E-mail it to them?
         return false;
+    }
+
+    public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData
+    {
+        dispatch(function () use ($survey) {
+            sleep(5); // Fake a delay during development
+
+            $products = PaymentProvider::byIdentifier('propensio')
+                ->paymentProducts;
+
+            $prequalResultData = new PrequalResultData(
+                gateway: static::class,
+                survey: $survey,
+                products: $products
+            );
+
+            event(new PrequalComplete($prequalResultData));
+        });
+
+        return new PrequalPromiseData(
+            gateway: static::class,
+            survey: $survey
+        );
     }
 }
