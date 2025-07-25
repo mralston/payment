@@ -44,6 +44,7 @@ class PaymentController
 
         return Inertia::render('Payment/ChoosePaymentOption', [
             'parentModel' => $parentModel,
+            'survey' => $parentModel->paymentSurvey,
             'customers' => $this->helper->getCustomers(),
         ])->withViewData($this->helper->getViewData());
     }

@@ -4,9 +4,11 @@ import OptionColumns from "../../Components/OptionColumns/OptionColumns.vue";
 import {onMounted, ref} from "vue";
 import axios from "axios";
 import { ArrowPathIcon } from '@heroicons/vue/24/outline';
+import { useEcho } from '@laravel/echo-vue';
 
 const props = defineProps({
     parentModel: Object,
+    survey: Object,
     customers: Array,
 });
 
@@ -118,6 +120,14 @@ onMounted(() => {
     initiatePrequal();
 });
 
+useEcho(
+    `prequal.${props.survey.id}`,
+    'PrequalComplete',
+    (e) => {
+        console.log(e);
+    }
+)
+
 function initiatePrequal()
 {
     prequalRunning.value = true;
@@ -150,7 +160,7 @@ function skip()
     </Head>
 
     <div class="p-4">
-
+<button @click="initiatePrequal">prequal</button>
         <h1 class="text-4xl font-bold">
             Payment Options
             <ArrowPathIcon v-if="prequalRunning" class="animate-spin h-8 w-8 text-black inline" />
