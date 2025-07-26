@@ -6,7 +6,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Data\PrequalResultData;
-use Mralston\Payment\Events\PrequalComplete;
+use Mralston\Payment\Events\OfferReceived;
 use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
@@ -163,7 +163,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
     public function prequal(PaymentSurvey $survey): PrequalPromiseData
     {
         dispatch(function () use ($survey) {
-            sleep(5); // Fake a delay during development
+            //sleep(5); // Fake a delay during development
 
 //            $response = $this->createApplication($survey);
             $response = collect(); // Mock for actual functionality
@@ -174,7 +174,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 products: $response
             );
 
-            event(new PrequalComplete($prequalResultData));
+            event(new OfferReceived($prequalResultData));
         });
 
         return new PrequalPromiseData(

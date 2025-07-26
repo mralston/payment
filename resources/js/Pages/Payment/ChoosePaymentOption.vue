@@ -121,8 +121,8 @@ onMounted(() => {
 });
 
 useEcho(
-    `prequal.${props.survey.id}`,
-    'PrequalComplete',
+    `offers.${props.survey.id}`,
+    '\\Mralston\\Payment\\Events\\OfferReceived',
     (e) => {
         console.log(e);
     }
