@@ -12,4 +12,8 @@ interface PaymentHelper
     public function getViewData(): array;
 
     public function getCustomers(): Collection;
+
+    public function getTotalCost();
+
+    public function getDeposit();
 }

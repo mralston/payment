@@ -4,7 +4,7 @@ namespace Mralston\Payment\Services;
 
 use Illuminate\Support\Collection;
 use Mralston\Payment\Data\PrequalPromiseData;
-use Mralston\Payment\Data\PrequalResultData;
+use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
@@ -17,7 +17,7 @@ class PrequalService
      * When promises resolve, they will fire a PrequalComplete event
      *
      * @param PaymentSurvey $survey
-     * @return Collection<PrequalResultData|PrequalPromiseData>
+     * @return Collection<Offers|PrequalPromiseData>
      */
     public function run(PaymentSurvey $survey): Collection
     {

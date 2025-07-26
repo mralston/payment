@@ -7,18 +7,28 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Mralston\Payment\Data\PrequalResultData;
+use Mralston\Payment\Data\OfferData;
+use Mralston\Payment\Data\Offers;
+use Mralston\Payment\Models\PaymentSurvey;
 
-class OfferReceived implements ShouldBroadcast
+class OffersReceived implements ShouldBroadcast
 {
     use InteractsWithQueue;
     use SerializesModels;
 
+    /**
+     * @param string $gateway
+     * @param PaymentSurvey $survey
+     * @param Collection<OfferData> $offers
+     */
     public function __construct(
-        public PrequalResultData $data,
+        public string $gateway,
+        public PaymentSurvey $survey,
+        public Collection $offers,
     ) {
-        Log::info('OfferReceived event constructed.', ['data' => $data->toArray()]);
+        //
     }
 
     /**
@@ -26,8 +36,7 @@ class OfferReceived implements ShouldBroadcast
      */
     public function broadcastOn(): Channel
     {
-        Log::info('OfferReceived broadcastOn method called.');
-        return new PrivateChannel('offers.' . $this->data->survey->id);
+        return new PrivateChannel('offers.' . $this->survey->id);
     }
 }
 

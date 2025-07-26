@@ -5,8 +5,8 @@ namespace Mralston\Payment\Integrations;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Mralston\Payment\Data\PrequalPromiseData;
-use Mralston\Payment\Data\PrequalResultData;
-use Mralston\Payment\Events\OfferReceived;
+use Mralston\Payment\Data\Offers;
+use Mralston\Payment\Events\OffersReceived;
 use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
@@ -166,15 +166,14 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             //sleep(5); // Fake a delay during development
 
 //            $response = $this->createApplication($survey);
-            $response = collect(); // Mock for actual functionality
+            $offers = collect(); // Mock for actual functionality
 
-            $prequalResultData = new PrequalResultData(
+
+            event(new OffersReceived(
                 gateway: static::class,
                 survey: $survey,
-                products: $response
-            );
-
-            event(new OfferReceived($prequalResultData));
+                offers: $offers,
+            ));
         });
 
         return new PrequalPromiseData(

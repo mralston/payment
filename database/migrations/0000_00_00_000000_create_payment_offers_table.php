@@ -13,11 +13,22 @@ return new class extends Migration
     {
         Schema::create('payment_offers', function (Blueprint $table) {
             $table->id();
-            $table->morphs('parentable');
+            $table->string('name')->nullable();
+            $table->string('type');
+            $table->integer('payment_survey_id')->index();
             $table->integer('amount');
             $table->integer('payment_provider_id')->index();
-
-
+            $table->decimal('apr', 8, 1)->nullable();
+            $table->integer('term');
+            $table->integer('deferred')->nullable();
+            $table->decimal('first_payment', 8, 2);
+            $table->decimal('monthly_payment', 8, 2);
+            $table->decimal('final_payment', 8, 2);
+            $table->json('minimum_payments')->nullable();
+            $table->string('status');
+            $table->string('preapproval_id')->nullable();
+            $table->integer('priority')->nullable();
+            $table->string('provider_foreign_id')->nullable();
             $table->timestamps();
         });
     }

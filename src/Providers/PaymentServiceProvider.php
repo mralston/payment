@@ -66,5 +66,8 @@ class PaymentServiceProvider extends ServiceProvider
             );
         });
 
+        $this->app->singleton(PaymentHelper::class, function ($app) {
+            return app(config('payment.helper'));
+        });
     }
 }
