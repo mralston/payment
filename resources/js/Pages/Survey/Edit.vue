@@ -82,7 +82,7 @@ function submit()
 
 function skip()
 {
-    router.get(route('payment.choose-payment-option', {parent: props.parentModel}));
+    router.get(route('payment.options', {parent: props.parentModel}));
 }
 
 </script>

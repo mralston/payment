@@ -1,6 +1,9 @@
 <?php
 
 use Illuminate\Support\Facades\Route;
+use Mralston\Payment\Http\Controllers\CashController;
+use Mralston\Payment\Http\Controllers\FinanceController;
+use Mralston\Payment\Http\Controllers\LeaseController;
 use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\PaymentSurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
@@ -16,11 +19,20 @@ Route::group(['middleware' => ['web', 'auth']], function () {
         Route::resource('{parent}/surveys', PaymentSurveyController::class)
             ->names('surveys');
 
-        Route::get('{parent}/choose-payment-option', [PaymentController::class, 'choosePaymentOption'])
-            ->name('choose-payment-option');
+        Route::get('{parent}/options', [PaymentController::class, 'options'])
+            ->name('options');
 
         Route::post('{parent}/prequal', PrequalController::class)
             ->name('prequal');
+
+        Route::resource('{parent}/cash', CashController::class)
+            ->names('cash');
+
+        Route::resource('{parent}/finance', FinanceController::class)
+            ->names('finance');
+
+        Route::resource('{parent}/lease', LeaseController::class)
+            ->names('lease');
     });
 
 });

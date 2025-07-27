@@ -969,8 +969,6 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
     public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData
     {
         dispatch(function () use ($survey) {
-            //sleep(5); // Fake a delay during development
-
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 

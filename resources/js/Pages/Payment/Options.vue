@@ -8,10 +8,14 @@ import {formatCurrency} from "../../Helpers/Currency.js";
 import {CheckCircleIcon} from "@heroicons/vue/20/solid/index.js";
 import MoreInfoModal from "../../Components/MoreInfoModal.vue";
 
+import CashInfo from "../Cash/Create.vue";
+
 const props = defineProps({
     parentModel: Object,
     survey: Object,
     customers: Array,
+    totalCost: Number,
+    deposit: Number,
 });
 
 const cashMoreInfo = ref(null);
@@ -69,7 +73,6 @@ const selectedLeaseOffer = ref(null);
 
 onMounted(() => {
     initiatePrequal();
-    // cashMoreInfo.value.show();
 });
 
 watch(pendingGateways, () => {
@@ -109,6 +112,8 @@ useEcho(
 function initiatePrequal()
 {
     offers.value = [];
+    selectedFinanceOffer.value = null;
+    selectedLeaseOffer.value = null;
 
     axios.post(route('payment.prequal', {parent: props.parentModel}))
         .then(response => {
@@ -123,11 +128,10 @@ function initiatePrequal()
 }
 
 function proceed(paymentType) {
-    alert('Proceed with ' + paymentType);
-}
-
-function moreInfo(paymentType) {
-    alert('More info on ' + paymentType);
+    router.get(route('payment.' + paymentType + '.create', {
+        parent: props.parentModel,
+        offer: selectedFinanceOffer.value ?? selectedLeaseOffer.value
+    }));
 }
 
 function survey()
@@ -144,15 +148,16 @@ function survey()
     </Head>
 
     <MoreInfoModal ref="cashMoreInfo" title="Cash">
-        <p>Info about cash payment goes here...</p>
+        <CashInfo :totalCost="totalCost" :deposit="deposit" :minimal="true" />
     </MoreInfoModal>
 
     <MoreInfoModal ref="financeMoreInfo" title="Finance">
-        <p>Info about finance payment goes here...</p>
+        <table class="table table-bordered table-striped mb-0"><thead><tr><th>Yr</th> <th>Acc. grand total</th> <th>Savings</th> <th>Potential monthly repayment diff.</th></tr></thead> <tbody><tr><td>1</td> <td>£776.25</td> <td>£64.69</td> <td class="alert-danger">-£71.52</td></tr><tr><td>2</td> <td>£824.10</td> <td>£68.68</td> <td class="alert-danger">-£67.53</td></tr><tr><td>3</td> <td>£875.25</td> <td>£72.94</td> <td class="alert-danger">-£63.27</td></tr><tr><td>4</td> <td>£929.91</td> <td>£77.49</td> <td class="alert-danger">-£58.72</td></tr><tr><td>5</td> <td>£988.35</td> <td>£82.36</td> <td class="alert-danger">-£53.85</td></tr><tr><td>6</td> <td>£1,050.85</td> <td>£87.57</td> <td class="alert-danger">-£48.64</td></tr><tr><td>7</td> <td>£1,117.69</td> <td>£93.14</td> <td class="alert-danger">-£43.07</td></tr><tr><td>8</td> <td>£1,189.19</td> <td>£99.10</td> <td class="alert-danger">-£37.11</td></tr><tr><td>9</td> <td>£1,265.69</td> <td>£105.47</td> <td class="alert-danger">-£30.74</td></tr><tr><td>10</td> <td>£1,347.54</td> <td>£112.30</td> <td class="alert-danger">-£23.91</td></tr></tbody></table>
     </MoreInfoModal>
 
     <MoreInfoModal ref="leaseMoreInfo" title="Lease">
         <video src="https://media.projectbetterenergy.com/projectsolaruk/hometree2.mp4" class="w-full" controls="" poster="/img/hometree-lease-video.jpg"></video>
+        <table class="table table-bordered table-striped mb-0"><thead><tr><th>Yr</th> <th>Acc. grand total</th> <th>Savings</th> <th>Potential monthly repayment diff.</th></tr></thead> <tbody><tr><td>1</td> <td>£776.25</td> <td>£64.69</td> <td class="alert-danger">-£71.52</td></tr><tr><td>2</td> <td>£824.10</td> <td>£68.68</td> <td class="alert-danger">-£67.53</td></tr><tr><td>3</td> <td>£875.25</td> <td>£72.94</td> <td class="alert-danger">-£63.27</td></tr><tr><td>4</td> <td>£929.91</td> <td>£77.49</td> <td class="alert-danger">-£58.72</td></tr><tr><td>5</td> <td>£988.35</td> <td>£82.36</td> <td class="alert-danger">-£53.85</td></tr><tr><td>6</td> <td>£1,050.85</td> <td>£87.57</td> <td class="alert-danger">-£48.64</td></tr><tr><td>7</td> <td>£1,117.69</td> <td>£93.14</td> <td class="alert-danger">-£43.07</td></tr><tr><td>8</td> <td>£1,189.19</td> <td>£99.10</td> <td class="alert-danger">-£37.11</td></tr><tr><td>9</td> <td>£1,265.69</td> <td>£105.47</td> <td class="alert-danger">-£30.74</td></tr><tr><td>10</td> <td>£1,347.54</td> <td>£112.30</td> <td class="alert-danger">-£23.91</td></tr></tbody></table>
     </MoreInfoModal>
 
     <div class="p-4">
@@ -179,7 +184,7 @@ function survey()
                         <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14">
                             <h3 class="text-4xl font-semibold text-blue-800">Cash</h3>
                             <p class="mt-6 flex items-baseline gap-x-1">
-                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(parentModel.total_cost) }}</span>
+                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(totalCost) }}</span>
                             </p>
 
                             <div class="mt-8 h-10">
@@ -217,8 +222,19 @@ function survey()
                         <!-- Finance -->
                         <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14">
                             <h3 class="text-4xl font-semibold text-blue-800">Finance</h3>
-                            <p class="mt-6 flex items-baseline gap-x-1">
-                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(lowestFinanceMonthlyRepayment) }}</span>
+
+                            <p class="mt-6 flex items-baseline gap-x-1 relative">
+                                <span v-if="selectedFinanceOffer && selectedFinanceOffer?.id === lowestFinanceOffer?.id"
+                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                    FROM ONLY
+                                </span>
+
+                                <span v-else-if="selectedFinanceOffer"
+                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                                    YOU PAY
+                                </span>
+
+                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedFinanceOffer?.monthly_payment ?? 0) }}</span>
                                 <span class="text-sm/6 font-semibold text-gray-600">/month</span>
                             </p>
 
@@ -228,9 +244,9 @@ function survey()
                                 </div>
 
                                 <select v-if="financeOffers.length > 0"
-                                        v-model="selectedFinanceOffer.id"
+                                        v-model="selectedFinanceOffer"
                                         class="w-full rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                    <option v-for="offer in financeOffers" :key="offer.id" :value="offer.id">
+                                    <option v-for="offer in financeOffers" :key="offer.id" :value="offer">
                                         {{ offer.name }}
                                     </option>
                                 </select>
@@ -269,7 +285,17 @@ function survey()
                         <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14">
                             <h3 class="text-4xl font-semibold text-blue-800">Lease</h3>
                             <p class="mt-6 flex items-baseline gap-x-1">
-                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(lowestLeaseMonthlyRepayment) }}</span>
+                                <span v-if="selectedLeaseOffer && selectedLeaseOffer?.id === lowestLeaseOffer?.id"
+                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
+                                    FROM ONLY
+                                </span>
+
+                                <span v-else-if="selectedLeaseOffer"
+                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
+                                    YOU PAY
+                                </span>
+
+                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedLeaseOffer?.monthly_payment ?? 0) }}</span>
                                 <span class="text-sm/6 font-semibold text-gray-600">/month</span>
                             </p>
 
@@ -279,9 +305,9 @@ function survey()
                                 </div>
 
                                 <select v-if="leaseOffers.length > 0"
-                                        v-model="selectedLeaseOffer.id"
+                                        v-model="selectedLeaseOffer"
                                         class="w-full rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                    <option v-for="offer in financeOffers" :key="offer.id" :value="offer.id">
+                                    <option v-for="offer in financeOffers" :key="offer.id" :value="offer">
                                         {{ offer.name }}
                                     </option>
                                 </select>

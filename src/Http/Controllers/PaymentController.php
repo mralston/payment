@@ -2,6 +2,7 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
+use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
@@ -38,14 +39,38 @@ class PaymentController
             ->withViewData($this->helper->getViewData());
     }
 
-    public function choosePaymentOption(int $parent)
+    public function options(int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        return Inertia::render('Payment/ChoosePaymentOption', [
+        $this->setDefaultDeposit($parentModel);
+
+        return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
             'survey' => $parentModel->paymentSurvey,
             'customers' => $this->helper->getCustomers(),
+            'totalCost' => $this->helper->getTotalCost(),
+            'deposit' => $this->helper->getDeposit(),
         ])->withViewData($this->helper->getViewData());
+    }
+
+    private function setDefaultDeposit(PaymentParentModel $parentModel)
+    {
+        if (empty($this->helper->getDeposit()) && !empty(config('payment.deposit'))) {
+
+            if (Str::of(config('payment.deposit'))->endsWith('%')) {
+                // Calculate deposit as percentage of total
+                $percentage = Str::of(config('payment.deposit'))->beforeLast('%')->__toString();
+                $deposit = floatval($percentage) / 100 * $this->helper->getTotalCost();
+
+
+            } else {
+                // Standard numeric deposit values
+                $deposit = config('payment.deposit');
+            }
+
+            // Set the deposit
+            return $this->helper->setDeposit($deposit);
+        }
     }
 }

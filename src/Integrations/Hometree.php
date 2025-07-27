@@ -4,11 +4,13 @@ namespace Mralston\Payment\Integrations;
 
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Str;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Events\OffersReceived;
 use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
+use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\PaymentSurvey;
 
@@ -43,95 +45,78 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
     public function createApplication(
         PaymentSurvey $survey,
     ) {
-        $quote = $application->quote;
-        $systemSavings = $quote->system_savings->show;
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($survey->parentable);
+
+        $firstCustomer = $survey->customers->first();
+        $firstAddress = $survey->addresses->first();
 
         $payload = [
             'customer' => [
-                'first_name' => $application->first_name,
-                'middle_name' => $application->middle_name,
-                'last_name' => $application->last_name,
+                'first_name' => $firstCustomer['firstName'],
+                'middle_name' => $firstCustomer['middleName'],
+                'last_name' => $firstCustomer['lastName'],
             ],
             'address' => [
-                'udprn' => $application->addresses->first()->udprn,
+                'udprn' => $firstAddress['udprn'],
             ],
             'order' => [
-                'lines' => $quote->basket
-                    ->items
-                    ->reject(function ($item) {
-                        return $item->option_id == Option::NO || $item->quantity == 0;
-                    })
-                    ->reject(function ($item) {
-                        return empty($item->option->sku ?? $item->tool->sku);
-                    })
-                    ->values()
-                    ->map(function ($item) {
-                        return [
-                            'product' => [
-                                'id' => $item->option->sku ?? $item->tool->sku,
-                            ],
-                            'quantity' => $item->quantity,
-                            'details' => [
-                                'warranty' => min($item->option->warranty_period ?? $item->tool->warranty_period, 25),
-                                'grid_backup' => false,
-                            ]
-                        ];
-                    })->toArray(),
+                'lines' => $helper->getBasketItems(),
                 'details' => [
                     'immersion_diverter' => false,
-                    'bird_blocker' => $quote->basket->contains(Tool::byIdentifier(ProductEnum::BIRD_PROTECTION)) ? true : false,
-                    'scaffold' => $quote->basket->contains(Tool::byIdentifier(ProductEnum::ACCESS_EQUIP)) ? true : false,
-                    'generation_year_1' => round($quote->sem ?? 0, 0),
-                    'savings_year_1_solar' => round($systemSavings['total']['solar_panels'] ?? 0, 0),
-                    'savings_year_1_ess' => round($systemSavings['total']['battery_storage'] ?? 0, 0),
+                    'bird_blocker' => $helper->hasFeature('bird_blocker'),
+                    'scaffold' => $helper->hasFeature('scaffold'),
+                    'generation_year_1' => $helper->getGeneration(),
+                    'savings_year_1_solar' => $helper->getSolarSavings(),
+                    'savings_year_1_ess' => $helper->getBatterySavings(),
                 ],
                 'price' => [
-                    'net_value' => $quote->basket->net,
-                    'vat' => $quote->basket->vat_rate,
-                    'vat_value' => $quote->basket->vat,
+                    'net_value' => $helper->getNet(),
+                    'vat' => $helper->getVatRate(),
+                    'vat_value' => $helper->getVat(),
                 ]
             ],
-            'applicants' => $application
-                ->additionalCustomers
-                ->map(function ($customer) use ($application) {
-                    return [
-                        'first_name' => $customer->firstName,
-                        'middle_name' => $customer->middleName,
-                        'last_name' => $customer->lastName,
-                        'email' => $customer->email,
-                        'mobile_phone_number' => $customer->phone,
-                        'dob' => $customer->dateOfBirth,
-                        'address' => [
-                            'udprn' => $application->addresses->first()->udprn,
-                        ],
-                        'previous_address' => $application->addresses
-                            ->skip(1)
-                            ->values()
-                            ->map(function ($address) {
-                                return [
-                                    'udprn' => $address->udprn,
-                                ];
-                            }),
-                        'affordability' => [
-                            'gross_annual_income' => $customer->grossAnnualIncome,
-                            'dependants' => $customer->dependants,
-                            'employment_status' => $customer->employmentStatus,
-                        ]
-                    ];
-                }),
-            'reference' => $quote->id,
+//            'applicants' => $survey->customers
+//                ->map(function ($customer) use ($survey, $firstAddress) {
+//                    return [
+//                        'first_name' => $customer['firstName'],
+//                        'middle_name' => $customer['middleName'],
+//                        'last_name' => $customer['lastName'],
+//                        'email' => $customer['email'],
+//                        'mobile_phone_number' => $customer['phone'],
+//                        'dob' => $customer['dateOfBirth'],
+//                        'address' => [
+//                            'udprn' => $firstAddress['udprn'],
+//                        ],
+//                        'previous_address' => $survey->addresses
+//                            ->map(function ($address) {
+//                                return [
+//                                    'udprn' => $address['udprn'],
+//                                ];
+//                            })->toArray(),
+//                        'affordability' => [
+//                            'gross_annual_income' => $customer['grossAnnualIncome'],
+//                            'dependants' => $customer['dependants'],
+//                            'employment_status' => $customer['employmentStatus'],
+//                        ]
+//                    ];
+//                }),
+            'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
+
+        dump(json_encode($payload));
 
 //        dd(json_encode($payload, JSON_PRETTY_PRINT));
 
         try {
             $response = Http::baseUrl($this->endpoint)
-                ->withToken($this->key)
-                ->post('/applications', $payload)
+                ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+                ->withToken($this->key, 'Token')
+                ->post('/applications/', $payload)
                 ->throw()
                 ->json();
         } catch (\Throwable $ex) {
-            Log::error('Failed to retrieve products from API.');
+            Log::error('Failed to creat application on Hometree API.');
             Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
             Log::error('URL: ' . $this->endpoint . '/applications');
             throw $ex;

@@ -17,6 +17,8 @@ return [
     // A helper class, provided by the parent application, which the Payment package can use to interface with the parent
     'helper' => env('PAYMENT_HELPER', null),
 
+    'deposit' => env('PAYMENT_DEPOSIT', 0),
+
     /*
     |--------------------------------------------------------------------------
     | Tandem Finance
@@ -56,6 +58,7 @@ return [
 
     'hometree' => [
         'api_key' => env('HOMETREE_API_KEY'),
+        'client_id' => env('HOMETREE_CLIENT_ID'),
         'endpoint' => env('HOMETREE_ENDPOINT', config('app.env')),
     ],
 

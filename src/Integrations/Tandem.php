@@ -21,7 +21,9 @@ use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Events\OffersReceived;
 use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
+use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
 class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
@@ -603,10 +605,48 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
     public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData
     {
         dispatch(function () use ($survey) {
-            //sleep(5); // Fake a delay during development
+            $helper = app(PaymentHelper::class)
+                ->setParentModel($survey->parentable);
 
-//            $response = $this->financeProducts();
-            $offers = collect(); // Mock for actual functionality
+            $amount = $helper->getTotalCost() - $helper->getDeposit();
+
+            $paymentProvider = PaymentProvider::byIdentifier('tandem');
+
+            // See if there are already offers
+            $offers = $survey->paymentOffers()
+                ->where('payment_provider_id', $paymentProvider->id)
+                ->where('amount', $amount)
+                ->get();
+
+
+            // If there aren't any offers...
+            if ($offers->isEmpty()) {
+
+                // TODO: Use Tandem's /financeProducts API endpoint - $this->financeProducts()
+
+                // Fetch products available from lender
+                $products = $paymentProvider->paymentProducts;
+
+                // Store products to offers
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount) {
+                    return $survey->paymentOffers()
+                        ->create([
+                            'name' => $product->name,
+                            'type' => 'finance',
+                            'amount' => $amount,
+                            'payment_provider_id' => $paymentProvider->id,
+                            'apr' => $product->apr,
+                            'term' => $product->term,
+                            'deferred' => $product->deferred,
+                            'priority' => $product->sort_order, // TODO: Reverse these
+                            // TODO: calculate payments
+                            'first_payment' => 0,
+                            'monthly_payment' => 0,
+                            'final_payment' => 0,
+                            'status' => 'final',
+                        ]);
+                });
+            }
 
             event(new OffersReceived(
                 gateway: static::class,
@@ -617,7 +657,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
         return new PrequalPromiseData(
             gateway: static::class,
-            survey: $survey,
+            survey: $survey
         );
     }
 }
