@@ -2,6 +2,7 @@
 
 namespace Mralston\Payment\Events;
 
+use Exception;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
@@ -13,20 +14,23 @@ use Mralston\Payment\Data\OfferData;
 use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Models\PaymentSurvey;
 
-class OffersReceived implements ShouldBroadcast
+class PrequalError implements ShouldBroadcast
 {
     use InteractsWithQueue;
     use SerializesModels;
 
     /**
      * @param string $gateway
-     * @param int $surveyId
+     * @param PaymentSurvey $survey
      * @param Collection<OfferData> $offers
      */
     public function __construct(
         public string $gateway,
+        public string $type,
         public int $surveyId,
-        public Collection $offers,
+        public ?int $errorCode = null,
+        public ?string $errorMessage = null,
+        public ?string $response = null,
     ) {
         //
     }

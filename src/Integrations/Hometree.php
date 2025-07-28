@@ -8,6 +8,7 @@ use Illuminate\Support\Str;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Events\OffersReceived;
+use Mralston\Payment\Events\PrequalError;
 use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
@@ -54,7 +55,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         $payload = [
             'customer' => [
                 'first_name' => $firstCustomer['firstName'],
-                'middle_name' => $firstCustomer['middleName'],
+                'middle_name' => $firstCustomer['middleName'] ?? '',
                 'last_name' => $firstCustomer['lastName'],
             ],
             'address' => [
@@ -66,9 +67,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                     'immersion_diverter' => false,
                     'bird_blocker' => $helper->hasFeature('bird_blocker'),
                     'scaffold' => $helper->hasFeature('scaffold'),
-                    'generation_year_1' => $helper->getGeneration(),
-                    'savings_year_1_solar' => $helper->getSolarSavings(),
-                    'savings_year_1_ess' => $helper->getBatterySavings(),
+                    'generation_month_12_kwh' => $helper->getGeneration(),
+                    'savings_month_12_solar_gross' => $helper->getSolarSavings(),
+                    'savings_month_12_ess_gross' => $helper->getBatterySavings(),
                 ],
                 'price' => [
                     'net_value' => $helper->getNet(),
@@ -80,7 +81,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 //                ->map(function ($customer) use ($survey, $firstAddress) {
 //                    return [
 //                        'first_name' => $customer['firstName'],
-//                        'middle_name' => $customer['middleName'],
+//                        'middle_name' => $customer['middleName'] ?? '',
 //                        'last_name' => $customer['lastName'],
 //                        'email' => $customer['email'],
 //                        'mobile_phone_number' => $customer['phone'],
@@ -106,29 +107,29 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
         dump(json_encode($payload));
 
+
 //        dd(json_encode($payload, JSON_PRETTY_PRINT));
 
-        try {
+//        try {
             $response = Http::baseUrl($this->endpoint)
                 ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
                 ->withToken($this->key, 'Token')
-                ->post('/applications/', $payload)
+                ->post('/applications', $payload)
                 ->throw()
                 ->json();
-        } catch (\Throwable $ex) {
-            Log::error('Failed to creat application on Hometree API.');
-            Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-            Log::error('URL: ' . $this->endpoint . '/applications');
-            throw $ex;
-        }
+//        } catch (\Throwable $ex) {
+//            Log::error('Failed to creat application on Hometree API.');
+//            Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+//            Log::error($ex->response->body());
+//            Log::error('URL: ' . $this->endpoint . '/applications');
+//            throw $ex;
+//        }
 
         return $response;
     }
 
     public function getProducts(): array
     {
-        // TODO: Clarify API docs - is GET /products fetching loan products or solar panels, batteries, etc
-
         try {
             $response = Http::baseUrl($this->endpoint)
                 ->withToken($this->key)
@@ -150,20 +151,34 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         dispatch(function () use ($survey) {
             //sleep(5); // Fake a delay during development
 
-//            $response = $this->createApplication($survey);
-            $offers = collect(); // Mock for actual functionality
+            try {
+                $response = $this->createApplication($survey);
 
 
-            event(new OffersReceived(
-                gateway: static::class,
-                survey: $survey,
-                offers: $offers,
-            ));
+                $offers = collect(); // Mock for actual functionality
+
+
+                event(new OffersReceived(
+                    gateway: static::class,
+                    surveyId: $survey->id,
+                    offers: $offers,
+                ));
+            } catch (\Throwable $ex) {
+                // Broadcast an error event
+                event(new PrequalError(
+                    gateway: static::class,
+                    type: 'lease',
+                    surveyId: $survey->id,
+                    errorCode: $ex->getCode(),
+                    errorMessage: $ex->getMessage(),
+                    response: (string)$ex->response?->getBody(),
+                ));
+            }
         });
 
         return new PrequalPromiseData(
             gateway: static::class,
-            survey: $survey
+            surveyId: $survey->id,
         );
     }
 

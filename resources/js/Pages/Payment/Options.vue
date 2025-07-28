@@ -1,11 +1,12 @@
 <script setup>
 import {Head, router} from "@inertiajs/vue3";
-import {computed, onMounted, ref, watch} from "vue";
+import {computed, onMounted, reactive, ref, watch} from "vue";
 import axios from "axios";
 import { ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { useEcho } from '@laravel/echo-vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
-import {CheckCircleIcon} from "@heroicons/vue/20/solid/index.js";
+import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+// import {ExclamationTriangleIcon} from "@heroicons/vue/24/outline";
 import MoreInfoModal from "../../Components/MoreInfoModal.vue";
 
 import CashInfo from "../Cash/Create.vue";
@@ -25,6 +26,11 @@ const leaseMoreInfo = ref(null);
 const prequalRunning = ref(false);
 
 const pendingGateways = ref([]);
+
+const gatewayErrors = reactive({
+    finance: null,
+    lease: null,
+});
 
 const offers = ref([]);
 
@@ -107,13 +113,28 @@ useEcho(
             offers.value.push(offer);
         }
     }
-)
+);
+
+useEcho(
+    `offers.${props.survey.id}`,
+    'PrequalError',
+    (e) => {
+        // Remove gateways that have replied from the pendingGateways array
+        pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise === e.gateway);
+
+        // Store the error
+        gatewayErrors[e.type] = e;
+        console.log(e);
+    }
+);
 
 function initiatePrequal()
 {
     offers.value = [];
     selectedFinanceOffer.value = null;
     selectedLeaseOffer.value = null;
+    gatewayErrors.finance = null;
+    gatewayErrors.lease = null;
 
     axios.post(route('payment.prequal', {parent: props.parentModel}))
         .then(response => {
@@ -137,6 +158,11 @@ function proceed(paymentType) {
 function survey()
 {
     router.get(route('payment.surveys.create', {parent: props.parentModel}));
+}
+
+function showAlert(message)
+{
+    alert(message);
 }
 
 </script>
@@ -250,6 +276,10 @@ function survey()
                                         {{ offer.name }}
                                     </option>
                                 </select>
+
+                                <div v-if="gatewayErrors.finance" class="text-center">
+                                    <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showAlert(gatewayErrors.lease.response)"/>
+                                </div>
                             </div>
 
 
@@ -311,6 +341,10 @@ function survey()
                                         {{ offer.name }}
                                     </option>
                                 </select>
+
+                                <div v-if="gatewayErrors.lease" class="text-center">
+                                    <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showAlert(gatewayErrors.lease.response)"/>
+                                </div>
                             </div>
 
                             <button @click="proceed('lease')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">

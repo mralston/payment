@@ -56,7 +56,7 @@ function removeAddress(index) {
 
 function submit()
 {
-    if (props.fpaymentSurvey === undefined) {
+    if (props.paymentSurvey === undefined) {
         return form.submit(
             'post',
             route(

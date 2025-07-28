@@ -650,14 +650,14 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
             event(new OffersReceived(
                 gateway: static::class,
-                survey: $survey,
+                surveyId: $survey->id,
                 offers: $offers,
             ));
         });
 
         return new PrequalPromiseData(
             gateway: static::class,
-            survey: $survey
+            surveyId: $survey->id,
         );
     }
 }
