@@ -24,5 +24,18 @@ class PaymentOffer extends Model
         'preapproval_id',
         'priority',
         'provider_foreign_id',
+        'small_print',
     ];
+
+    protected $hidden = [
+        'minimum_payments',
+        'small_print',
+    ];
+
+    public function casts(): array
+    {
+        return [
+            'minimum_payments' => 'collection',
+        ];
+    }
 }

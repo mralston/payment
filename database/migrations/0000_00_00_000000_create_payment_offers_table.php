@@ -29,6 +29,7 @@ return new class extends Migration
             $table->string('preapproval_id')->nullable();
             $table->integer('priority')->nullable();
             $table->string('provider_foreign_id')->nullable();
+            $table->string('small_print', 1000)->nullable();
             $table->timestamps();
         });
     }

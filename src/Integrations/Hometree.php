@@ -2,8 +2,10 @@
 
 namespace Mralston\Payment\Integrations;
 
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Data\Offers;
@@ -13,6 +15,7 @@ use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
 class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
@@ -45,7 +48,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
     public function createApplication(
         PaymentSurvey $survey,
-    ) {
+    ): array {
         $helper = app(PaymentHelper::class)
             ->setParentModel($survey->parentable);
 
@@ -67,9 +70,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                     'immersion_diverter' => false,
                     'bird_blocker' => $helper->hasFeature('bird_blocker'),
                     'scaffold' => $helper->hasFeature('scaffold'),
-                    'generation_month_12_kwh' => $helper->getGeneration(),
-                    'savings_month_12_solar_gross' => $helper->getSolarSavings(),
-                    'savings_month_12_ess_gross' => $helper->getBatterySavings(),
+                    'generation_month_12_kwh' => $helper->getSem(),
+                    'savings_month_12_solar_gross' => $helper->getSolarSavingsYear1(),
+                    'savings_month_12_ess_gross' => $helper->getBatterySavingsYear1(),
                 ],
                 'price' => [
                     'net_value' => $helper->getNet(),
@@ -149,31 +152,84 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
     public function prequal(PaymentSurvey $survey): PrequalPromiseData
     {
         dispatch(function () use ($survey) {
-            //sleep(5); // Fake a delay during development
+            $helper = app(PaymentHelper::class)
+                ->setParentModel($survey->parentable);
 
-            try {
-                $response = $this->createApplication($survey);
+            $amount = $helper->getTotalCost() - $helper->getDeposit();
 
+            $paymentProvider = PaymentProvider::byIdentifier('hometree');
 
-                $offers = collect(); // Mock for actual functionality
+            // See if there are already offers
+            $offers = $survey->paymentOffers()
+                ->where('payment_provider_id', $paymentProvider->id)
+                ->where('amount', $amount)
+                ->get();
 
-
-                event(new OffersReceived(
-                    gateway: static::class,
-                    surveyId: $survey->id,
-                    offers: $offers,
-                ));
-            } catch (\Throwable $ex) {
-                // Broadcast an error event
-                event(new PrequalError(
-                    gateway: static::class,
-                    type: 'lease',
-                    surveyId: $survey->id,
-                    errorCode: $ex->getCode(),
-                    errorMessage: $ex->getMessage(),
-                    response: (string)$ex->response?->getBody(),
-                ));
+            if (!$offers->isEmpty()) {
+                Log::debug('Returning stored offers for Hometree.');
             }
+
+            // If there aren't any offers...
+            if ($offers->isEmpty()) {
+                Log::debug('No stored offers found for Hometree. Querying API...');
+                try {
+                    $response = $this->createApplication($survey);
+
+                    $offers = collect($response['offers'])
+                        ->map(function ($offer) use ($survey, $paymentProvider, $amount, $response) {
+                            $data = [
+                                'name' => $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years'
+                                    . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' deposit)' : ''),
+                                'type' => 'lease',
+                                'amount' => $amount,
+                                'payment_provider_id' => $paymentProvider->id,
+                                'term' => $offer['params']['term'],
+                                'priority' => $offer['rank'],
+                                'first_payment' => $offer['params']['upfront_payment_gross'],
+                                'monthly_payment' => $offer['params']['monthly_payment_gross'],
+                                'final_payment' => $offer['params']['monthly_payment_gross'],
+                                'minimum_payments' => $offer['params']['min_payments_gross'],
+                                'provider_foreign_id' => $offer['id'],
+                                'status' => $offer['status'],
+                                'preapproval_id' => $offer['preapproval_id'],
+                                'small_print' => $offer['params']['small_print'],
+                            ];
+
+                            Log::debug('Hometree offer:', $data);
+
+                            return $survey->paymentOffers()
+                                ->create($data);
+                        });
+                } catch (RequestException $ex) {
+                    event(new PrequalError(
+                        gateway: static::class,
+                        type: 'lease',
+                        surveyId: $survey->id,
+                        errorCode: $ex->getCode(),
+                        errorMessage: $ex->getMessage(),
+                        response: (string)$ex->response?->getBody(),
+                    ));
+                } catch (\Throwable $ex) {
+                    event(new PrequalError(
+                        gateway: static::class,
+                        type: 'lease',
+                        surveyId: $survey->id,
+                        errorCode: $ex->getCode(),
+                        errorMessage: $ex->getMessage(),
+                    ));
+                }
+            }
+
+            Log::debug('offers size:', [strlen($offers->toJson())]);
+
+            // Broadcast the offers
+            event(new OffersReceived(
+                gateway: static::class,
+                surveyId: $survey->id,
+                offers: $offers,
+            ));
+
+
         });
 
         return new PrequalPromiseData(

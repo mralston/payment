@@ -6,7 +6,6 @@ import { ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { useEcho } from '@laravel/echo-vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
-// import {ExclamationTriangleIcon} from "@heroicons/vue/24/outline";
 import MoreInfoModal from "../../Components/MoreInfoModal.vue";
 
 import CashInfo from "../Cash/Create.vue";
@@ -17,11 +16,20 @@ const props = defineProps({
     customers: Array,
     totalCost: Number,
     deposit: Number,
+    prequalOnLoad: {
+        type: Boolean,
+        default: false,
+    },
+    showManualPrequalButton: {
+        type: Boolean,
+        default: true,
+    }
 });
 
-const cashMoreInfo = ref(null);
-const financeMoreInfo = ref(null);
-const leaseMoreInfo = ref(null);
+const cashMoreInfoModal = ref(null);
+const financeMoreInfoModal = ref(null);
+const leaseMoreInfoModal = ref(null);
+const prequalErrorsModal = ref(null);
 
 const prequalRunning = ref(false);
 
@@ -31,6 +39,8 @@ const gatewayErrors = reactive({
     finance: null,
     lease: null,
 });
+
+const currentErrorsToDisplay = ref([]);
 
 const offers = ref([]);
 
@@ -78,7 +88,9 @@ const selectedFinanceOffer = ref(null);
 const selectedLeaseOffer = ref(null);
 
 onMounted(() => {
-    initiatePrequal();
+    if (props.prequalOnLoad) {
+        initiatePrequal();
+    }
 });
 
 watch(pendingGateways, () => {
@@ -165,6 +177,35 @@ function showAlert(message)
     alert(message);
 }
 
+const parseGatewayErrors = computed(() => (gatewayType) => {
+    const errorData = gatewayErrors[gatewayType]?.response;
+
+    if (!errorData) {
+        return [gatewayErrors[gatewayType]?.errorMessage ?? 'There was a problem with the prequalification process.'];
+    }
+
+    try {
+        const errors = JSON.parse(errorData);
+        let messages = [];
+        for (const key in errors) {
+            if (Object.hasOwnProperty.call(errors, key)) {
+                messages = messages.concat(errors[key]);
+            }
+        }
+        return messages;
+    } catch (e) {
+        console.error(`Error parsing JSON string for ${gatewayType}:`, e);
+        return [`An error occurred while processing ${gatewayType} messages.`];
+    }
+});
+
+function showPrequalErrorsModal(gatewayType) {
+    currentErrorsToDisplay.value = parseGatewayErrors.value(gatewayType);
+    prequalErrorsModal.value.show();
+}
+
+
+
 </script>
 
 <template>
@@ -173,23 +214,36 @@ function showAlert(message)
         <title>Payment Options</title>
     </Head>
 
-    <MoreInfoModal ref="cashMoreInfo" title="Cash">
+    <MoreInfoModal ref="cashMoreInfoModal" title="Cash">
         <CashInfo :totalCost="totalCost" :deposit="deposit" :minimal="true" />
     </MoreInfoModal>
 
-    <MoreInfoModal ref="financeMoreInfo" title="Finance">
+    <MoreInfoModal ref="financeMoreInfoModal" title="Finance">
         <table class="table table-bordered table-striped mb-0"><thead><tr><th>Yr</th> <th>Acc. grand total</th> <th>Savings</th> <th>Potential monthly repayment diff.</th></tr></thead> <tbody><tr><td>1</td> <td>£776.25</td> <td>£64.69</td> <td class="alert-danger">-£71.52</td></tr><tr><td>2</td> <td>£824.10</td> <td>£68.68</td> <td class="alert-danger">-£67.53</td></tr><tr><td>3</td> <td>£875.25</td> <td>£72.94</td> <td class="alert-danger">-£63.27</td></tr><tr><td>4</td> <td>£929.91</td> <td>£77.49</td> <td class="alert-danger">-£58.72</td></tr><tr><td>5</td> <td>£988.35</td> <td>£82.36</td> <td class="alert-danger">-£53.85</td></tr><tr><td>6</td> <td>£1,050.85</td> <td>£87.57</td> <td class="alert-danger">-£48.64</td></tr><tr><td>7</td> <td>£1,117.69</td> <td>£93.14</td> <td class="alert-danger">-£43.07</td></tr><tr><td>8</td> <td>£1,189.19</td> <td>£99.10</td> <td class="alert-danger">-£37.11</td></tr><tr><td>9</td> <td>£1,265.69</td> <td>£105.47</td> <td class="alert-danger">-£30.74</td></tr><tr><td>10</td> <td>£1,347.54</td> <td>£112.30</td> <td class="alert-danger">-£23.91</td></tr></tbody></table>
     </MoreInfoModal>
 
-    <MoreInfoModal ref="leaseMoreInfo" title="Lease">
+    <MoreInfoModal ref="leaseMoreInfoModal" title="Lease">
         <video src="https://media.projectbetterenergy.com/projectsolaruk/hometree2.mp4" class="w-full" controls="" poster="/img/hometree-lease-video.jpg"></video>
         <table class="table table-bordered table-striped mb-0"><thead><tr><th>Yr</th> <th>Acc. grand total</th> <th>Savings</th> <th>Potential monthly repayment diff.</th></tr></thead> <tbody><tr><td>1</td> <td>£776.25</td> <td>£64.69</td> <td class="alert-danger">-£71.52</td></tr><tr><td>2</td> <td>£824.10</td> <td>£68.68</td> <td class="alert-danger">-£67.53</td></tr><tr><td>3</td> <td>£875.25</td> <td>£72.94</td> <td class="alert-danger">-£63.27</td></tr><tr><td>4</td> <td>£929.91</td> <td>£77.49</td> <td class="alert-danger">-£58.72</td></tr><tr><td>5</td> <td>£988.35</td> <td>£82.36</td> <td class="alert-danger">-£53.85</td></tr><tr><td>6</td> <td>£1,050.85</td> <td>£87.57</td> <td class="alert-danger">-£48.64</td></tr><tr><td>7</td> <td>£1,117.69</td> <td>£93.14</td> <td class="alert-danger">-£43.07</td></tr><tr><td>8</td> <td>£1,189.19</td> <td>£99.10</td> <td class="alert-danger">-£37.11</td></tr><tr><td>9</td> <td>£1,265.69</td> <td>£105.47</td> <td class="alert-danger">-£30.74</td></tr><tr><td>10</td> <td>£1,347.54</td> <td>£112.30</td> <td class="alert-danger">-£23.91</td></tr></tbody></table>
+    </MoreInfoModal>
+
+    <MoreInfoModal ref="prequalErrorsModal" title="Error">
+        <ul class="list-disc text-red-500 mx-6">
+            <li v-for="(error, index) in currentErrorsToDisplay" :key="index">
+                {{ error }}
+            </li>
+        </ul>
     </MoreInfoModal>
 
     <div class="p-4">
 
         <p class="mb-4 float-right">
-            <button @click="initiatePrequal" class="px-4 py-2 rounded bg-white hover:bg-gray-100 text-blue-500 border-2 border-blue-500 border-dashed">
+            <div v-if="!prequalOnLoad" class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
+                <ExclamationTriangleIcon class="text-red-500 h-6 w-6 inline mr-2" aria-hidden="true"/>
+                Auto-Prequal OFF
+            </div>
+
+            <button v-if="showManualPrequalButton" @click="initiatePrequal" class="px-4 py-2 rounded bg-white hover:bg-gray-100 text-blue-500 border-2 border-blue-500 border-dashed">
                 Run Prequal
             </button>
         </p>
@@ -221,7 +275,7 @@ function showAlert(message)
                                 Proceed
                             </button>
 
-                            <button @click="cashMoreInfo.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="cashMoreInfoModal.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 More Info
                             </button>
 
@@ -278,7 +332,7 @@ function showAlert(message)
                                 </select>
 
                                 <div v-if="gatewayErrors.finance" class="text-center">
-                                    <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showAlert(gatewayErrors.lease.response)"/>
+                                    <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showPrequalErrorsModal('finance')"/>
                                 </div>
                             </div>
 
@@ -287,7 +341,7 @@ function showAlert(message)
                                 Proceed
                             </button>
 
-                            <button @click="financeMoreInfo.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="financeMoreInfoModal.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 More Info
                             </button>
 
@@ -337,13 +391,13 @@ function showAlert(message)
                                 <select v-if="leaseOffers.length > 0"
                                         v-model="selectedLeaseOffer"
                                         class="w-full rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                    <option v-for="offer in financeOffers" :key="offer.id" :value="offer">
+                                    <option v-for="offer in leaseOffers" :key="offer.id" :value="offer">
                                         {{ offer.name }}
                                     </option>
                                 </select>
 
                                 <div v-if="gatewayErrors.lease" class="text-center">
-                                    <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showAlert(gatewayErrors.lease.response)"/>
+                                    <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showPrequalErrorsModal('lease')"/>
                                 </div>
                             </div>
 
@@ -351,7 +405,7 @@ function showAlert(message)
                                 Proceed
                             </button>
 
-                            <button @click="leaseMoreInfo.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="leaseMoreInfoModal.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 More Info
                             </button>
 
