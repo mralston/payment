@@ -17,6 +17,10 @@ class PaymentProvider extends Model
         'identifier',
     ];
 
+    protected $casts = [
+        'selling_points' => 'array',
+    ];
+
     public static function byIdentifier(?string $identifier = null): ?PaymentProvider
     {
         return Cache::remember(

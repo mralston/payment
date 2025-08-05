@@ -7,6 +7,7 @@ use Inertia\Inertia;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Services\PrequalService;
 use Mralston\Payment\Traits\BootstrapsPayment;
@@ -51,6 +52,8 @@ class PaymentController
             'customers' => $this->helper->getCustomers(),
             'totalCost' => $this->helper->getTotalCost(),
             'deposit' => $this->helper->getDeposit(),
+            'leaseMoreInfoContent' => $this->helper->getLeaseContent(),
+            'paymentProviders' => PaymentProvider::all(),
         ])->withViewData($this->helper->getViewData());
     }
 

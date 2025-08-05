@@ -192,7 +192,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                                 'provider_foreign_id' => $offer['id'],
                                 'status' => $offer['status'],
                                 'preapproval_id' => $offer['preapproval_id'],
-                                'small_print' => $offer['params']['small_print'],
+                                'small_print' => $offer['params']['disclaimer'],
                             ];
 
                             Log::debug('Hometree offer:', $data);

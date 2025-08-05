@@ -29,6 +29,7 @@ return new class extends Migration
             $table->integer('payment_type_id')->nullable();
             $table->integer('epvs_finance_lender_id')->nullable();
             $table->decimal('max_deposit_percent')->nullable();
+            $table->json('selling_points')->nullable();
             $table->timestamps();
             $table->softDeletes();
         });

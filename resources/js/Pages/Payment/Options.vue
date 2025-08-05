@@ -8,7 +8,12 @@ import {formatCurrency} from "../../Helpers/Currency.js";
 import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
 import MoreInfoModal from "../../Components/MoreInfoModal.vue";
 
-import CashInfo from "../Cash/Create.vue";
+import LeaseMoreInfo from "../../Components/MoreInfo/Lease.vue";
+import FinanceMoreInfo from "../../Components/MoreInfo/Finance.vue";
+import CashMoreInfo from "../../Components/MoreInfo/Cash.vue";
+
+import CashVsFinanceMoreInfo from "../../Components/MoreInfo/CashVsFinance.vue";
+import FinanceVsLeaseMoreInfo from "../../Components/MoreInfo/FinanceVsLease.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -16,20 +21,20 @@ const props = defineProps({
     customers: Array,
     totalCost: Number,
     deposit: Number,
+    leaseMoreInfoContent: String,
+    paymentProviders: Array,
     prequalOnLoad: {
         type: Boolean,
         default: false,
     },
-    showManualPrequalButton: {
-        type: Boolean,
-        default: true,
-    }
 });
 
 const cashMoreInfoModal = ref(null);
 const financeMoreInfoModal = ref(null);
 const leaseMoreInfoModal = ref(null);
 const prequalErrorsModal = ref(null);
+const cashVsFinanceModal = ref(null);
+const financeVsLeaseModal = ref(null);
 
 const prequalRunning = ref(false);
 
@@ -187,6 +192,7 @@ const parseGatewayErrors = computed(() => (gatewayType) => {
     try {
         const errors = JSON.parse(errorData);
         let messages = [];
+
         for (const key in errors) {
             if (Object.hasOwnProperty.call(errors, key)) {
                 messages = messages.concat(errors[key]);
@@ -194,8 +200,25 @@ const parseGatewayErrors = computed(() => (gatewayType) => {
         }
         return messages;
     } catch (e) {
-        console.error(`Error parsing JSON string for ${gatewayType}:`, e);
-        return [`An error occurred while processing ${gatewayType} messages.`];
+        return [
+            errorData,
+        ];
+    }
+});
+
+const selectedFinanceProvider = computed(() => {
+    for (const paymentProvider of props.paymentProviders) {
+        if (paymentProvider.id === selectedFinanceOffer.value?.payment_provider_id) {
+            return paymentProvider;
+        }
+    }
+});
+
+const selectedLeaseProvider = computed(() => {
+    for (const paymentProvider of props.paymentProviders) {
+        if (paymentProvider.id === selectedLeaseOffer.value?.payment_provider_id) {
+            return paymentProvider;
+        }
     }
 });
 
@@ -204,6 +227,15 @@ function showPrequalErrorsModal(gatewayType) {
     prequalErrorsModal.value.show();
 }
 
+function cashVsFinance()
+{
+    cashVsFinanceModal.value.show();
+}
+
+function financeVsLease()
+{
+    financeVsLeaseModal.value.show();
+}
 
 
 </script>
@@ -214,17 +246,24 @@ function showPrequalErrorsModal(gatewayType) {
         <title>Payment Options</title>
     </Head>
 
-    <MoreInfoModal ref="cashMoreInfoModal" title="Cash">
-        <CashInfo :totalCost="totalCost" :deposit="deposit" :minimal="true" />
+    <MoreInfoModal ref="cashMoreInfoModal" title="More Info - Cash">
+        <CashMoreInfo :totalCost="totalCost" :deposit="deposit"/>
     </MoreInfoModal>
 
-    <MoreInfoModal ref="financeMoreInfoModal" title="Finance">
-        <table class="table table-bordered table-striped mb-0"><thead><tr><th>Yr</th> <th>Acc. grand total</th> <th>Savings</th> <th>Potential monthly repayment diff.</th></tr></thead> <tbody><tr><td>1</td> <td>£776.25</td> <td>£64.69</td> <td class="alert-danger">-£71.52</td></tr><tr><td>2</td> <td>£824.10</td> <td>£68.68</td> <td class="alert-danger">-£67.53</td></tr><tr><td>3</td> <td>£875.25</td> <td>£72.94</td> <td class="alert-danger">-£63.27</td></tr><tr><td>4</td> <td>£929.91</td> <td>£77.49</td> <td class="alert-danger">-£58.72</td></tr><tr><td>5</td> <td>£988.35</td> <td>£82.36</td> <td class="alert-danger">-£53.85</td></tr><tr><td>6</td> <td>£1,050.85</td> <td>£87.57</td> <td class="alert-danger">-£48.64</td></tr><tr><td>7</td> <td>£1,117.69</td> <td>£93.14</td> <td class="alert-danger">-£43.07</td></tr><tr><td>8</td> <td>£1,189.19</td> <td>£99.10</td> <td class="alert-danger">-£37.11</td></tr><tr><td>9</td> <td>£1,265.69</td> <td>£105.47</td> <td class="alert-danger">-£30.74</td></tr><tr><td>10</td> <td>£1,347.54</td> <td>£112.30</td> <td class="alert-danger">-£23.91</td></tr></tbody></table>
+    <MoreInfoModal ref="financeMoreInfoModal" title="More Info - Finance">
+        <FinanceMoreInfo/>
     </MoreInfoModal>
 
-    <MoreInfoModal ref="leaseMoreInfoModal" title="Lease">
-        <video src="https://media.projectbetterenergy.com/projectsolaruk/hometree2.mp4" class="w-full" controls="" poster="/img/hometree-lease-video.jpg"></video>
-        <table class="table table-bordered table-striped mb-0"><thead><tr><th>Yr</th> <th>Acc. grand total</th> <th>Savings</th> <th>Potential monthly repayment diff.</th></tr></thead> <tbody><tr><td>1</td> <td>£776.25</td> <td>£64.69</td> <td class="alert-danger">-£71.52</td></tr><tr><td>2</td> <td>£824.10</td> <td>£68.68</td> <td class="alert-danger">-£67.53</td></tr><tr><td>3</td> <td>£875.25</td> <td>£72.94</td> <td class="alert-danger">-£63.27</td></tr><tr><td>4</td> <td>£929.91</td> <td>£77.49</td> <td class="alert-danger">-£58.72</td></tr><tr><td>5</td> <td>£988.35</td> <td>£82.36</td> <td class="alert-danger">-£53.85</td></tr><tr><td>6</td> <td>£1,050.85</td> <td>£87.57</td> <td class="alert-danger">-£48.64</td></tr><tr><td>7</td> <td>£1,117.69</td> <td>£93.14</td> <td class="alert-danger">-£43.07</td></tr><tr><td>8</td> <td>£1,189.19</td> <td>£99.10</td> <td class="alert-danger">-£37.11</td></tr><tr><td>9</td> <td>£1,265.69</td> <td>£105.47</td> <td class="alert-danger">-£30.74</td></tr><tr><td>10</td> <td>£1,347.54</td> <td>£112.30</td> <td class="alert-danger">-£23.91</td></tr></tbody></table>
+    <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
+        <LeaseMoreInfo :content="leaseMoreInfoContent"/>
+    </MoreInfoModal>
+
+    <MoreInfoModal ref="cashVsFinanceModal" title="Cash vs Finance">
+        <CashVsFinanceMoreInfo/>
+    </MoreInfoModal>
+
+    <MoreInfoModal ref="financeVsLeaseModal" title="Finance vs Lease">
+        <FinanceVsLeaseMoreInfo/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="prequalErrorsModal" title="Error">
@@ -237,16 +276,16 @@ function showPrequalErrorsModal(gatewayType) {
 
     <div class="p-4">
 
-        <p class="mb-4 float-right">
-            <div v-if="!prequalOnLoad" class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
+        <div v-if="!prequalOnLoad" class="mb-4 float-right">
+            <div class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
                 <ExclamationTriangleIcon class="text-red-500 h-6 w-6 inline mr-2" aria-hidden="true"/>
                 Auto-Prequal OFF
             </div>
 
-            <button v-if="showManualPrequalButton" @click="initiatePrequal" class="px-4 py-2 rounded bg-white hover:bg-gray-100 text-blue-500 border-2 border-blue-500 border-dashed">
+            <button @click="initiatePrequal" class="px-4 py-2 rounded bg-white hover:bg-gray-100 text-blue-500 border-2 border-blue-500 border-dashed">
                 Run Prequal
             </button>
-        </p>
+        </div>
 
 
         <h1 class="text-4xl font-bold">
@@ -261,7 +300,14 @@ function showPrequalErrorsModal(gatewayType) {
                     <div class="isolate -mt-16 grid max-w-sm grid-cols-1 gap-y-16 divide-y divide-gray-100 sm:mx-auto lg:-mx-8 lg:mt-0 lg:max-w-none lg:grid-cols-3 lg:divide-x lg:divide-y-0 xl:-mx-4">
 
                         <!-- Cash -->
-                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14">
+                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
+
+                            <button class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
+                                    @click="cashVsFinance"
+                                    title="Compare Cash &amp; Finance">
+                                VS
+                            </button>
+
                             <h3 class="text-4xl font-semibold text-blue-800">Cash</h3>
                             <p class="mt-6 flex items-baseline gap-x-1">
                                 <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(totalCost) }}</span>
@@ -280,27 +326,82 @@ function showPrequalErrorsModal(gatewayType) {
                             </button>
 
                             <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Hey moneybags! Pay for it all up front! That's right, you've got all the money in the world.
+                                Cash Purchase Option
                             </p>
 
                             <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
                                 <li class="flex gap-x-3">
                                     <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Expensive up front
+                                    Deposit: 25% upfront (paid upon booking)
                                 </li>
                                 <li class="flex gap-x-3">
                                     <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    No monthly outgoings
+                                    Balance: 75% on satisfactory completion
                                 </li>
                                 <li class="flex gap-x-3">
                                     <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    You own it on day one
+                                    Ownership: Immediate
+                                </li>
+                                <li class="flex gap-x-3">
+                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                    Interest: None
                                 </li>
                             </ul>
+
+                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
+                                Why cash?
+                            </p>
+
+                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
+                                <li class="flex gap-x-3">
+                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                    Lowest overall cost — no interest or fees
+                                </li>
+                                <li class="flex gap-x-3">
+                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                    Full system ownership from day one
+                                </li>
+                                <li class="flex gap-x-3">
+                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                    No finance agreements or credit checks
+                                </li>
+                                <li class="flex gap-x-3">
+                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                    Straightforward and clean transaction
+                                </li>
+                            </ul>
+
+                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
+                                Best for
+                            </p>
+
+                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
+                                <li class="flex gap-x-3">
+                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                    Customers with available savings
+                                </li>
+                                <li class="flex gap-x-3">
+                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                    Those focused on long-term value and maximum ROC
+                                </li>
+                            </ul>
+
                         </div>
 
                         <!-- Finance -->
-                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14">
+                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
+
+                            <img v-if="selectedFinanceProvider?.logo"
+                                 :src="selectedFinanceProvider.logo"
+                                 class="absolute top-0 right-4 max-w-1/3 h-7"
+                                 :alt="selectedFinanceProvider.name">
+
+                            <button class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
+                                    @click="financeVsLease"
+                                    title="Compare Finance &amp; Lease">
+                                VS
+                            </button>
+
                             <h3 class="text-4xl font-semibold text-blue-800">Finance</h3>
 
                             <p class="mt-6 flex items-baseline gap-x-1 relative">
@@ -337,7 +438,9 @@ function showPrequalErrorsModal(gatewayType) {
                             </div>
 
 
-                            <button @click="proceed('finance')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="proceed('finance')"
+                                    :disabled="selectedFinanceOffer === null"
+                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Proceed
                             </button>
 
@@ -345,30 +448,37 @@ function showPrequalErrorsModal(gatewayType) {
                                 More Info
                             </button>
 
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                I'm doing all right, but I think I'd like to pay monthly.
-                            </p>
+                            <div v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="text-center">
+                                <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline mt-10" />
+                            </div>
 
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    The system will be yours...
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    ...when you finish paying
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Probably what I'd go for
-                                </li>
-                            </ul>
+                            <div v-if="selectedFinanceProvider?.selling_points"
+                                 v-for="sellingPoint in selectedFinanceProvider.selling_points"
+                                 :key="sellingPoint.title">
+                                <p class="mt-10 text-sm/6 font-semibold text-gray-900">
+                                    {{ sellingPoint.title }}
+                                </p>
+                                <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
+                                    <li class="flex gap-x-3" v-for="bullet in sellingPoint.bullets" :key="bullet">
+                                        <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                        {{ bullet }}
+                                    </li>
+                                </ul>
+                            </div>
+
                         </div>
 
                         <!-- Lease -->
-                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14">
+                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
+
+                            <img v-if="selectedLeaseProvider?.logo"
+                                 :src="selectedLeaseProvider.logo"
+                                 class="absolute top-0 right-4 max-w-1/3 h-7"
+                                 :alt="selectedLeaseProvider.name">
+
                             <h3 class="text-4xl font-semibold text-blue-800">Lease</h3>
-                            <p class="mt-6 flex items-baseline gap-x-1">
+
+                            <p class="mt-6 flex items-baseline gap-x-1 relative">
                                 <span v-if="selectedLeaseOffer && selectedLeaseOffer?.id === lowestLeaseOffer?.id"
                                       class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
                                     FROM ONLY
@@ -401,7 +511,9 @@ function showPrequalErrorsModal(gatewayType) {
                                 </div>
                             </div>
 
-                            <button @click="proceed('lease')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="proceed('lease')"
+                                    :disabled="selectedFinanceOffer === null"
+                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Proceed
                             </button>
 
@@ -409,24 +521,24 @@ function showPrequalErrorsModal(gatewayType) {
                                 More Info
                             </button>
 
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Woah! Hold on there! I'm not made of money you know.
-                            </p>
+                            <div v-if="pendingGateways.length > 0 && leaseOffers.length === 0" class="text-center">
+                                <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline mt-10" />
+                            </div>
 
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Cheap as chips
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    We'll even give it to you...
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    ...in 25 years time
-                                </li>
-                            </ul>
+                            <div v-if="selectedLeaseProvider?.selling_points"
+                                 v-for="sellingPoint in selectedLeaseProvider.selling_points"
+                                 :key="sellingPoint.title">
+                                <p class="mt-10 text-sm/6 font-semibold text-gray-900">
+                                    {{ sellingPoint.title }}
+                                </p>
+                                <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
+                                    <li class="flex gap-x-3" v-for="bullet in sellingPoint.bullets" :key="bullet">
+                                        <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                        {{ bullet }}
+                                    </li>
+                                </ul>
+                            </div>
+
                         </div>
 
 
