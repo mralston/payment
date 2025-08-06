@@ -165,7 +165,15 @@ function updateOffers(e)
 
     // Add the offers to the dropdown lists
     offerLoop: for (const offer of e.offers) {
-        // If the offer exists, update it
+        // Update the selected offers
+        if (offer.id === selectedFinanceOffer.value?.id) {
+            selectedFinanceOffer.value = offer;
+        }
+        if (offer.id === selectedLeaseOffer.value?.id) {
+            selectedLeaseOffer.value = offer;
+        }
+
+        // If the offer exists in offers array, update it
         for (let i = 0; i < offers.value.length; i++) {
             if (offer.id === offers.value[i].id) {
                 offers.value[i] = offer;
