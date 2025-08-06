@@ -3,12 +3,14 @@
 namespace Mralston\Payment\Models;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 
 class PaymentOffer extends Model
 {
     protected $fillable = [
+        'payment_survey_id',
         'name',
         'type',
         'amount',
@@ -16,6 +18,7 @@ class PaymentOffer extends Model
         'apr',
         'term',
         'deferred',
+        'upfront_payment',
         'first_payment',
         'monthly_payment',
         'final_payment',
@@ -23,7 +26,8 @@ class PaymentOffer extends Model
         'status',
         'preapproval_id',
         'priority',
-        'provider_foreign_id',
+        'provider_application_id',
+        'provider_offer_id',
         'small_print',
     ];
 
@@ -37,5 +41,10 @@ class PaymentOffer extends Model
         return [
             'minimum_payments' => 'collection',
         ];
+    }
+
+    public function paymentProvider(): BelongsTo
+    {
+        return $this->belongsTo(PaymentProvider::class);
     }
 }

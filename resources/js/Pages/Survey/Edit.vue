@@ -46,7 +46,7 @@ function addAddress() {
         town: null,
         county: null,
         postCode: null,
-        timeAtAddress: 0,
+        dateMovedIn: 0,
     });
 }
 
@@ -262,9 +262,9 @@ function skip()
                         <AddressInput v-model:address="form.addresses[index]" :index="index" />
 
                         <div class="mt-4">
-                            <label :for="'timeAtAddress.' + index" class="block text-sm/6 font-medium text-gray-900">Time at address</label>
+                            <label :for="'dateMovedIn.' + index" class="block text-sm/6 font-medium text-gray-900">Date moved in</label>
                             <div class="mt-2">
-                                <input type="number" v-model="address.timeAtAddress" :id="'timeAtAddress.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                <input type="date" v-model="address.dateMovedIn" :id="'dateMovedIn.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </div>
                         </div>
 

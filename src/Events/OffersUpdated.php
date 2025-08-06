@@ -14,7 +14,7 @@ use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentSurvey;
 
-class OffersReceived implements ShouldBroadcast
+class OffersUpdated implements ShouldBroadcast
 {
     use InteractsWithQueue;
     use SerializesModels;

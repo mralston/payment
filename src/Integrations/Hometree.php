@@ -2,6 +2,7 @@
 
 namespace Mralston\Payment\Integrations;
 
+use Exception;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -10,11 +11,13 @@ use Illuminate\Support\Str;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Events\OffersReceived;
+use Mralston\Payment\Events\OffersUpdated;
 use Mralston\Payment\Events\PrequalError;
 use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
@@ -24,6 +27,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
      * Endpoints to be used based on environment.
      *
      * @var array|string[]
+     *
      */
     private array $endpoints = [
         'local' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
@@ -54,6 +58,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
         $firstCustomer = $survey->customers->first();
         $firstAddress = $survey->addresses->first();
+        $previousAddress = $survey->addresses->get(1);
 
         $payload = [
             'customer' => [
@@ -80,53 +85,55 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                     'vat_value' => $helper->getVat(),
                 ]
             ],
-//            'applicants' => $survey->customers
-//                ->map(function ($customer) use ($survey, $firstAddress) {
-//                    return [
-//                        'first_name' => $customer['firstName'],
-//                        'middle_name' => $customer['middleName'] ?? '',
-//                        'last_name' => $customer['lastName'],
-//                        'email' => $customer['email'],
-//                        'mobile_phone_number' => $customer['phone'],
-//                        'dob' => $customer['dateOfBirth'],
-//                        'address' => [
-//                            'udprn' => $firstAddress['udprn'],
-//                        ],
-//                        'previous_address' => $survey->addresses
-//                            ->map(function ($address) {
-//                                return [
-//                                    'udprn' => $address['udprn'],
-//                                ];
-//                            })->toArray(),
-//                        'affordability' => [
-//                            'gross_annual_income' => $customer['grossAnnualIncome'],
-//                            'dependants' => $customer['dependants'],
-//                            'employment_status' => $customer['employmentStatus'],
-//                        ]
-//                    ];
-//                }),
+            'applicants' => $survey->customers
+                ->map(function ($customer) use ($survey, $firstAddress, $previousAddress) {
+                    return [
+                        'first_name' => $customer['firstName'],
+                        'middle_name' => $customer['middleName'] ?? '',
+                        'last_name' => $customer['lastName'],
+                        'email' => $customer['email'],
+                        'mobile_phone_number' => $customer['phone'],
+                        'dob' => $customer['dateOfBirth'],
+                        'address' => [
+                            'udprn' => $firstAddress['udprn'],
+                        ],
+                        ...(
+                            $previousAddress ?
+                                [
+                                    'previous_address' => [
+                                        'udprn' => $previousAddress['udprn']
+                                    ]
+                                ] :
+                                []
+                        ),
+                        'affordability' => [
+                            'gross_annual_income' => $customer['grossAnnualIncome'],
+                            'dependants' => $customer['dependants'],
+                            'employment_status' => $customer['employmentStatus'],
+                        ]
+                    ];
+                }),
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
 
-        dump(json_encode($payload));
+        $response = Http::baseUrl($this->endpoint)
+            ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+            ->withToken($this->key, 'Token')
+            ->post('/applications', $payload)
+            ->throw()
+            ->json();
 
+        return $response;
+    }
 
-//        dd(json_encode($payload, JSON_PRETTY_PRINT));
-
-//        try {
-            $response = Http::baseUrl($this->endpoint)
-                ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
-                ->withToken($this->key, 'Token')
-                ->post('/applications', $payload)
-                ->throw()
-                ->json();
-//        } catch (\Throwable $ex) {
-//            Log::error('Failed to creat application on Hometree API.');
-//            Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-//            Log::error($ex->response->body());
-//            Log::error('URL: ' . $this->endpoint . '/applications');
-//            throw $ex;
-//        }
+    public function getApplication(string $applicationId): array
+    {
+        $response = Http::baseUrl($this->endpoint)
+            ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+            ->withToken($this->key, 'Token')
+            ->get('/applications/' . rawurlencode($applicationId))
+            ->throw()
+            ->json();
 
         return $response;
     }
@@ -160,7 +167,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             $paymentProvider = PaymentProvider::byIdentifier('hometree');
 
             // See if there are already offers
-            $offers = $survey->paymentOffers()
+            $offers = $survey
+                ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
                 ->where('amount', $amount)
                 ->get();
@@ -177,29 +185,30 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
                     $offers = collect($response['offers'])
                         ->map(function ($offer) use ($survey, $paymentProvider, $amount, $response) {
-                            $data = [
+                            return $this->upsertPaymentOffer([
+                                'payment_survey_id' => $survey->id,
                                 'name' => $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years'
-                                    . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' deposit)' : ''),
+                                    . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' : ''),
                                 'type' => 'lease',
                                 'amount' => $amount,
                                 'payment_provider_id' => $paymentProvider->id,
                                 'term' => $offer['params']['term'],
                                 'priority' => $offer['rank'],
-                                'first_payment' => $offer['params']['upfront_payment_gross'],
+                                'upfront_payment' => $offer['params']['upfront_payment_gross'] ?? 0,
+                                'first_payment' => $offer['params']['min_payments_gross'][0] ?? 0,
                                 'monthly_payment' => $offer['params']['monthly_payment_gross'],
                                 'final_payment' => $offer['params']['monthly_payment_gross'],
                                 'minimum_payments' => $offer['params']['min_payments_gross'],
-                                'provider_foreign_id' => $offer['id'],
+                                'provider_application_id' => $response['id'],
+                                'provider_offer_id' => $offer['id'],
                                 'status' => $offer['status'],
                                 'preapproval_id' => $offer['preapproval_id'],
                                 'small_print' => $offer['params']['disclaimer'],
-                            ];
-
-                            Log::debug('Hometree offer:', $data);
-
-                            return $survey->paymentOffers()
-                                ->create($data);
+                            ]);
                         });
+
+                    $this->pollForUpdates($survey, $response['id'], 3);
+
                 } catch (RequestException $ex) {
                     event(new PrequalError(
                         gateway: static::class,
@@ -220,7 +229,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 }
             }
 
-            Log::debug('offers size:', [strlen($offers->toJson())]);
+//            Log::debug('offers size:', [strlen($offers->toJson())]);
+
+//            Log::debug('offers:', $offers->toArray());
 
             // Broadcast the offers
             event(new OffersReceived(
@@ -236,6 +247,119 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             gateway: static::class,
             surveyId: $survey->id,
         );
+    }
+
+    protected function pollForUpdates(
+        PaymentSurvey $survey,
+        string $applicationId,
+        int $every = 10,
+        int $for = 60,
+        ?int $delay = null
+    ): void {
+
+        Log::debug('Will poll for Hometree updates...', [$survey->id, $applicationId, $every, $for, $delay]);
+
+        $surveyId = $survey->id;
+
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($survey->parentable);
+
+        $amount = $helper->getTotalCost() - $helper->getDeposit();
+
+        $paymentProviderId = PaymentProvider::byIdentifier('hometree')->id;
+
+        dispatch(function () use ($surveyId, $applicationId, $amount, $paymentProviderId, $every, $for) {
+
+            Log::debug('Polling for Hometree updates...', [$surveyId, $applicationId, $every, $for]);
+
+            $startTime = now();
+
+            while (now()->diffInSeconds($startTime) < $for) {
+                $response = $this->getApplication($applicationId);
+//                Log::debug('Hometree poll response:', collect($response)->except(['offers.params.min_payments_gross', 'offers.params.disclaimer'])->toArray());
+
+                $offers = collect($response['offers'])
+                    ->map(function ($offer) use ($response, $amount, $paymentProviderId, $surveyId) {
+                        return $this->upsertPaymentOffer([
+                            'payment_survey_id' => $surveyId,
+                            'name' => $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years'
+                                . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' : ''),
+                            'type' => 'lease',
+                            'amount' => $amount,
+                            'payment_provider_id' => $paymentProviderId,
+                            'term' => $offer['params']['term'],
+                            'priority' => $offer['rank'],
+                            'upfront_payment' => $offer['params']['upfront_payment_gross'] ?? 0,
+                            'first_payment' => $offer['params']['min_payments_gross'][0] ?? 0,
+                            'monthly_payment' => $offer['params']['monthly_payment_gross'],
+                            'final_payment' => $offer['params']['monthly_payment_gross'],
+                            'minimum_payments' => $offer['params']['min_payments_gross'],
+                            'provider_application_id' => $response['id'],
+                            'provider_offer_id' => $offer['id'],
+                            'status' => $offer['status'],
+                            'preapproval_id' => $offer['preapproval_id'],
+                            'small_print' => $offer['params']['disclaimer'],
+                        ]);
+                    })
+                    ->reject(fn ($offer) => empty($offer));
+
+                event(new OffersUpdated(
+                    gateway: static::class,
+                    surveyId: $surveyId,
+                    offers: $offers,
+                ));
+
+                if ($response['status'] !== 'processing') {
+                    break;
+                }
+
+                sleep($every);
+            }
+
+            Log::debug('Hometree poll complete.', [$surveyId, $applicationId, $every, $for]);
+        })->delay(now()->addSeconds($delay ?? 0));
+    }
+
+    protected function upsertPaymentOffer(array $data): PaymentOffer
+    {
+        // I'd expect this to work, but the offer IDs change when the status changes
+        // $paymentOffer = PaymentOffer::firstWhere('provider_offer_id', $data['provider_offer_id']);
+
+        // So I'll find the matching offer line this instead
+        $paymentOffer = PaymentOffer::query()
+            ->where('provider_application_id', $data['provider_application_id'])
+            ->where('term', $data['term'])
+            ->where('upfront_payment', $data['upfront_payment'])
+            ->first();
+
+        if ($paymentOffer) {
+            Log::debug('Updating Hometree offer...', collect($data)->only([
+                'payment_survey_id',
+                'name',
+                'type',
+                'amount',
+                'payment_provider_id',
+                'status',
+                'provider_application_id',
+                'provider_offer_id',
+            ])->toArray());
+
+            $paymentOffer->update($data);
+            return $paymentOffer;
+        }
+
+        Log::debug('Inserting Hometree offer...', collect($data)->only([
+            'payment_survey_id',
+            'name',
+            'type',
+            'amount',
+            'payment_provider_id',
+            'status',
+            'provider_application_id',
+            'provider_offer_id',
+        ])->toArray());
+
+        return PaymentOffer::create($data);
     }
 
 }

@@ -613,7 +613,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             $paymentProvider = PaymentProvider::byIdentifier('tandem');
 
             // See if there are already offers
-            $offers = $survey->paymentOffers()
+            $offers = $survey
+                ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
                 ->where('amount', $amount)
                 ->get();

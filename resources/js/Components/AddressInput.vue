@@ -39,9 +39,9 @@ const addressModel = computed({
     set(newValue) {
         // When an input inside AddressInput changes, this setter is called.
         // We need to emit the full address object back to the parent.
-        // We achieve this by merging the existing 'props.address' (which includes 'timeAtAddress')
+        // We achieve this by merging the existing 'props.address' (which includes 'dateMovedIn')
         // with the 'newValue' (which contains the updated fields from this component's inputs).
-        // This ensures that 'timeAtAddress' is preserved and only the relevant address fields are updated.
+        // This ensures that 'dateMovedIn' is preserved and only the relevant address fields are updated.
         emit('update:address', {
             ...props.address, // Keep all existing properties from the original address object
             ...newValue // Merge in the updated fields from this component's inputs

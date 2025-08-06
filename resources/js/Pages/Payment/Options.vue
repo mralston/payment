@@ -14,6 +14,8 @@ import CashMoreInfo from "../../Components/MoreInfo/Cash.vue";
 
 import CashVsFinanceMoreInfo from "../../Components/MoreInfo/CashVsFinance.vue";
 import FinanceVsLeaseMoreInfo from "../../Components/MoreInfo/FinanceVsLease.vue";
+import PaymentOffersSelect from "../../Components/PaymentOffersSelect.vue";
+import OfferStatusBadge from "../../Components/OfferStatusBadge.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -114,22 +116,13 @@ watch(pendingGateways, () => {
 useEcho(
     `offers.${props.survey.id}`,
     'OffersReceived',
-    (e) => {
-        // Remove gateways that have replied from the pendingGateways array
-        pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise === e.gateway);
+    updateOffers
+);
 
-        // Add the offers to the dropdown lists
-        offerLoop: for (const offer of e.offers) {
-            // Skip
-            for (let i = 0; i < offers.value.length; i++) {
-                if (offer.id == offers.value[i].id) {
-                    continue offerLoop;
-                }
-            }
-
-            offers.value.push(offer);
-        }
-    }
+useEcho(
+    `offers.${props.survey.id}`,
+    'OffersUpdated',
+    updateOffers
 );
 
 useEcho(
@@ -163,6 +156,28 @@ function initiatePrequal()
         .catch(error => {
             alert('There was a problem running starting prequalification process.')
         });
+}
+
+function updateOffers(e)
+{
+    // Remove gateways that have replied from the pendingGateways array
+    pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise === e.gateway);
+
+    // Add the offers to the dropdown lists
+    offerLoop: for (const offer of e.offers) {
+        // If the offer exists, update it
+        for (let i = 0; i < offers.value.length; i++) {
+            if (offer.id === offers.value[i].id) {
+                offers.value[i] = offer;
+                continue offerLoop;
+            }
+        }
+
+        // TODO: If offer is declined, remove it
+
+        // Offer does not yet exist, add it
+        offers.value.push(offer);
+    }
 }
 
 function proceed(paymentType) {
@@ -405,15 +420,8 @@ function financeVsLease()
                             <h3 class="text-4xl font-semibold text-blue-800">Finance</h3>
 
                             <p class="mt-6 flex items-baseline gap-x-1 relative">
-                                <span v-if="selectedFinanceOffer && selectedFinanceOffer?.id === lowestFinanceOffer?.id"
-                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                    FROM ONLY
-                                </span>
 
-                                <span v-else-if="selectedFinanceOffer"
-                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
-                                    YOU PAY
-                                </span>
+                                <OfferStatusBadge :offer="selectedFinanceOffer" :lowest-offer="lowestFinanceOffer"/>
 
                                 <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedFinanceOffer?.monthly_payment ?? 0) }}</span>
                                 <span class="text-sm/6 font-semibold text-gray-600">/month</span>
@@ -424,13 +432,7 @@ function financeVsLease()
                                     <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline" />
                                 </div>
 
-                                <select v-if="financeOffers.length > 0"
-                                        v-model="selectedFinanceOffer"
-                                        class="w-full rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                    <option v-for="offer in financeOffers" :key="offer.id" :value="offer">
-                                        {{ offer.name }}
-                                    </option>
-                                </select>
+                                <PaymentOffersSelect v-if="financeOffers.length > 0" :offers="financeOffers" v-model="selectedFinanceOffer"/>
 
                                 <div v-if="gatewayErrors.finance" class="text-center">
                                     <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showPrequalErrorsModal('finance')"/>
@@ -479,15 +481,8 @@ function financeVsLease()
                             <h3 class="text-4xl font-semibold text-blue-800">Lease</h3>
 
                             <p class="mt-6 flex items-baseline gap-x-1 relative">
-                                <span v-if="selectedLeaseOffer && selectedLeaseOffer?.id === lowestLeaseOffer?.id"
-                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-green-50 px-2 py-1 text-xs font-medium text-green-700 ring-1 ring-inset ring-green-600/20">
-                                    FROM ONLY
-                                </span>
 
-                                <span v-else-if="selectedLeaseOffer"
-                                      class="absolute -top-4 -left-4 opacity-90 inline-flex items-center rounded-full bg-orange-50 px-2 py-1 text-xs font-medium text-orange-700 ring-1 ring-inset ring-orange-600/20">
-                                    YOU PAY
-                                </span>
+                                <OfferStatusBadge :offer="selectedLeaseOffer" :lowest-offer="lowestLeaseOffer"/>
 
                                 <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedLeaseOffer?.monthly_payment ?? 0) }}</span>
                                 <span class="text-sm/6 font-semibold text-gray-600">/month</span>
@@ -498,13 +493,7 @@ function financeVsLease()
                                     <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline" />
                                 </div>
 
-                                <select v-if="leaseOffers.length > 0"
-                                        v-model="selectedLeaseOffer"
-                                        class="w-full rounded-md bg-white py-1.5 pl-3 pr-8 text-base text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus:outline focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6">
-                                    <option v-for="offer in leaseOffers" :key="offer.id" :value="offer">
-                                        {{ offer.name }}
-                                    </option>
-                                </select>
+                                <PaymentOffersSelect v-if="leaseOffers.length > 0" :offers="leaseOffers" v-model="selectedLeaseOffer"/>
 
                                 <div v-if="gatewayErrors.lease" class="text-center">
                                     <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showPrequalErrorsModal('lease')"/>

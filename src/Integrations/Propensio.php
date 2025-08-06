@@ -977,7 +977,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             $paymentProvider = PaymentProvider::byIdentifier('propensio');
 
             // See if there are already offers
-            $offers = $survey->paymentOffers()
+            $offers = $survey
+                ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
                 ->where('amount', $amount)
                 ->get();

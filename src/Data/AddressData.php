@@ -2,6 +2,7 @@
 
 namespace Mralston\Payment\Data;
 
+use Carbon\Carbon;
 use Spatie\LaravelData\Data;
 
 class AddressData extends Data
@@ -15,7 +16,7 @@ class AddressData extends Data
         public ?string $town = null,
         public ?string $county = null,
         public ?string $postCode = null,
-        public ?int $timeAtAddress = 0,
+        public ?Carbon $dateMovedIn = null,
     ) {
         //
     }
