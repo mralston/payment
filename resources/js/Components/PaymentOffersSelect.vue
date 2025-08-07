@@ -46,9 +46,9 @@ if (props.modelValue) {
             <ListboxButton class="grid w-full cursor-default grid-cols-1 rounded-md bg-white py-1.5 pl-3 pr-2 text-left text-gray-900 outline outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-blue-600 sm:text-sm/6 min-h-9">
                 <span class="col-start-1 row-start-1 flex items-center gap-3 pr-6">
                     <CheckBadgeIcon v-if="selected?.status == 'preapproved'" class="size-5 text-green-400" aria-hidden="true" />
-                    <span v-else class="bg-orange-400 inline-block size-3 mx-1 shrink-0 rounded-full border border-transparent" aria-hidden="true" />
+                    <span v-else-if="selected?.status" class="bg-orange-400 inline-block size-3 mx-1 shrink-0 rounded-full border border-transparent" aria-hidden="true" />
 
-                    <span class="block truncate">{{ selected?.name }} hey</span>
+                    <span class="block truncate">{{ selected?.name }}</span>
                 </span>
                 <ChevronUpDownIcon class="col-start-1 row-start-1 size-5 self-center justify-self-end text-gray-500 sm:size-4" aria-hidden="true" />
             </ListboxButton>

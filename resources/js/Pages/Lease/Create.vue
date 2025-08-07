@@ -24,11 +24,17 @@ const props = defineProps({
             Lease
         </h1>
 
-        <p class="mt-4">Great news! Hometree have accepted your application. They'll get in touch with you soon.</p>
+        <p class="mt-4">Pre-flight page for lease. We will show total repayable, legal text to be agreed to, etc.</p>
 
-        <button class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-            Pay Deposit
+        <button @click="proceed('cash')" class="mt-10 rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+            Submit Lease Application
         </button>
+
+<!--        <p class="mt-4">Great news! Hometree have accepted your application. They'll get in touch with you soon.</p>-->
+
+<!--        <button class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">-->
+<!--            Pay Deposit-->
+<!--        </button>-->
 
 
     </div>

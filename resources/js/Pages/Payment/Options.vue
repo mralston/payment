@@ -27,7 +27,7 @@ const props = defineProps({
     paymentProviders: Array,
     prequalOnLoad: {
         type: Boolean,
-        default: false,
+        default: true,
     },
 });
 
@@ -416,16 +416,16 @@ function financeVsLease()
 
                             <img v-if="selectedFinanceProvider?.logo"
                                  :src="selectedFinanceProvider.logo"
-                                 class="absolute top-0 right-4 max-w-1/3 h-7"
+                                 class="max-w-1/3 h-7 mb-9"
                                  :alt="selectedFinanceProvider.name">
+                            <h3 v-else-if="selectedFinanceProvider" class="text-4xl font-semibold text-blue-800">selectedFinanceProvider.name</h3>
+                            <h3 v-else class="text-4xl font-semibold text-blue-800">Finance</h3>
 
                             <button class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
                                     @click="financeVsLease"
                                     title="Compare Finance &amp; Lease">
                                 VS
                             </button>
-
-                            <h3 class="text-4xl font-semibold text-blue-800">Finance</h3>
 
                             <p class="mt-6 flex items-baseline gap-x-1 relative">
 
@@ -483,10 +483,10 @@ function financeVsLease()
 
                             <img v-if="selectedLeaseProvider?.logo"
                                  :src="selectedLeaseProvider.logo"
-                                 class="absolute top-0 right-4 max-w-1/3 h-7"
+                                 class="max-w-1/3 h-7 mb-9"
                                  :alt="selectedLeaseProvider.name">
-
-                            <h3 class="text-4xl font-semibold text-blue-800">Lease</h3>
+                            <h3 v-else-if="selectedLeaseProvider" class="text-4xl font-semibold text-blue-800">selectedLeaseProvider.name</h3>
+                            <h3 v-else class="text-4xl font-semibold text-blue-800">Lease Purchase</h3>
 
                             <p class="mt-6 flex items-baseline gap-x-1 relative">
 
