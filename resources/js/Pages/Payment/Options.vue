@@ -2,7 +2,6 @@
 import {Head, router} from "@inertiajs/vue3";
 import {computed, onMounted, reactive, ref, watch} from "vue";
 import axios from "axios";
-import { ArrowPathIcon } from '@heroicons/vue/24/outline';
 import { useEcho } from '@laravel/echo-vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
@@ -16,6 +15,8 @@ import CashVsFinanceMoreInfo from "../../Components/MoreInfo/CashVsFinance.vue";
 import FinanceVsLeaseMoreInfo from "../../Components/MoreInfo/FinanceVsLease.vue";
 import PaymentOffersSelect from "../../Components/PaymentOffersSelect.vue";
 import OfferStatusBadge from "../../Components/OfferStatusBadge.vue";
+import BulletPointsSkeleton from "../../Components/BulletPointsSkeleton.vue";
+import SkeletonItem from "../../Components/SkeletonItem.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -52,11 +53,15 @@ const currentErrorsToDisplay = ref([]);
 const offers = ref([]);
 
 const financeOffers = computed (() => {
-    return offers.value.filter((offer) => offer.type === 'finance');
+    return offers.value
+        .filter((offer) => offer.type === 'finance')
+        .sort((a, b) => a.monthly_payment - b.monthly_payment);
 });
 
 const leaseOffers = computed (() => {
-    return offers.value.filter((offer) => offer.type === 'lease');
+    return offers.value
+        .filter((offer) => offer.type === 'lease')
+        .sort((a, b) => a.monthly_payment - b.monthly_payment);
 });
 
 const lowestFinanceOffer = computed(() => {
@@ -154,7 +159,7 @@ function initiatePrequal()
             }
         })
         .catch(error => {
-            alert('There was a problem running starting prequalification process.')
+            alert('There was a problem running starting prequalification process.');
         });
 }
 
@@ -419,7 +424,7 @@ function financeVsLease()
                                  class="max-w-1/3 h-7 mb-9"
                                  :alt="selectedFinanceProvider.name">
                             <h3 v-else-if="selectedFinanceProvider" class="text-4xl font-semibold text-blue-800">selectedFinanceProvider.name</h3>
-                            <h3 v-else class="text-4xl font-semibold text-blue-800">Finance</h3>
+                            <SkeletonItem v-else class="h-10 w-5/6"/>
 
                             <button class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
                                     @click="financeVsLease"
@@ -427,7 +432,9 @@ function financeVsLease()
                                 VS
                             </button>
 
-                            <p class="mt-6 flex items-baseline gap-x-1 relative">
+
+                            <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-3/4"/>
+                            <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
 
                                 <OfferStatusBadge :offer="selectedFinanceOffer" :lowest-offer="lowestFinanceOffer"/>
 
@@ -436,9 +443,8 @@ function financeVsLease()
                             </p>
 
                             <div class="mt-8 h-10">
-                                <div v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="text-center">
-                                    <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline" />
-                                </div>
+
+                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
 
                                 <PaymentOffersSelect v-if="financeOffers.length > 0" :offers="financeOffers" v-model="selectedFinanceOffer"/>
 
@@ -446,7 +452,6 @@ function financeVsLease()
                                     <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showPrequalErrorsModal('finance')"/>
                                 </div>
                             </div>
-
 
                             <button @click="proceed('finance')"
                                     :disabled="selectedFinanceOffer === null"
@@ -458,9 +463,8 @@ function financeVsLease()
                                 More Info
                             </button>
 
-                            <div v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="text-center">
-                                <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline mt-10" />
-                            </div>
+                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
+                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
 
                             <div v-if="selectedFinanceProvider?.selling_points"
                                  v-for="sellingPoint in selectedFinanceProvider.selling_points"
@@ -486,9 +490,11 @@ function financeVsLease()
                                  class="max-w-1/3 h-7 mb-9"
                                  :alt="selectedLeaseProvider.name">
                             <h3 v-else-if="selectedLeaseProvider" class="text-4xl font-semibold text-blue-800">selectedLeaseProvider.name</h3>
-                            <h3 v-else class="text-4xl font-semibold text-blue-800">Lease Purchase</h3>
+                            <SkeletonItem v-else class="h-10 w-5/6"/>
 
-                            <p class="mt-6 flex items-baseline gap-x-1 relative">
+                            <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-3/4"/>
+
+                            <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
 
                                 <OfferStatusBadge :offer="selectedLeaseOffer" :lowest-offer="lowestLeaseOffer"/>
 
@@ -497,9 +503,8 @@ function financeVsLease()
                             </p>
 
                             <div class="mt-8 h-10">
-                                <div v-if="pendingGateways.length > 0 && leaseOffers.length === 0" class="text-center">
-                                    <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline" />
-                                </div>
+
+                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
 
                                 <PaymentOffersSelect v-if="leaseOffers.length > 0" :offers="leaseOffers" v-model="selectedLeaseOffer"/>
 
@@ -518,9 +523,8 @@ function financeVsLease()
                                 More Info
                             </button>
 
-                            <div v-if="pendingGateways.length > 0 && leaseOffers.length === 0" class="text-center">
-                                <ArrowPathIcon  class="animate-spin h-10 w-10 text-black inline mt-10" />
-                            </div>
+                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
+                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
 
                             <div v-if="selectedLeaseProvider?.selling_points"
                                  v-for="sellingPoint in selectedLeaseProvider.selling_points"

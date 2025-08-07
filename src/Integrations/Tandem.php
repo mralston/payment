@@ -10,6 +10,7 @@ use App\Quote;
 use App\Settings;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -17,7 +18,6 @@ use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
 use Mralston\Payment\Data\PrequalData;
 use Mralston\Payment\Data\PrequalPromiseData;
-use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Events\OffersReceived;
 use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
@@ -222,20 +222,6 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         $application->save();
 
         return $application;
-
-//
-//
-//        Log::channel('finance')->debug('Allium API response code: ' . $response->status());
-//
-//        //return $response->body();
-//
-//        return [
-//            'request' => $data,
-//            'response' => $response->json()
-//        ];
-
-
-
     }
 
     public function signingMethod(): string
@@ -526,7 +512,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
     public function calculateRepayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null)
     {
         return Cache::remember(
-            'calclateRepayments-' . $loanAmount . '-' . $apr . '-' . $loanTerm . '-' . $deferredPeriod,
+            'calculateRepayments-' . $loanAmount . '-' . $apr . '-' . $loanTerm . '-' . $deferredPeriod,
             60 * 10,
             function () use ($loanAmount, $loanTerm, $apr, $deferredPeriod) {
                 $data = [
@@ -577,7 +563,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         );
     }
 
-    public function financeProducts()
+    public function financeProducts(): Collection
     {
         try {
             $url = $this->endpoint . '/financeProducts';
@@ -590,9 +576,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 ->throw();
 
             $json = $response->json();
-            Log::info(print_r($json, true));
 
-            return $json;
+            return collect($json['financeProducts'] ?? []);
         } catch (\Throwable $ex) {
             Log::error('Failed to retrieve repayments from API.');
             Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
@@ -623,27 +608,58 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             // If there aren't any offers...
             if ($offers->isEmpty()) {
 
-                // TODO: Use Tandem's /financeProducts API endpoint - $this->financeProducts()
+                $products = $this->financeProducts();
 
-                // Fetch products available from lender
-                $products = $paymentProvider->paymentProducts;
+                //Log::info(print_r($products, true));
 
-                // Store products to offers
                 $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount) {
+
+                    // Fetch repayments
+                    try {
+                        $repayments = $this->calculateRepayments(
+                            loanAmount: $amount,
+                            // Fake APR in local development as the testing API doesn't have the right rates
+                            apr: app()->environment('local') ? 11.9 : $product['apr'],
+                            loanTerm: $product['termMonths'],
+                            deferredPeriod: $product['deferredPayments']
+                        );
+                    } catch (RequestException $ex) {
+                        // Tandem's testing API often fails because it uses the live LMS
+                        // with rates from the testing environment and they don't always match up
+                        $repayments = [
+                            'FinancialDetails' => [
+                                'LoanAmount' => $amount,
+                                'APR' => $product['apr'],
+                                'TermMonths' => $product['termMonths'],
+                                'DeferredPayments' => $product['deferredPayments'],
+                                'DailyInterest' => 0,
+                                'InterestRate' => 0,
+                                'TotalCostOfCredit' => 0,
+                                'TotalPayable' => 0,
+                            ],
+                            'RepaymentDetails' => [
+                                'MonthlyRepayment' => 0,
+                                'FirstRepaymentAmount' => 0,
+                                'FinalRepaymentAmount' => 0,
+                            ]
+                        ];
+                    }
+
+                    Log::debug(print_r($repayments, true));
+
                     return $survey->paymentOffers()
                         ->create([
-                            'name' => $product->name,
+                            'name' => $paymentProvider->name . ' ' . $product['apr'] . '%' .
+                                ($product['deferredPayments'] > 0 ? ' ' . $product['deferredPayments'] . ' months deferred' : ''),
                             'type' => 'finance',
                             'amount' => $amount,
                             'payment_provider_id' => $paymentProvider->id,
-                            'apr' => $product->apr,
-                            'term' => $product->term,
-                            'deferred' => $product->deferred,
-                            'priority' => $product->sort_order, // TODO: Reverse these
-                            // TODO: calculate payments
-                            'first_payment' => 0,
-                            'monthly_payment' => 0,
-                            'final_payment' => 0,
+                            'apr' => $product['apr'],
+                            'term' => $product['termMonths'],
+                            'deferred' => $product['deferredPayments'],
+                            'first_payment' => $repayments['RepaymentDetails']['FirstRepaymentAmount'],
+                            'monthly_payment' => $repayments['RepaymentDetails']['MonthlyRepayment'],
+                            'final_payment' => $repayments['RepaymentDetails']['FinalRepaymentAmount'],
                             'status' => 'final',
                         ]);
                 });

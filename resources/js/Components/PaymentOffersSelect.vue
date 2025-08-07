@@ -68,7 +68,7 @@ if (props.modelValue) {
                                     <span v-if="offer.apr">{{ offer.apr }}%</span>
                                     {{ offer.term / 12 }} years
 
-                                    <div v-if="offer.upfront_payment != 0">
+                                    <div v-if="offer.upfront_payment > 0">
                                         {{ formatCurrency(offer.upfront_payment, 0) }} up front
                                     </div>
 
