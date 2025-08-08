@@ -1,6 +1,6 @@
 <script setup>
 
-import {Head, router} from "@inertiajs/vue3";
+import {Head, router, useForm} from "@inertiajs/vue3";
 import OverpaymentCalculator from "../../Components/OverpaymentCalculator.vue";
 import { makeNumeric } from "../../Helpers/Number.js";
 import {diffInMonths, formatDate, fromNow, monthsYears} from "../../Helpers/Date.js";
@@ -15,11 +15,29 @@ const props = defineProps({
     deposit: Number,
     companyDetails: Object,
     lenders: Array,
+    maritalStatuses: Array,
+    employmentStatuses: Array,
+    homeowners: Array,
+    mortgages: Array,
+    britishCitizens: Array,
+});
+
+const form = useForm({
+    offerId: props.offer.id,
+    maritalStatus: props.survey.customers[0].maritalStatus,
+    homeowner: props.survey.customers[0].homeowner,
+    mortgage: props.survey.customers[0].mortgage,
+    britishCitizen: props.survey.customers[0].britishCitizen,
+    accountNumber: null,
+    sortCode: null,
+    readTermsConditions: false,
+    eligible: false,
+    gdprOptIn: false,
 });
 
 function submit()
 {
-    router.post(route('payment.finance.store', {
+    form.post(route('payment.finance.store', {
         parent: props.parentModel
     }));
 }
@@ -38,21 +56,18 @@ function submit()
             Finance
         </h1>
 
-        <div class="grid grid-cols-8">
-            <div class="col-span-5">
+        <div class="grid grid-cols-1 md:grid-cols-8 gap-4">
+            <div class="md:col-span-5 order-2 md:order-1">
                 <h2 class="text-2xl mb-4">Key Information</h2>
-
                 <p class="mb-4">
                     {{ companyDetails.legalName }}
                     is a broker and works with a number of lenders to help customers apply for finance to assist their purchase.
                     Credit is provided from selection of lenders:
                     <span v-for="(lender, index) in lenders">
-                        {{ lender.name }}<span v-if="index < lenders.length - 2">, </span><span v-else-if="index < lenders.length - 1"> and </span>
-                    </span>.
+                {{ lender.name }}<span v-if="index < lenders.length - 2">, </span><span v-else-if="index < lenders.length - 1"> and </span>
+            </span>.
                 </p>
-
                 <h2 class="text-2xl mb-4">Eligibility</h2>
-
                 <p class="mb-4">
                     To apply you will need to be:
                 </p>
@@ -63,15 +78,12 @@ function submit()
                     <li>Able to demonstrate the loan is affordable</li>
                     <li>Have a UK bank account that accepts Direct Debits</li>
                 </ul>
-
                 <div class="mb-4">
-                    <input type="checkbox" id="eligible" class="mr-2">
+                    <input type="checkbox" v-model="form.eligible" id="eligible" class="mr-2">
                     <label for="eligible"><b>I confirm that I meet these eligibility requirements.</b></label>
                 </div>
-
             </div>
-            <div class="col-span-3">
-
+            <div class="md:col-span-3 order-1 md:order-2">
                 <h2 class="text-2xl mb-4">Overpayments Estimator</h2>
                 <OverpaymentCalculator
                     :loan_amount="totalCost - deposit"
@@ -80,11 +92,8 @@ function submit()
                     :default_loan_term="makeNumeric(offer.term)"
                     :default_monthly_repayment="makeNumeric(offer.monthly_payment)"
                     :deferred_period="makeNumeric(offer.deferred)"/>
-
             </div>
         </div>
-
-
 
         <h2 class="text-2xl mb-4">How will my data be used?</h2>
 
@@ -116,13 +125,13 @@ function submit()
 
 
         <div class="mb-4">
-            <input type="checkbox" id="gdpr_opt_in" class="mr-2">
+            <input type="checkbox" v-model="form.gdprOptIn" id="gdpr_opt_in" class="mr-2">
             <label for="gdpr_opt_in"><b>I agree to my personal data being used as part of my loan application as described above.</b></label>
         </div>
 
         <h2 class="text-2xl mb-4">Your Loan Application</h2>
 
-        <p class="mb-4">Please take a moment to review your application details and important information below.</p>
+        <p class="mb-4">Please take a moment to review your application details and fill in the missing information.</p>
 
 
         <table class="mb-4 w-1/2">
@@ -138,25 +147,45 @@ function submit()
                 <tr>
                     <th class="p-1 mr-2">Marital status</th>
                     <td class="p-1">
-
+                        <select v-model="form.maritalStatus" id="maritalStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <option></option>
+                            <option v-for="maritalStatus in maritalStatuses" :key="maritalStatuses.id" :value="maritalStatus.value">
+                                {{ maritalStatus.name }}
+                            </option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Homeowner</th>
                     <td class="bg-gray-100 p-1">
-
+                        <select v-model="form.homeowner" id="homeowner" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <option></option>
+                            <option v-for="homeowner in homeowners" :key="homeowner.id" :value="homeowner.value">
+                                {{ homeowner.name }}
+                            </option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
                     <th class="p-1 mr-2">Mortgage</th>
                     <td class="p-1">
-
+                        <select v-model="form.mortgage" id="mortgage" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <option></option>
+                            <option v-for="mortgage in mortgages" :key="mortgage.id" :value="mortgage.value">
+                                {{ mortgage.name }}
+                            </option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Nationality</th>
+                    <th class="bg-gray-100 p-1 mr-2">British Citizen</th>
                     <td class="bg-gray-100 p-1">
-
+                        <select v-model="form.britishCitizen" id="britishCitizen" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <option></option>
+                            <option v-for="britishCitizen in britishCitizens" :key="britishCitizen.id" :value="britishCitizen.value">
+                                {{ britishCitizen.name }}
+                            </option>
+                        </select>
                     </td>
                 </tr>
                 <tr>
@@ -205,19 +234,19 @@ function submit()
                 <tr>
                     <th class="p-1 mr-2">Employment status</th>
                     <td class="p-1">
-                        {{ survey.customers[0].employmentStatus }}
+                        {{ employmentStatuses.find(status => status.value === survey.customers[0].employmentStatus)?.name }}
                     </td>
                 </tr>
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Account number</th>
                     <td class="bg-gray-100 p-1">
-                        <input type="text" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
+                        <input type="text" v-model="form.accountNumber" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
                     </td>
                 </tr>
                 <tr>
                     <th class="p-1 mr-2">Sort code</th>
                     <td class="p-1">
-                        <input type="text" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
+                        <input type="text" v-model="form.sortCode" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
                     </td>
                 </tr>
             </tbody>
@@ -237,7 +266,7 @@ function submit()
         </ul>
 
         <div class="mb-4">
-            <input type="checkbox" id="read_terms_conditions" class="mr-2">
+            <input type="checkbox" v-model="form.readTermsConditions" id="read_terms_conditions" class="mr-2">
             <label for="read_terms_conditions"><b>I confirm that I have read and understood the important information.</b></label>
         </div>
 

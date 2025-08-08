@@ -2,13 +2,16 @@
 
 namespace Mralston\Payment\Models;
 
+use GregoryDuckworth\Encryptable\EncryptableTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Mralston\Payment\Interfaces\PaymentParentModel;
 
 class Payment extends Model
 {
+    use EncryptableTrait;
     use SoftDeletes;
 
     protected $fillable = [
@@ -27,12 +30,6 @@ class Payment extends Model
         'monthly_repayment',
         'total_repayable',
         'repayments_breakdown',
-        'hypothetical_column',
-        'hypothetical_total_price',
-        'hypothetical_loan_amount',
-        'hypothetical_monthly_repayment',
-        'hypothetical_total_repayable',
-        'hypothetical_repayments_breakdown',
         'eligible',
         'gdpr_opt_in',
         'title',
@@ -144,5 +141,66 @@ class Payment extends Model
     public function paymentStatus(): BelongsTo
     {
         return $this->belongsTo(PaymentStatus::class);
+    }
+
+    public function setParent(PaymentParentModel $parent): static
+    {
+        $this->parentable()->associate($parent);
+
+        return $this;
+    }
+
+    public function withSurvey(PaymentSurvey $survey): static
+    {
+        $customer = $survey->customers->first();
+
+        $this->title = $customer['title'];
+        $this->first_name = $customer['firstName'];
+        $this->middle_name = $customer['middleName'];
+        $this->last_name = $customer['lastName'];
+        $this->marital_status = $customer['maritalStatus'];
+        $this->homeowner_status = $customer['homeowner'];
+        $this->has_mortgage = $customer['mortgage'];
+        $this->british_citizen = $customer['britishCitizen'];
+        $this->date_of_birth = $customer['dateOfBirth'];
+        $this->dependents_count = $customer['dependants'];
+        // TODO: bankrupt_or_iva
+        $this->email_address = $customer['email'];
+        $this->primary_telephone = $customer['phone'];
+        // TODO: secondary_telephone
+        $this->addresses = $survey->addresses;
+        $this->employment_status = $customer['employmentStatus'];
+        // TODO: employer_name
+        // TODO: employer_telephone
+        // TODO: employer_address
+        // TODO: employer_company_type
+        // TODO: employer_company_reg_date
+        // TODO: occupation
+        // TODO: time_with_employer
+        $this->gross_income_individual = $customer['grossAnnualIncome'];
+        // TODO: $this->gross_income_household
+        $this->net_monthly_income_individual = $customer['netMonthlyIncome'];
+        // TODO: mortgage_monthly
+        // TODO: rent_monthly
+        // TODO: bank_name
+        // TODO: bank_account_holder_name
+
+        return $this;
+    }
+
+    public function withOffer(PaymentOffer $offer): static
+    {
+        $this->amount = $offer->amount;
+        $this->payment_provider_id = $offer->payment_provider_id;
+//        $this->payment_product_id =
+        $this->apr = $offer->apr;
+        $this->loan_term = $offer->term;
+        $this->deferred_period = $offer->deferred;
+        $this->first_repayment = $offer->first_payment;
+        $this->monthly_repayment = $offer->monthly_payment;
+        $this->final_repayment = $offer->final_payment;
+        $this->total_repayable = $offer->total_repayable;
+
+        return $this;
     }
 }

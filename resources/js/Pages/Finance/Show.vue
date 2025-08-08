@@ -10,11 +10,14 @@ const props = defineProps({
     parentModel: Object,
     survey: Object,
     offer: Object,
+    payment: Object,
     totalCost: Number,
     deposit: Number,
     companyDetails: Object,
     lenders: Array,
 });
+
+console.log(props.payment);
 
 </script>
 

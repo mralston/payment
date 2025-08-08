@@ -10,7 +10,7 @@ use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Traits\BootstrapsPayment;
 
-class PaymentSurveyController
+class SurveyController
 {
     use BootstrapsPayment;
 

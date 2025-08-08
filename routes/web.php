@@ -5,7 +5,7 @@ use Mralston\Payment\Http\Controllers\CashController;
 use Mralston\Payment\Http\Controllers\FinanceController;
 use Mralston\Payment\Http\Controllers\LeaseController;
 use Mralston\Payment\Http\Controllers\PaymentController;
-use Mralston\Payment\Http\Controllers\PaymentSurveyController;
+use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
 
 Route::group(['middleware' => ['web', 'auth']], function () {
@@ -16,7 +16,7 @@ Route::group(['middleware' => ['web', 'auth']], function () {
         ->name('payment.')
         ->group(function () {
 
-        Route::resource('{parent}/surveys', PaymentSurveyController::class)
+        Route::resource('{parent}/surveys', SurveyController::class)
             ->names('surveys');
 
         Route::get('{parent}/options', [PaymentController::class, 'options'])

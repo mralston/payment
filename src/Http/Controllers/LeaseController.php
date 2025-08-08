@@ -4,7 +4,9 @@ namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Traits\BootstrapsPayment;
@@ -33,6 +35,8 @@ class LeaseController
             'deposit' => $this->helper->getDeposit(),
             'companyDetails' => $this->helper->getCompanyDetails(),
             'lenders' => PaymentProvider::all(),
+            'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
+                ->paymentLookupValues,
         ])
             ->withViewData($this->helper->getViewData());
     }

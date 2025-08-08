@@ -14,6 +14,7 @@ const props = defineProps({
     deposit: Number,
     companyDetails: Object,
     lenders: Array,
+    employmentStatuses: Array,
 });
 
 function submit()
@@ -81,16 +82,16 @@ function submit()
 
         <h3 class="text-xl mb-4">Privacy policies</h3>
 
-        <table class="mb-4 w-1/2">
+        <table class="mb-4 w-full md:w-1/2">
             <tbody>
-            <tr>
-                <th class="bg-gray-100 p-1 mr-2">{{ companyDetails.commonName }}</th>
-                <td class="bg-gray-100 p-1"><a :href="companyDetails.privacyPolicy" target="_blank">{{ cleanUrl(companyDetails.privacyPolicy) }}</a></td>
-            </tr>
-            <tr>
-                <th class="p-1 mr-2">{{ offer.payment_provider.name }}</th>
-                <td class="p-1"><a :href="offer.payment_provider.privacy_policy" target="_blank">{{ cleanUrl(offer.payment_provider.privacy_policy) }}</a></td>
-            </tr>
+                <tr>
+                    <th class="bg-gray-100 p-1 mr-2">{{ companyDetails.commonName }}</th>
+                    <td class="bg-gray-100 p-1"><a :href="companyDetails.privacyPolicy" target="_blank">{{ cleanUrl(companyDetails.privacyPolicy) }}</a></td>
+                </tr>
+                <tr>
+                    <th class="p-1 mr-2">{{ offer.payment_provider.name }}</th>
+                    <td class="p-1"><a :href="offer.payment_provider.privacy_policy" target="_blank">{{ cleanUrl(offer.payment_provider.privacy_policy) }}</a></td>
+                </tr>
             </tbody>
         </table>
 
@@ -105,7 +106,7 @@ function submit()
         <p class="mb-4">Please take a moment to review your application details and important information below.</p>
 
 
-        <table class="mb-4 w-1/2">
+        <table class="mb-4 w-full md:w-1/2">
             <tbody>
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Your name</th>
@@ -113,30 +114,6 @@ function submit()
                         {{ survey.customers[0].title }}
                         {{ survey.customers[0].firstName }}
                         {{ survey.customers[0].lastName }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Marital status</th>
-                    <td class="p-1">
-
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Homeowner</th>
-                    <td class="bg-gray-100 p-1">
-
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Mortgage</th>
-                    <td class="p-1">
-
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Nationality</th>
-                    <td class="bg-gray-100 p-1">
-
                     </td>
                 </tr>
                 <tr>
@@ -185,7 +162,7 @@ function submit()
                 <tr>
                     <th class="p-1 mr-2">Employment status</th>
                     <td class="p-1">
-                        {{ survey.customers[0].employmentStatus }}
+                        {{ employmentStatuses.find(status => status.value === survey.customers[0].employmentStatus)?.name }}
                     </td>
                 </tr>
             </tbody>
@@ -209,7 +186,7 @@ function submit()
             <label for="read_terms_conditions"><b>I confirm that I have read and understood the important information.</b></label>
         </div>
 
-        <RepresentativeExample class="w-3/4"
+        <RepresentativeExample class=" w-full md:w-3/4"
                                :amount="makeNumeric(offer.amount)"
                                :deposit="makeNumeric(deposit)"
                                :term="makeNumeric(offer.term)"

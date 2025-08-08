@@ -27,4 +27,18 @@ class PaymentSurvey extends Model
     {
         return $this->hasMany(PaymentOffer::class);
     }
+
+    public function getCustomerProperty(int $index, string $property): mixed
+    {
+        return $this->customers[$index][$property];
+    }
+
+    public function setCustomerProperty(int $index, string $property, mixed $value): void
+    {
+        $customers = $this->customers;
+        $customer = $customers[$index];
+        $customer[$property] = $value;
+        $customers[$index] = $customer;
+        $this->customers = $customers;
+    }
 }
