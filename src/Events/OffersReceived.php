@@ -9,10 +9,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
-use Mralston\Payment\Data\OfferData;
-use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Models\PaymentOffer;
-use Mralston\Payment\Models\PaymentSurvey;
 
 class OffersReceived implements ShouldBroadcast
 {
@@ -47,12 +44,34 @@ class OffersReceived implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
+        // Construct the smallest offers collection we can manage so it fits into a Pusher broadcast
+        $offers = $this->offers->map(function (PaymentOffer $offer) {
+            // Lazy eager load the payment provider and limit its columns
+            $offer->load('paymentProvider:id,name,logo');
+
+            // Manually create an array with the only columns we need + the payment provider
+            return [
+                ...collect($offer->getAttributes())
+                    ->except([
+                        'payment_survey_id',
+                        'paymentProvider',
+                        'minimum_payments',
+                        'preapproval_id',
+                        'provider_offer_id',
+                        'provider_application_id',
+                        'small_print',
+                        'created_at',
+                        'updated_at',
+                    ])
+                    ->toArray(),
+                'payment_provider' => $offer->paymentProvider,
+            ];
+        });
+
         return [
             'gateway' => $this->gateway,
             'surveyId' => $this->surveyId,
-            'offers' => $this
-                ->offers
-                ->map(fn (PaymentOffer $offer) => $offer->load('paymentProvider:id,name')),
+            'offers' => $offers,
         ];
     }
 }

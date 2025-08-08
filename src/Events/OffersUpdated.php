@@ -52,7 +52,7 @@ class OffersUpdated implements ShouldBroadcast
             'surveyId' => $this->surveyId,
             'offers' => $this
                 ->offers
-                ->map(fn (PaymentOffer $offer) => $offer->load('paymentProvider:id,name')),
+                ->map(fn (PaymentOffer $offer) => $offer->load('paymentProvider:id,name,logo')),
         ];
     }
 }

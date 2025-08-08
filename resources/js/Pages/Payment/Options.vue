@@ -17,6 +17,7 @@ import PaymentOffersSelect from "../../Components/PaymentOffersSelect.vue";
 import OfferStatusBadge from "../../Components/OfferStatusBadge.vue";
 import BulletPointsSkeleton from "../../Components/BulletPointsSkeleton.vue";
 import SkeletonItem from "../../Components/SkeletonItem.vue";
+import {makeNumeric} from "../../Helpers/Number.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -26,6 +27,7 @@ const props = defineProps({
     deposit: Number,
     leaseMoreInfoContent: String,
     paymentProviders: Array,
+    systemSavings: Object,
     prequalOnLoad: {
         type: Boolean,
         default: true,
@@ -312,7 +314,11 @@ function financeVsLease()
     </MoreInfoModal>
 
     <MoreInfoModal ref="financeMoreInfoModal" title="More Info - Finance">
-        <FinanceMoreInfo :totalCost="totalCost" :deposit="deposit" :offer="selectedFinanceOffer"/>
+        <FinanceMoreInfo :totalCost="makeNumeric(totalCost)"
+                         :deposit="makeNumeric(deposit)"
+                         :selected-offer="selectedFinanceOffer"
+                         :other-offers="financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id)"
+                         :system-savings="systemSavings"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
@@ -490,7 +496,9 @@ function financeVsLease()
                                 Proceed
                             </button>
 
-                            <button @click="financeMoreInfoModal.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="financeMoreInfoModal.show"
+                                    :disabled="selectedFinanceOffer === null"
+                                    class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 disabled:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 More Info
                             </button>
 
@@ -548,7 +556,9 @@ function financeVsLease()
                                 Proceed
                             </button>
 
-                            <button @click="leaseMoreInfoModal.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="leaseMoreInfoModal.show"
+                                    :disabled="selectedFinanceOffer === null"
+                                    class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 disabled:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 More Info
                             </button>
 

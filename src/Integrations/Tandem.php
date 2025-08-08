@@ -602,8 +602,9 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
                 ->where('amount', $amount)
-                ->get();
+                ->where('monthly_payment', '>', 0);
 
+            $offers = $offers->get();
 
             // If there aren't any offers...
             if ($offers->isEmpty()) {
@@ -645,6 +646,10 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         ];
                     }
 
+                    if ($repayments['RepaymentDetails']['MonthlyRepayment'] <= 0) {
+                        return null;
+                    }
+
                     Log::debug(print_r($repayments, true));
 
                     return $survey->paymentOffers()
@@ -663,7 +668,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'total_repayable' => $repayments['FinancialDetails']['TotalPayable'],
                             'status' => 'final',
                         ]);
-                });
+                })
+                ->reject(fn ($offer) => is_null($offer));
             }
 
             event(new OffersReceived(

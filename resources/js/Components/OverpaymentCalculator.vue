@@ -169,8 +169,6 @@ onMounted(() => {
 <template>
     <div>
 
-        <h2 class="text-2xl mb-4">Overpayments Estimator</h2>
-
         <div class="mb-4">
             <label for="loan_term"><b>Loan Term</b></label>
             <input type="range" id="loan_term" min="1" :max="default_loan_term" v-model="loan_term">
@@ -183,7 +181,7 @@ onMounted(() => {
             {{ formatCurrency(monthly_repayment) }}
         </div>
 
-        <table class="w-full">
+        <table class="w-full bg-white">
             <tbody>
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Original Payment</th>

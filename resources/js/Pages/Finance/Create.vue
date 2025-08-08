@@ -40,7 +40,7 @@ function submit()
 
         <div class="grid grid-cols-8">
             <div class="col-span-5">
-                <h1 class="text-2xl mb-4">Key Information</h1>
+                <h2 class="text-2xl mb-4">Key Information</h2>
 
                 <p class="mb-4">
                     {{ companyDetails.legalName }}
@@ -72,6 +72,7 @@ function submit()
             </div>
             <div class="col-span-3">
 
+                <h2 class="text-2xl mb-4">Overpayments Estimator</h2>
                 <OverpaymentCalculator
                     :loan_amount="totalCost - deposit"
                     :apr="makeNumeric(offer.apr)"

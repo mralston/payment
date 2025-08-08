@@ -54,6 +54,7 @@ class PaymentController
             'deposit' => $this->helper->getDeposit(),
             'leaseMoreInfoContent' => $this->helper->getLeaseContent(),
             'paymentProviders' => PaymentProvider::all(),
+            'systemSavings' => $this->helper->getSystemSavings(),
         ])->withViewData($this->helper->getViewData());
     }
 
