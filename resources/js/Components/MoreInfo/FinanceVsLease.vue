@@ -44,11 +44,6 @@
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Included – proactive system checks</td>
             </tr>
             <tr>
-                <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">Upfront Risk</td>
-                <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">Very low – covered by the same lifetime warranties</td>
-                <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">Very low – system is installed and maintained by provider</td>
-            </tr>
-            <tr>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Early Exit</td>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Early repayment may include fees or interest</td>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Can settle early at any time with no penalty</td>
@@ -57,7 +52,3 @@
     </table>
 
 </template>
-
-<style scoped>
-
-</style>

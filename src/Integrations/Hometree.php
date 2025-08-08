@@ -4,6 +4,7 @@ namespace Mralston\Payment\Integrations;
 
 use Exception;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
@@ -199,6 +200,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                                 'monthly_payment' => $offer['params']['monthly_payment_gross'],
                                 'final_payment' => $offer['params']['monthly_payment_gross'],
                                 'minimum_payments' => $offer['params']['min_payments_gross'],
+                                'total_repayable' => collect($offer['params']['min_payments_gross'])->sum(),
                                 'provider_application_id' => $response['id'],
                                 'provider_offer_id' => $offer['id'],
                                 'status' => $offer['status'],
@@ -294,6 +296,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                             'monthly_payment' => $offer['params']['monthly_payment_gross'],
                             'final_payment' => $offer['params']['monthly_payment_gross'],
                             'minimum_payments' => $offer['params']['min_payments_gross'],
+                            'total_repayable' => collect($offer['params']['min_payments_gross'])->sum(),
                             'provider_application_id' => $response['id'],
                             'provider_offer_id' => $offer['id'],
                             'status' => $offer['status'],
@@ -322,42 +325,35 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
     protected function upsertPaymentOffer(array $data): PaymentOffer
     {
-        // I'd expect this to work, but the offer IDs change when the status changes
-        // $paymentOffer = PaymentOffer::firstWhere('provider_offer_id', $data['provider_offer_id']);
-
-        // So I'll find the matching offer line this instead
-        $paymentOffer = PaymentOffer::query()
-            ->where('provider_application_id', $data['provider_application_id'])
-            ->where('term', $data['term'])
-            ->where('upfront_payment', $data['upfront_payment'])
-            ->first();
+        // TODO: Should be able to use updateOrCreate now the odder IDs are fixed in the API
+        $paymentOffer = PaymentOffer::firstWhere('provider_offer_id', $data['provider_offer_id']);
 
         if ($paymentOffer) {
-            Log::debug('Updating Hometree offer...', collect($data)->only([
-                'payment_survey_id',
-                'name',
-                'type',
-                'amount',
-                'payment_provider_id',
-                'status',
-                'provider_application_id',
-                'provider_offer_id',
-            ])->toArray());
+//            Log::debug('Updating Hometree offer...', collect($data)->only([
+//                'payment_survey_id',
+//                'name',
+//                'type',
+//                'amount',
+//                'payment_provider_id',
+//                'status',
+//                'provider_application_id',
+//                'provider_offer_id',
+//            ])->toArray());
 
             $paymentOffer->update($data);
             return $paymentOffer;
         }
 
-        Log::debug('Inserting Hometree offer...', collect($data)->only([
-            'payment_survey_id',
-            'name',
-            'type',
-            'amount',
-            'payment_provider_id',
-            'status',
-            'provider_application_id',
-            'provider_offer_id',
-        ])->toArray());
+//        Log::debug('Inserting Hometree offer...', collect($data)->only([
+//            'payment_survey_id',
+//            'name',
+//            'type',
+//            'amount',
+//            'payment_provider_id',
+//            'status',
+//            'provider_application_id',
+//            'provider_offer_id',
+//        ])->toArray());
 
         return PaymentOffer::create($data);
     }

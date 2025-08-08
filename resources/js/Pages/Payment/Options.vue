@@ -55,14 +55,34 @@ const offers = ref([]);
 const financeOffers = computed (() => {
     return offers.value
         .filter((offer) => offer.type === 'finance')
-        .sort((a, b) => a.monthly_payment - b.monthly_payment);
+        .sort(sortOffers);
 });
 
 const leaseOffers = computed (() => {
     return offers.value
         .filter((offer) => offer.type === 'lease')
-        .sort((a, b) => a.monthly_payment - b.monthly_payment);
+        .sort(sortOffers);
 });
+
+function sortOffers(offers) {
+    if (!Array.isArray(offers)) {
+        return [];
+    }
+
+    return offers.sort((a, b) => {
+        // Handle null priority values by treating them as a higher number
+        const aPriority = a.priority ?? Number.MAX_SAFE_INTEGER;
+        const bPriority = b.priority ?? Number.MAX_SAFE_INTEGER;
+
+        // Sort by priority first
+        if (aPriority !== bPriority) {
+            return aPriority - bPriority;
+        }
+
+        // If priorities are the same, sort by monthly_payment
+        return a.monthly_payment - b.monthly_payment;
+    });
+}
 
 const lowestFinanceOffer = computed(() => {
     if (financeOffers.value.length === 0) {
@@ -107,6 +127,11 @@ onMounted(() => {
 
 watch(pendingGateways, () => {
     // Auto select lowest offers when all gateways have responded
+
+
+
+
+
     if (pendingGateways.value.length === 0 && offers.value.length > 0) {
         if (selectedFinanceOffer.value == null && lowestFinanceOffer.value != null) {
             selectedFinanceOffer.value = lowestFinanceOffer.value;
@@ -194,9 +219,17 @@ function updateOffers(e)
 }
 
 function proceed(paymentType) {
+    let selectedOffer = null;
+
+    if (paymentType === 'finance') {
+        selectedOffer = selectedFinanceOffer.value;
+    } else if (paymentType === 'lease') {
+        selectedOffer = selectedLeaseOffer.value;
+    }
+
     router.get(route('payment.' + paymentType + '.create', {
         parent: props.parentModel,
-        offer: selectedFinanceOffer.value ?? selectedLeaseOffer.value
+        offerId: selectedOffer?.id
     }));
 }
 
@@ -279,7 +312,7 @@ function financeVsLease()
     </MoreInfoModal>
 
     <MoreInfoModal ref="financeMoreInfoModal" title="More Info - Finance">
-        <FinanceMoreInfo/>
+        <FinanceMoreInfo :totalCost="totalCost" :deposit="deposit" :offer="selectedFinanceOffer"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
@@ -320,8 +353,6 @@ function financeVsLease()
             Payment Options
         </h1>
 
-        <p class="mt-4">It's make your mind up time. Are you going with what's behind door number one, door number two or door number three?</p>
-
         <div class="bg-white py-16">
             <div class="mx-auto max-w-7xl px-6 lg:px-8">
                 <div class="flow-root">
@@ -336,8 +367,9 @@ function financeVsLease()
                                 VS
                             </button>
 
-                            <h3 class="text-4xl font-semibold text-blue-800">Cash</h3>
-                            <p class="mt-6 flex items-baseline gap-x-1">
+                            <h3 class="text-3xl font-semibold text-blue-800">Outright Purchase</h3>
+
+                            <p class="mt-4 flex items-baseline gap-x-1">
                                 <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(totalCost) }}</span>
                             </p>
 
@@ -419,12 +451,11 @@ function financeVsLease()
                         <!-- Finance -->
                         <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
 
-                            <img v-if="selectedFinanceProvider?.logo"
-                                 :src="selectedFinanceProvider.logo"
-                                 class="max-w-1/3 h-7 mb-9"
-                                 :alt="selectedFinanceProvider.name">
-                            <h3 v-else-if="selectedFinanceProvider" class="text-4xl font-semibold text-blue-800">selectedFinanceProvider.name</h3>
-                            <SkeletonItem v-else class="h-10 w-5/6"/>
+                            <div class="mb-4">
+                                <img v-if="selectedFinanceProvider?.logo" :src="selectedFinanceProvider.logo" class="max-w-1/3 h-7" :alt="selectedFinanceProvider.name">
+                                <h3 v-else-if="selectedFinanceProvider" class="text-3xl font-semibold text-blue-800">selectedFinanceProvider.name</h3>
+                                <SkeletonItem v-else class="h-7 w-5/6"/>
+                            </div>
 
                             <button class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
                                     @click="financeVsLease"
@@ -432,15 +463,15 @@ function financeVsLease()
                                 VS
                             </button>
 
+                            <div class="mt-8 h-10">
+                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
+                                <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
+                                    <OfferStatusBadge :offer="selectedFinanceOffer" :lowest-offer="lowestFinanceOffer"/>
 
-                            <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-3/4"/>
-                            <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
-
-                                <OfferStatusBadge :offer="selectedFinanceOffer" :lowest-offer="lowestFinanceOffer"/>
-
-                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedFinanceOffer?.monthly_payment ?? 0) }}</span>
-                                <span class="text-sm/6 font-semibold text-gray-600">/month</span>
-                            </p>
+                                    <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedFinanceOffer?.monthly_payment ?? 0) }}</span>
+                                    <span class="text-sm/6 font-semibold text-gray-600">/month</span>
+                                </p>
+                            </div>
 
                             <div class="mt-8 h-10">
 
@@ -485,26 +516,24 @@ function financeVsLease()
                         <!-- Lease -->
                         <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
 
-                            <img v-if="selectedLeaseProvider?.logo"
-                                 :src="selectedLeaseProvider.logo"
-                                 class="max-w-1/3 h-7 mb-9"
-                                 :alt="selectedLeaseProvider.name">
-                            <h3 v-else-if="selectedLeaseProvider" class="text-4xl font-semibold text-blue-800">selectedLeaseProvider.name</h3>
-                            <SkeletonItem v-else class="h-10 w-5/6"/>
-
-                            <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-3/4"/>
-
-                            <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
-
-                                <OfferStatusBadge :offer="selectedLeaseOffer" :lowest-offer="lowestLeaseOffer"/>
-
-                                <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedLeaseOffer?.monthly_payment ?? 0) }}</span>
-                                <span class="text-sm/6 font-semibold text-gray-600">/month</span>
-                            </p>
+                            <div class="mb-4">
+                                <img v-if="selectedLeaseProvider?.logo" :src="selectedLeaseProvider.logo" class="max-w-1/3 h-7" :alt="selectedLeaseProvider.name">
+                                <h3 v-else-if="selectedLeaseProvider" class="text-3xl font-semibold text-blue-800">selectedLeaseProvider.name</h3>
+                                <SkeletonItem v-else class="h-7 w-5/6"/>
+                            </div>
 
                             <div class="mt-8 h-10">
+                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
+                                <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
+                                    <OfferStatusBadge :offer="selectedLeaseOffer" :lowest-offer="lowestLeaseOffer"/>
 
-                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
+                                    <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedLeaseOffer?.monthly_payment ?? 0) }}</span>
+                                    <span class="text-sm/6 font-semibold text-gray-600">/month</span>
+                                </p>
+                            </div>
+
+                            <div class="mt-8 h-10">
+                                <SkeletonItem v-if="pendingGateways.length > 0 && leaseOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
 
                                 <PaymentOffersSelect v-if="leaseOffers.length > 0" :offers="leaseOffers" v-model="selectedLeaseOffer"/>
 

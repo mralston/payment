@@ -64,17 +64,25 @@ if (props.modelValue) {
 
                                 <span :class="[selected ? 'font-semibold' : 'font-normal', 'ml-3 block truncate']">
 
-                                    {{ offer.payment_provider.name }}
-                                    <span v-if="offer.apr">{{ offer.apr }}%</span>
-                                    {{ offer.term / 12 }} years
+                                    <div class="flex items-center gap-2">
+                                        <div>{{ offer.payment_provider.name }}</div>
+                                        <div v-if="offer.apr">{{ offer.apr }}%</div>
+                                        <div :class="[active ? 'text-white' : 'text-blue-500', 'flex-1 text-right']">
+                                            {{ formatCurrency(offer.monthly_payment, 0) }}/month
+                                        </div>
+                                    </div>
 
-                                    <div v-if="offer.upfront_payment > 0">
+                                    <div>
+                                        {{ offer.term / 12 }} years
+                                        <span v-if="offer.deferred">
+                                            - {{ offer.deferred }} months deferred
+                                        </span>
+                                    </div>
+
+                                    <div v-if="offer.upfront_payment > 0" class="inline">
                                         {{ formatCurrency(offer.upfront_payment, 0) }} up front
                                     </div>
 
-                                    <div v-if="offer.deferred">
-                                        {{ offer.deferred }} months deferred
-                                    </div>
 
 
                                     <span class="sr-only"> is {{ offer.status == 'preapproved' ? 'Pre-approved' : 'Tentative' }}</span>

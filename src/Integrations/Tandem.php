@@ -660,6 +660,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'first_payment' => $repayments['RepaymentDetails']['FirstRepaymentAmount'],
                             'monthly_payment' => $repayments['RepaymentDetails']['MonthlyRepayment'],
                             'final_payment' => $repayments['RepaymentDetails']['FinalRepaymentAmount'],
+                            'total_repayable' => $repayments['FinancialDetails']['TotalPayable'],
                             'status' => 'final',
                         ]);
                 });

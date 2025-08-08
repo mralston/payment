@@ -26,6 +26,7 @@ return new class extends Migration
             $table->decimal('monthly_payment', 8, 2);
             $table->decimal('final_payment', 8, 2);
             $table->json('minimum_payments')->nullable();
+            $table->decimal('total_repayable', 8, 2)->nullable();
             $table->string('status');
             $table->string('preapproval_id')->nullable();
             $table->integer('priority')->nullable();

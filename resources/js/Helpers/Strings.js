@@ -9,3 +9,13 @@ export function titleCase(str) {
     }
     return chars.join(' ');
 }
+
+export function cleanUrl(url) {
+    // Remove http://, https://, and www. from the beginning
+    let cleanedUrl = url.replace(/^(https?:\/\/)?(www\.)?/, '');
+
+    // Remove the trailing / from the end
+    cleanedUrl = cleanedUrl.replace(/\/$/, '');
+
+    return cleanedUrl;
+}
