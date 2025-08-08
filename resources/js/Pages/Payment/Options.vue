@@ -18,6 +18,7 @@ import OfferStatusBadge from "../../Components/OfferStatusBadge.vue";
 import BulletPointsSkeleton from "../../Components/BulletPointsSkeleton.vue";
 import SkeletonItem from "../../Components/SkeletonItem.vue";
 import {makeNumeric} from "../../Helpers/Number.js";
+import {decompress} from "../../Helpers/Compression.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -129,11 +130,6 @@ onMounted(() => {
 
 watch(pendingGateways, () => {
     // Auto select lowest offers when all gateways have responded
-
-
-
-
-
     if (pendingGateways.value.length === 0 && offers.value.length > 0) {
         if (selectedFinanceOffer.value == null && lowestFinanceOffer.value != null) {
             selectedFinanceOffer.value = lowestFinanceOffer.value;
@@ -192,6 +188,8 @@ function initiatePrequal()
 
 function updateOffers(e)
 {
+    e = decompress(e.payload);
+
     // Remove gateways that have replied from the pendingGateways array
     pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise === e.gateway);
 

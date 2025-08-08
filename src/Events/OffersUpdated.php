@@ -13,6 +13,7 @@ use Mralston\Payment\Data\OfferData;
 use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentSurvey;
+use Mralston\Payment\Services\Compression;
 
 class OffersUpdated implements ShouldBroadcast
 {
@@ -70,10 +71,15 @@ class OffersUpdated implements ShouldBroadcast
             ];
         });
 
-        return [
+        $payload = [
             'gateway' => $this->gateway,
             'surveyId' => $this->surveyId,
             'offers' => $offers,
+        ];
+
+        return [
+            'payload' => app(Compression::class)
+                ->compress($payload)
         ];
     }
 }

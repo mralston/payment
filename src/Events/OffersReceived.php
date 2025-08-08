@@ -10,6 +10,7 @@ use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Log;
 use Mralston\Payment\Models\PaymentOffer;
+use Mralston\Payment\Services\Compression;
 
 class OffersReceived implements ShouldBroadcast
 {
@@ -68,10 +69,15 @@ class OffersReceived implements ShouldBroadcast
             ];
         });
 
-        return [
+        $payload = [
             'gateway' => $this->gateway,
             'surveyId' => $this->surveyId,
             'offers' => $offers,
+        ];
+
+        return [
+            'payload' => app(Compression::class)
+                ->compress($payload)
         ];
     }
 }
