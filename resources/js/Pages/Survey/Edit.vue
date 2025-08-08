@@ -11,6 +11,7 @@ const props = defineProps({
     paymentSurvey: Object,
     customers: Array,
     addresses: Array,
+    employmentStatuses: Array,
 });
 
 const form = useForm({
@@ -204,14 +205,9 @@ function skip()
                                 <div class="mt-2">
                                     <select v-model="customer.employmentStatus" :id="'employmentStatus.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                         <option></option>
-                                        <option value="100">Full Time</option>
-                                        <option value="200">Part Time</option>
-                                        <option value="300">Casual</option>
-                                        <option value="300">Casual</option>
-                                        <option value="400">Self Employed</option>
-                                        <option value="500">Household Carer</option>
-                                        <option value="600">Retired</option>
-                                        <option value="700">Unemployed</option>
+                                        <option v-for="employmentStatus in employmentStatuses" :key="employmentStatuses.id" :value="employmentStatus.value">
+                                            {{ employmentStatus.name }}
+                                        </option>
                                     </select>
                                 </div>
                             </div>

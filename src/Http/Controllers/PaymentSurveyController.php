@@ -4,7 +4,9 @@ namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Traits\BootstrapsPayment;
 
@@ -27,7 +29,9 @@ class PaymentSurveyController
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'customers' => $helper->getCustomers(),
-            'addresses' => [$helper->getAddress()]
+            'addresses' => [$helper->getAddress()],
+            'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
+                ->paymentLookupValues,
         ])->withViewData($helper->getViewData());
     }
 
@@ -51,6 +55,8 @@ class PaymentSurveyController
             'paymentSurvey' => $survey,
             'customers' => $survey->customers ?? [],
             'addresses' => $survey->addresses ?? [],
+            'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
+                ->paymentLookupValues,
         ])->withViewData($helper->getViewData());
     }
 
