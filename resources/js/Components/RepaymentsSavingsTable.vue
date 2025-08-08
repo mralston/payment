@@ -27,10 +27,10 @@ const repaymentsBreakdown = computed(() => {
         };
 
         if (props.systemSavings.data[i]) {
-            //total savngs per year
+            //total savings per year
             datum.savings = props.systemSavings.data[i]['total'];
 
-            //total savngs pre month
+            //total savings pre month
             datum.monthly = datum['savings'] / 12;
         }
         else {

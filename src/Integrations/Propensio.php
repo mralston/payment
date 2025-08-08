@@ -21,6 +21,7 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
+use Mralston\Payment\Services\Repayments;
 use Spatie\ArrayToXml\ArrayToXml;
 
 class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
@@ -988,8 +989,13 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 // Fetch products available from lender
                 $products = $paymentProvider->paymentProducts;
 
+                $calculator = app(Repayments::class);
+
                 // Store products to offers
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount) {
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount, $calculator) {
+
+                    $repayments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
+
                     return $survey->paymentOffers()
                         ->create([
                             'name' => $product->name,
@@ -999,11 +1005,11 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'apr' => $product->apr,
                             'term' => $product->term,
                             'deferred' => $product->deferred,
-                            'priority' => $product->sort_order, // TODO: Reverse these
-                            // TODO: calculate payments
-                            'first_payment' => 0,
-                            'monthly_payment' => 0,
-                            'final_payment' => 0,
+                            'priority' => $product->sort_order,
+                            'first_payment' => $repayments['firstRepayment'],
+                            'monthly_payment' => $repayments['monthlyRepayment'],
+                            'final_payment' => $repayments['finalRepayment'],
+                            'total_repayable' => $repayments['total'],
                             'status' => 'final',
                         ]);
                 });

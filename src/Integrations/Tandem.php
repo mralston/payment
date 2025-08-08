@@ -650,8 +650,6 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         return null;
                     }
 
-                    Log::debug(print_r($repayments, true));
-
                     return $survey->paymentOffers()
                         ->create([
                             'name' => $paymentProvider->name . ' ' . $product['apr'] . '%' .

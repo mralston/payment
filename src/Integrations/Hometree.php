@@ -174,10 +174,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 ->where('amount', $amount)
                 ->get();
 
-            if (!$offers->isEmpty()) {
-                Log::debug('Returning stored offers for Hometree.');
-            }
-
             // If there aren't any offers...
             if ($offers->isEmpty()) {
                 Log::debug('No stored offers found for Hometree. Querying API...');
