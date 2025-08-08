@@ -47,12 +47,33 @@ class OffersUpdated implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
+        $offers = $this->offers->map(function (PaymentOffer $offer) {
+            // Lazy eager load the payment provider and limit its columns
+            $offer->load('paymentProvider:id,name,logo');
+
+            // Manually create an array with the only columns we need + the payment provider
+            return [
+                ...collect($offer->getAttributes())
+                    ->except([
+                        'payment_survey_id',
+                        'paymentProvider',
+                        'minimum_payments',
+                        'preapproval_id',
+                        'provider_offer_id',
+                        'provider_application_id',
+                        'small_print',
+                        'created_at',
+                        'updated_at',
+                    ])
+                    ->toArray(),
+                'payment_provider' => $offer->paymentProvider,
+            ];
+        });
+
         return [
             'gateway' => $this->gateway,
             'surveyId' => $this->surveyId,
-            'offers' => $this
-                ->offers
-                ->map(fn (PaymentOffer $offer) => $offer->load('paymentProvider:id,name,logo')),
+            'offers' => $offers,
         ];
     }
 }
