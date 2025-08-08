@@ -315,12 +315,18 @@ function financeVsLease()
         <FinanceMoreInfo :totalCost="makeNumeric(totalCost)"
                          :deposit="makeNumeric(deposit)"
                          :selected-offer="selectedFinanceOffer"
-                         :other-offers="financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id)"
+                         :other-offers="financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id && offer.payment_provider_id === selectedFinanceOffer.payment_provider_id)"
                          :system-savings="systemSavings"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
-        <LeaseMoreInfo :content="leaseMoreInfoContent"/>
+        <LeaseMoreInfo :content="leaseMoreInfoContent"
+                       :totalCost="makeNumeric(totalCost)"
+                       :deposit="makeNumeric(deposit)"
+                       :selected-offer="selectedLeaseOffer"
+                       :other-offers="leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id)"
+                       :system-savings="systemSavings"
+        />
     </MoreInfoModal>
 
     <MoreInfoModal ref="cashVsFinanceModal" title="Cash vs Finance">

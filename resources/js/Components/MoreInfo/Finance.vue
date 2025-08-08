@@ -32,7 +32,7 @@ const props = defineProps({
                     {{ toPounds(selectedOffer.monthly_payment) }}/month
                 </span>
                 <span>
-                    over {{ selectedOffer.term }} months
+                    over {{ selectedOffer.term / 12 }} years
                 </span>
                 <span v-if="selectedOffer.deferred > 0">
                     ({{ selectedOffer.deferred }} months deferred)

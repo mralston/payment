@@ -30,7 +30,7 @@ const repaymentsBreakdown = computed(() => {
             //total savings per year
             datum.savings = props.systemSavings.data[i]['total'];
 
-            //total savings pre month
+            //total savings per month
             datum.monthly = datum['savings'] / 12;
         }
         else {
@@ -55,7 +55,7 @@ const repaymentsBreakdown = computed(() => {
             <strong>
                 {{ term }} payments
                 of {{ toPounds(monthlyPayment) }}/month
-                at {{ toMax2DP(apr) }}%
+                <span v-if="apr">at {{ toMax2DP(apr) }}%</span>
             </strong>
             <span v-if="deferred > 0">
                 ({{ deferred }} months deferred)
