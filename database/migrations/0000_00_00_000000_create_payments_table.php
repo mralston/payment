@@ -38,8 +38,8 @@ return new class extends Migration
             $table->string('last_name')->nullable();
             $table->string('marital_status')->nullable();
             $table->tinyInteger('homeowner_status')->nullable();
-            $table->boolean('has_mortgage')->nullable();
-            $table->tinyInteger('british_citizen')->nullable();
+            $table->string('residential_status')->nullable();
+            $table->string('nationality')->nullable();
             $table->date('date_of_birth')->nullable();
             $table->integer('dependents_count')->nullable();
             $table->boolean('bankrupt_or_iva')->default(0);

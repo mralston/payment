@@ -1,6 +1,6 @@
 <?php
 
-namespace Mralston\Payment\Providers;
+namespace Mralston\Payment;
 
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
@@ -13,20 +13,24 @@ class PaymentServiceProvider extends ServiceProvider
 {
     public function boot()
     {
-        $this->loadViewsFrom(__DIR__.'/../../resources/views', 'payment');
+        $this->loadViewsFrom(__DIR__.'/../resources/views', 'payment');
 
-        $this->loadRoutesFrom(__DIR__.'/../../routes/web.php');
-        $this->loadRoutesFrom(__DIR__.'/../../routes/channels.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
+        $this->loadRoutesFrom(__DIR__.'/../routes/channels.php');
 
-        $this->loadMigrationsFrom(__DIR__ . '/../../database/migrations');
+        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../../config/config.php' => config_path('payment.php'),
+                __DIR__ . '/../config/config.php' => config_path('payment.php'),
             ], 'payment-config');
 
             $this->publishes([
-                __DIR__.'/../../public/vendor/mralston/payment/build' => public_path('vendor/mralston/payment/build'),
+                __DIR__ . '/../database/seeders' => database_path('seeders'),
+            ], 'payment-seeders');
+
+            $this->publishes([
+                __DIR__.'/../public/vendor/mralston/payment/build' => public_path('vendor/mralston/payment/build'),
             ], 'payment-assets');
         }
 
@@ -43,7 +47,7 @@ class PaymentServiceProvider extends ServiceProvider
 
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../../config/config.php', 'payment');
+        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'payment');
 
         $this->app->singleton(Tandem::class, function ($app) {
             return new Tandem(

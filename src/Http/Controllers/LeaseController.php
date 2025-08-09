@@ -5,10 +5,14 @@ namespace Mralston\Payment\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Mralston\Payment\Enums\LookupField;
+use Mralston\Payment\Enums\PaymentType as PaymentTypeEnum;
+use Mralston\Payment\Http\Requests\SubmitLeaseApplicationRequest;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
+use Mralston\Payment\Models\PaymentType;
 use Mralston\Payment\Traits\BootstrapsPayment;
 
 class LeaseController
@@ -41,8 +45,47 @@ class LeaseController
             ->withViewData($this->helper->getViewData());
     }
 
-    public function store(Request $request, int $parent)
+    public function store(SubmitLeaseApplicationRequest $request, int $parent)
     {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+        $survey = $parentModel->paymentSurvey;
+        $offer = PaymentOffer::findOrFail($request->get('offerId'));
+
+        // TODO: Store the product if it doesn't already exist
+        dump($request->all());
+
+        // TODO: Create payment
+        $payment = Payment::make()
+            ->withPaymentType(PaymentType::byIdentifier(PaymentTypeEnum::LEASE))
+            ->withSurvey($survey)
+            ->withOffer($offer)
+            ->setParent($parentModel)
+            ->fill([
+                'deposit' => $this->helper->getDeposit(),
+                'eligible' => $request->get('eligible'),
+                'gdpr_opt_in' => $request->get('gdprOptIn'),
+                'read_terms_conditions' => $request->get('readTermsConditions'),
+                'bank_account_number' => $request->get('accountNumber'),
+                'bank_account_sort_code' => $request->get('sortCode'),
+            ])
+            ->save();
+
+        dd($payment);
+
+        // TODO: Submit payment to provider
+
+        return redirect()
+            ->route('payment.finance.show', [
+                'parent' => $parent,
+                'finance' => $payment
+            ]);
+
+
+
+
+
+
+
         // TODO: Update survey
 
         // TODO: Submit application

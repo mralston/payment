@@ -5,8 +5,7 @@ namespace Mralston\Payment\Enums;
 enum LookupField: string
 {
     case MARITAL_STATUS = 'marital_status';
-    case HOMEOWNER = 'homeowner';
-    case MORTGAGE = 'mortgage';
+    case RESIDENTIAL_STATUS = 'residential_status';
     case EMPLOYMENT_STATUS = 'employment_status';
-    case BRITISH_CITIZEN = 'british_citizen';
+    case NATIONALITY = 'nationality';
 }

@@ -18,6 +18,7 @@ use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\PaymentLookupValue;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
@@ -110,7 +111,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                         'affordability' => [
                             'gross_annual_income' => $customer['grossAnnualIncome'],
                             'dependants' => $customer['dependants'],
-                            'employment_status' => $customer['employmentStatus'],
+                            'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
                         ]
                     ];
                 }),
@@ -176,7 +177,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
             // If there aren't any offers...
             if ($offers->isEmpty()) {
-                Log::debug('No stored offers found for Hometree. Querying API...');
                 try {
                     $response = $this->createApplication($survey);
 
@@ -254,9 +254,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         int $for = 60,
         ?int $delay = null
     ): void {
-
-        Log::debug('Will poll for Hometree updates...', [$survey->id, $applicationId, $every, $for, $delay]);
-
         $surveyId = $survey->id;
 
         $helper = app(PaymentHelper::class)
@@ -274,7 +271,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
             while (now()->diffInSeconds($startTime) < $for) {
                 $response = $this->getApplication($applicationId);
-//                Log::debug('Hometree poll response:', collect($response)->except(['offers.params.min_payments_gross', 'offers.params.disclaimer'])->toArray());
 
                 $offers = collect($response['offers'])
                     ->map(function ($offer) use ($response, $amount, $paymentProviderId, $surveyId) {
@@ -315,7 +311,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 sleep($every);
             }
 
-            Log::debug('Hometree poll complete.', [$surveyId, $applicationId, $every, $for]);
         })->delay(now()->addSeconds($delay ?? 0));
     }
 

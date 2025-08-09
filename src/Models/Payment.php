@@ -3,12 +3,15 @@
 namespace Mralston\Payment\Models;
 
 use GregoryDuckworth\Encryptable\EncryptableTrait;
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mralston\Payment\Interfaces\PaymentParentModel;
+use Mralston\Payment\Observers\PaymentObserver;
 
+#[ObservedBy(PaymentObserver::class)]
 class Payment extends Model
 {
     use EncryptableTrait;
@@ -150,6 +153,13 @@ class Payment extends Model
         return $this;
     }
 
+    public function withPaymentType(PaymentType $paymentType): static
+    {
+        $this->payment_type_id = $paymentType->id;
+
+        return $this;
+    }
+
     public function withSurvey(PaymentSurvey $survey): static
     {
         $customer = $survey->customers->first();
@@ -159,9 +169,7 @@ class Payment extends Model
         $this->middle_name = $customer['middleName'];
         $this->last_name = $customer['lastName'];
         $this->marital_status = $customer['maritalStatus'];
-        $this->homeowner_status = $customer['homeowner'];
-        $this->has_mortgage = $customer['mortgage'];
-        $this->british_citizen = $customer['britishCitizen'];
+        $this->residential_status = $customer['residentialStatus'];
         $this->date_of_birth = $customer['dateOfBirth'];
         $this->dependents_count = $customer['dependants'];
         // TODO: bankrupt_or_iva

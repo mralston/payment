@@ -21,9 +21,8 @@ class CustomerData extends Data
         public ?int $dependants = null,
         public ?string $employmentStatus = null,
         public ?string $martialStatus = null,
-        public ?string $homeowner = null,
-        public ?string $mortgage = null,
-        public ?string $britishCitizen = null,
+        public ?string $residentialStatus = null,
+        public ?string $nationality = null,
     ) {
         //
     }

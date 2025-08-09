@@ -5,6 +5,7 @@ namespace Mralston\Payment\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Mralston\Payment\Enums\LookupField;
+use Mralston\Payment\Http\Requests\SubmitFinanceApplicationRequest;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupField;
@@ -40,17 +41,15 @@ class FinanceController
                 ->paymentLookupValues,
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
-            'homeowners' => PaymentLookupField::byIdentifier(LookupField::HOMEOWNER)
+            'residentialStatuses' => PaymentLookupField::byIdentifier(LookupField::RESIDENTIAL_STATUS)
                 ->paymentLookupValues,
-            'mortgages' => PaymentLookupField::byIdentifier(LookupField::MORTGAGE)
-                ->paymentLookupValues,
-            'britishCitizens' => PaymentLookupField::byIdentifier(LookupField::BRITISH_CITIZEN)
+            'nationalities' => PaymentLookupField::byIdentifier(LookupField::NATIONALITY)
                 ->paymentLookupValues,
         ])
             ->withViewData($this->helper->getViewData());
     }
 
-    public function store(Request $request, int $parent)
+    public function store(SubmitFinanceApplicationRequest $request, int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
         $survey = $parentModel->paymentSurvey;

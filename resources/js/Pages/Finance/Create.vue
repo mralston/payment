@@ -6,6 +6,9 @@ import { makeNumeric } from "../../Helpers/Number.js";
 import {diffInMonths, formatDate, fromNow, monthsYears} from "../../Helpers/Date.js";
 import {cleanUrl} from "../../Helpers/Strings.js";
 import RepresentativeExample from "../../Components/RepresentativeExample.vue";
+import {ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+import ValidationWrapper from "../../Components/ValidationWrapper.vue";
+import ValidationBanner from "../../Components/ValidationBanner.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -17,17 +20,15 @@ const props = defineProps({
     lenders: Array,
     maritalStatuses: Array,
     employmentStatuses: Array,
-    homeowners: Array,
-    mortgages: Array,
-    britishCitizens: Array,
+    residentialStatuses: Array,
+    nationalities: Array,
 });
 
 const form = useForm({
     offerId: props.offer.id,
     maritalStatus: props.survey.customers[0].maritalStatus,
-    homeowner: props.survey.customers[0].homeowner,
-    mortgage: props.survey.customers[0].mortgage,
-    britishCitizen: props.survey.customers[0].britishCitizen,
+    residentialStatus: props.survey.customers[0].residentialStatus,
+    nationality: props.survey.customers[0].nationality,
     accountNumber: null,
     sortCode: null,
     readTermsConditions: false,
@@ -52,6 +53,8 @@ function submit()
 
     <div class="p-4">
 
+        <ValidationBanner :form="form"/>
+
         <h1 class="text-4xl font-bold mb-6">
             Finance
         </h1>
@@ -64,8 +67,8 @@ function submit()
                     is a broker and works with a number of lenders to help customers apply for finance to assist their purchase.
                     Credit is provided from selection of lenders:
                     <span v-for="(lender, index) in lenders">
-                {{ lender.name }}<span v-if="index < lenders.length - 2">, </span><span v-else-if="index < lenders.length - 1"> and </span>
-            </span>.
+                        {{ lender.name }}<span v-if="index < lenders.length - 2">, </span><span v-else-if="index < lenders.length - 1"> and </span>
+                    </span>.
                 </p>
                 <h2 class="text-2xl mb-4">Eligibility</h2>
                 <p class="mb-4">
@@ -78,10 +81,12 @@ function submit()
                     <li>Able to demonstrate the loan is affordable</li>
                     <li>Have a UK bank account that accepts Direct Debits</li>
                 </ul>
-                <div class="mb-4">
+
+                <ValidationWrapper :form="form" field="eligible" class="mb-4">
                     <input type="checkbox" v-model="form.eligible" id="eligible" class="mr-2">
                     <label for="eligible"><b>I confirm that I meet these eligibility requirements.</b></label>
-                </div>
+                </ValidationWrapper>
+
             </div>
             <div class="md:col-span-3 order-1 md:order-2">
                 <h2 class="text-2xl mb-4">Overpayments Estimator</h2>
@@ -124,10 +129,10 @@ function submit()
         </table>
 
 
-        <div class="mb-4">
+        <ValidationWrapper :form="form" field="gdprOptIn" class="mb-4">
             <input type="checkbox" v-model="form.gdprOptIn" id="gdpr_opt_in" class="mr-2">
             <label for="gdpr_opt_in"><b>I agree to my personal data being used as part of my loan application as described above.</b></label>
-        </div>
+        </ValidationWrapper>
 
         <h2 class="text-2xl mb-4">Your Loan Application</h2>
 
@@ -147,45 +152,40 @@ function submit()
                 <tr>
                     <th class="p-1 mr-2">Marital status</th>
                     <td class="p-1">
-                        <select v-model="form.maritalStatus" id="maritalStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                            <option></option>
-                            <option v-for="maritalStatus in maritalStatuses" :key="maritalStatuses.id" :value="maritalStatus.value">
-                                {{ maritalStatus.name }}
-                            </option>
-                        </select>
+                        <ValidationWrapper :form="form" field="maritalStatus">
+                            <select v-model="form.maritalStatus" id="maritalStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                <option></option>
+                                <option v-for="maritalStatus in maritalStatuses" :key="maritalStatuses.id" :value="maritalStatus.value">
+                                    {{ maritalStatus.name }}
+                                </option>
+                            </select>
+                        </ValidationWrapper>
                     </td>
                 </tr>
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Homeowner</th>
                     <td class="bg-gray-100 p-1">
-                        <select v-model="form.homeowner" id="homeowner" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                            <option></option>
-                            <option v-for="homeowner in homeowners" :key="homeowner.id" :value="homeowner.value">
-                                {{ homeowner.name }}
-                            </option>
-                        </select>
+                        <ValidationWrapper :form="form" field="residentialStatus">
+                            <select v-model="form.residentialStatus" id="residentialStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                <option></option>
+                                <option v-for="residentialStatus in residentialStatuses" :key="residentialStatus.id" :value="residentialStatus.value">
+                                    {{ residentialStatus.name }}
+                                </option>
+                            </select>
+                        </ValidationWrapper>
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Mortgage</th>
-                    <td class="p-1">
-                        <select v-model="form.mortgage" id="mortgage" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                            <option></option>
-                            <option v-for="mortgage in mortgages" :key="mortgage.id" :value="mortgage.value">
-                                {{ mortgage.name }}
-                            </option>
-                        </select>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">British Citizen</th>
+                    <th class="bg-gray-100 p-1 mr-2">Nationality</th>
                     <td class="bg-gray-100 p-1">
-                        <select v-model="form.britishCitizen" id="britishCitizen" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                            <option></option>
-                            <option v-for="britishCitizen in britishCitizens" :key="britishCitizen.id" :value="britishCitizen.value">
-                                {{ britishCitizen.name }}
-                            </option>
-                        </select>
+                        <ValidationWrapper :form="form" field="nationality">
+                            <select v-model="form.nationality" id="nationality" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                <option></option>
+                                <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
+                                    {{ nationality.name }}
+                                </option>
+                            </select>
+                        </ValidationWrapper>
                     </td>
                 </tr>
                 <tr>
@@ -240,13 +240,17 @@ function submit()
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Account number</th>
                     <td class="bg-gray-100 p-1">
-                        <input type="text" v-model="form.accountNumber" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
+                        <ValidationWrapper :form="form" field="accountNumber">
+                            <input type="text" v-model="form.accountNumber" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
+                        </ValidationWrapper>
                     </td>
                 </tr>
                 <tr>
                     <th class="p-1 mr-2">Sort code</th>
                     <td class="p-1">
-                        <input type="text" v-model="form.sortCode" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
+                        <ValidationWrapper :form="form" field="sortCode">
+                            <input type="text" v-model="form.sortCode" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
+                        </ValidationWrapper>
                     </td>
                 </tr>
             </tbody>
@@ -265,10 +269,10 @@ function submit()
             <li>When you click to submit your loan application, your credit file will be searched by {{ lenders[0].name }} and a record left of the search.</li>
         </ul>
 
-        <div class="mb-4">
+        <ValidationWrapper :form="form" field="readTermsConditions" class="mb-4">
             <input type="checkbox" v-model="form.readTermsConditions" id="read_terms_conditions" class="mr-2">
             <label for="read_terms_conditions"><b>I confirm that I have read and understood the important information.</b></label>
-        </div>
+        </ValidationWrapper>
 
         <RepresentativeExample class="w-3/4"
                                :amount="makeNumeric(offer.amount)"

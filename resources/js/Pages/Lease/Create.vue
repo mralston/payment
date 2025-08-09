@@ -1,10 +1,11 @@
 <script setup>
 
-import {Head, router} from "@inertiajs/vue3";
+import {Head, router, useForm} from "@inertiajs/vue3";
 import {cleanUrl} from "../../Helpers/Strings.js";
 import {formatDate, fromNow} from "../../Helpers/Date.js";
 import {makeNumeric} from "../../Helpers/Number.js";
 import RepresentativeExample from "../../Components/RepresentativeExample.vue";
+import {ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -17,9 +18,16 @@ const props = defineProps({
     employmentStatuses: Array,
 });
 
+const form = useForm({
+    offerId: props.offer.id,
+    readTermsConditions: false,
+    eligible: false,
+    gdprOptIn: false,
+});
+
 function submit()
 {
-    router.post(route('payment.lease.store', {
+    form.post(route('payment.lease.store', {
         parent: props.parentModel
     }));
 }
@@ -33,6 +41,11 @@ function submit()
     </Head>
 
     <div class="p-4">
+
+        <div v-if="form.hasErrors" class="border-red-500 bg-red-100 border-2 rounded-lg p-2 mb-4">
+            <ExclamationTriangleIcon class="h-6 w-6 inline-block mr-2 text-red-500"/>
+            The form cannot be submitted. Please correct the errors below.
+        </div>
 
         <h1 class="text-4xl font-bold mb-6">
             {{ offer.payment_provider.name }}
@@ -62,9 +75,10 @@ function submit()
             <li>Have a UK bank account that accepts Direct Debits</li>
         </ul>
 
-        <div class="mb-4">
-            <input type="checkbox" id="eligible" class="mr-2">
+        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.eligible }">
+            <input type="checkbox" v-model="form.eligible" id="eligible" class="mr-2" value="1">
             <label for="eligible"><b>I confirm that I meet these eligibility requirements.</b></label>
+            <div v-if="form.errors.eligible" class="text-red-500">{{ form.errors.eligible }}</div>
         </div>
 
         <h2 class="text-2xl mb-4">How will my data be used?</h2>
@@ -96,9 +110,10 @@ function submit()
         </table>
 
 
-        <div class="mb-4">
-            <input type="checkbox" id="gdpr_opt_in" class="mr-2">
-            <label for="gdpr_opt_in"><b>I agree to my personal data being used as part of my loan application as described above.</b></label>
+        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.gdprOptIn }">
+            <input type="checkbox" v-model="form.gdprOptIn" id="gdprOptIn" class="mr-2" value="1">
+            <label for="gdprOptIn"><b>I agree to my personal data being used as part of my loan application as described above.</b></label>
+            <div v-if="form.errors.gdprOptIn" class="text-red-500">{{ form.errors.gdprOptIn }}</div>
         </div>
 
         <h2 class="text-2xl mb-4">Your Lease Application</h2>
@@ -181,9 +196,10 @@ function submit()
             <li>When you click to submit your loan application, your credit file will be searched by {{ offer.payment_provider.name }} and a record left of the search.</li>
         </ul>
 
-        <div class="mb-4">
-            <input type="checkbox" id="read_terms_conditions" class="mr-2">
-            <label for="read_terms_conditions"><b>I confirm that I have read and understood the important information.</b></label>
+        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.readTermsConditions }">
+            <input type="checkbox" v-model="form.readTermsConditions" id="readTermsConditions" class="mr-2" value="1">
+            <label for="readTermsConditions"><b>I confirm that I have read and understood the important information.</b></label>
+            <div v-if="form.errors.readTermsConditions" class="text-red-500">{{ form.errors.readTermsConditions }}</div>
         </div>
 
         <RepresentativeExample class=" w-full md:w-3/4"

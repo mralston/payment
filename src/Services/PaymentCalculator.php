@@ -2,8 +2,6 @@
 
 namespace Mralston\Payment\Services;
 
-use Illuminate\Support\Facades\Log;
-
 class PaymentCalculator
 {
     /**
