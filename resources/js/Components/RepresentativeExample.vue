@@ -33,7 +33,7 @@ const aer = computed(() => {
                     <th class="bg-gray-100 p-1 mr-2">Total cash price</th>
                     <td class="bg-gray-100 p-1">{{ toPounds(amount + deposit) }}</td>
                     <th class="bg-gray-100 p-1 mr-2">Duration of agreement</th>
-                    <td class="bg-gray-100 p-1">{{ term }} months</td>
+                    <td class="bg-gray-100 p-1">{{ term / 12 }} years</td>
                 </tr>
                 <tr>
                     <th class="p-1 mr-2">Deposit</th>

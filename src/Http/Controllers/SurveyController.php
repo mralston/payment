@@ -10,22 +10,18 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Traits\BootstrapsPayment;
+use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class SurveyController
 {
     use BootstrapsPayment;
+    use RedirectsOnActivePayment;
 
     public function create(int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        // If there is already a survey, redirect to the existing survey
-        if (!empty($parentModel->paymentSurvey)) {
-            return redirect()->route('payment.surveys.edit', [
-                'parent' => $parentModel,
-                'survey' => $parentModel->paymentSurvey->id
-            ]);
-        }
+        $this->checkForActivePayment($parentModel);
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
@@ -40,6 +36,8 @@ class SurveyController
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
+        $this->checkForActivePayment($parentModel);
+
         $parentModel->paymentSurvey()
             ->create($request->all());
 
@@ -50,6 +48,8 @@ class SurveyController
     public function edit(int $parent, PaymentSurvey $survey, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
+
+        $this->checkForActivePayment($parentModel);
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
@@ -64,6 +64,8 @@ class SurveyController
     public function update(SubmitSurveyRequest $request, int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
+
+        $this->checkForActivePayment($parentModel);
 
         $parentModel->paymentSurvey()
             ->update($request->all());

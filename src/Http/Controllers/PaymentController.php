@@ -11,10 +11,12 @@ use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Services\PrequalService;
 use Mralston\Payment\Traits\BootstrapsPayment;
+use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class PaymentController
 {
     use BootstrapsPayment;
+    use RedirectsOnActivePayment;
 
     public function __construct(
         private PaymentHelper $helper,
@@ -43,6 +45,8 @@ class PaymentController
     public function options(int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $this->checkForActivePayment($parentModel);
 
         $this->setDefaultDeposit($parentModel);
 

@@ -70,10 +70,10 @@ class Payment extends Model
         'bank_account_sort_code',
         'read_terms_conditions',
         'was_referred',
-        'status',
+        'payment_status_id',
         'lender_application_id',
-        'lender_request_data',
-        'lender_response_data',
+        'provider_request_data',
+        'provider_response_data',
         'offer_expiration_date',
         'submitted_at',
         'decision_received_at',
@@ -109,6 +109,8 @@ class Payment extends Model
         'decision_received_at' => 'datetime',
         'signed_at' => 'datetime',
         'employer_company_reg_date' => 'datetime',
+        'provider_request_data' => 'collection',
+        'provider_response_data' => 'collection',
     ];
 
     protected $encryptable = [
@@ -146,6 +148,11 @@ class Payment extends Model
         return $this->belongsTo(PaymentStatus::class);
     }
 
+    public function paymentOffer(): BelongsTo
+    {
+        return $this->belongsTo(PaymentOffer::class);
+    }
+
     public function setParent(PaymentParentModel $parent): static
     {
         $this->parentable()->associate($parent);
@@ -178,7 +185,7 @@ class Payment extends Model
         $this->marital_status = $customer['maritalStatus'];
         $this->residential_status = $customer['residentialStatus'];
         $this->date_of_birth = $customer['dateOfBirth'];
-        $this->dependents_count = $customer['dependants'];
+        $this->dependants = $customer['dependants'];
         // TODO: bankrupt_or_iva
         $this->email_address = $customer['email'];
         $this->primary_telephone = $customer['phone'];
@@ -207,10 +214,12 @@ class Payment extends Model
     {
         $this->amount = $offer->amount;
         $this->payment_provider_id = $offer->payment_provider_id;
-        $this->payment_product_id =
+        $this->payment_product_id = $offer->payment_product_id;
+        $this->payment_offer_id = $offer->id;
         $this->apr = $offer->apr;
-        $this->loan_term = $offer->term;
-        $this->deferred_period = $offer->deferred;
+        $this->term = $offer->term;
+        $this->deferred = $offer->deferred;
+        $this->upfront_payment = $offer->upfront_payment;
         $this->first_payment = $offer->first_payment;
         $this->monthly_payment = $offer->monthly_payment;
         $this->final_payment = $offer->final_payment;

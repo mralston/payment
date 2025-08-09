@@ -2,10 +2,8 @@
 
 namespace Mralston\Payment\Integrations;
 
-use Exception;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\RequestException;
-use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
@@ -19,6 +17,7 @@ use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupValue;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProduct;
@@ -47,6 +46,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
      * @var string
      */
     private string $endpoint;
+
+    private $requestData = null;
+    private $responseData = null;
 
     public function __construct(
         private string $key,
@@ -193,15 +195,12 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
                     $offers = collect($response['offers'])
                         ->map(function ($offer) use ($survey, $paymentProvider, $amount, $response) {
-                            $productName = $paymentProvider->name . ' ' . $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years'
-                                . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' : '');
-
-//                            Log::debug('Creating Hometree Product', [
-//                                'payment_provider_id' => $paymentProvider->id,
-//                                'identifier' => 'hometree_' . $offer['params']['term'] . ($offer['params']['upfront_payment_gross'] > 0 ? '_' . $offer['params']['upfront_payment_gross'] : ''),
-//                                'name' => $productName,
-//                                'term' => $offer['params']['term'],
-//                            ]);
+                            $productName = $paymentProvider->name . ' ' . $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years' .
+                                (
+                                    $offer['params']['upfront_payment_gross'] > 0 ?
+                                        ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' :
+                                        ''
+                                );
 
                             // Create the product if it doesn't exist
                             $paymentProduct = $paymentProvider
@@ -352,33 +351,48 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         $paymentOffer = PaymentOffer::firstWhere('provider_offer_id', $data['provider_offer_id']);
 
         if ($paymentOffer) {
-//            Log::debug('Updating Hometree offer...', collect($data)->only([
-//                'payment_survey_id',
-//                'name',
-//                'type',
-//                'amount',
-//                'payment_provider_id',
-//                'status',
-//                'provider_application_id',
-//                'provider_offer_id',
-//            ])->toArray());
-
             $paymentOffer->update($data);
             return $paymentOffer;
         }
 
-//        Log::debug('Inserting Hometree offer...', collect($data)->only([
-//            'payment_survey_id',
-//            'name',
-//            'type',
-//            'amount',
-//            'payment_provider_id',
-//            'status',
-//            'provider_application_id',
-//            'provider_offer_id',
-//        ])->toArray());
-
         return PaymentOffer::create($data);
+    }
+
+    public function apply(Payment $payment)
+    {
+        $offer = $payment->paymentOffer;
+
+        $this->requestData = [
+            'preapproval_id' => $offer->preapproval_id,
+        ];
+
+        $response = Http::baseUrl($this->endpoint)
+            ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+            ->withToken($this->key, 'Token')
+            ->post('/applications/' . $offer->provider_application_id . '/offers/' . $offer->provider_offer_id . '/select', $this->requestData);
+
+        // Add application and offer IDs to the request data stored to the DB for easier troubleshooting
+        $this->requestData = [
+            ...$this->requestData,
+            'application_id' => $offer->provider_application_id,
+            'offer_id' => $offer->provider_offer_id,
+        ];
+
+        $this->responseData = $response->json();
+
+        $response->throw();
+
+        return $this->responseData;
+    }
+
+    public function getRequestData()
+    {
+        return $this->requestData;
+    }
+
+    public function getResponseData()
+    {
+        return $this->responseData;
     }
 
 }

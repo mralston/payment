@@ -49,4 +49,9 @@ class PaymentOffer extends Model
     {
         return $this->belongsTo(PaymentProvider::class);
     }
+
+    public function paymentSurvey(): BelongsTo
+    {
+        return $this->belongsTo(PaymentSurvey::class);
+    }
 }

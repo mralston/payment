@@ -26,7 +26,7 @@ PAYMENT_HELPER=\App\Services\PaymentHelper
 
 ## Parent Model
 
-Payment records are linked to a parent model in your application; a quotation or contract for example. The parent model must implement the `PaymentParentModel` interface which includes a polymorphic relationship linking the two models. The parent model is declared in the `PAYMENT_PARENT_MODEL` configuration variable.
+Payment records are linked to a parent model in your application; a quotation or contract for example. The parent model must implement the `PaymentParentModel` interface which includes a several relationships. The easiest way to implement the relationship methods is using the `HasPayments` trait. The parent model is declared in the `PAYMENT_PARENT_MODEL` configuration variable.
 
 ```php
 <?php
@@ -36,9 +36,12 @@ namespace App;
 use Illuminate\Database\Eloquent\Model;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\PaymentSurvey;
+use Mralston\Payment\Traits\HasPayments;
 
 class Quote extends Model implements PaymentParentModel
 {
+    use HasPayments;
+
     public function paymentSurvey(): MorphOne
     {
         return $this->morphOne(PaymentSurvey::class, 'parentable');

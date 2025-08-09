@@ -20,13 +20,15 @@ return new class extends Migration
             $table->decimal('amount', 8, 2)->nullable();
             $table->decimal('deposit', 8, 2)->nullable();
             $table->decimal('subsidy', 8, 2)->nullable();
+            $table->integer('payment_offer_id')->nullable()->index();
             $table->integer('payment_provider_id')->nullable()->index();
             $table->integer('payment_product_id')->nullable()->index();
             $table->decimal('apr', 8, 1)->nullable();
-            $table->integer('loan_term')->nullable();
-            $table->integer('deferred_period')->nullable();
-            $table->decimal('monthly_payment', 8, 2)->nullable();
+            $table->integer('term')->nullable();
+            $table->integer('deferred')->nullable();
+            $table->decimal('upfront_payment', 8, 2)->default(0);
             $table->decimal('first_payment')->nullable();
+            $table->decimal('monthly_payment', 8, 2)->nullable();
             $table->decimal('final_payment')->nullable();
             $table->decimal('total_payable', 8, 2)->nullable();
             $table->json('payments_breakdown')->nullable();
@@ -41,7 +43,7 @@ return new class extends Migration
             $table->string('residential_status')->nullable();
             $table->string('nationality')->nullable();
             $table->date('date_of_birth')->nullable();
-            $table->integer('dependents_count')->nullable();
+            $table->integer('dependants')->nullable();
             $table->boolean('bankrupt_or_iva')->default(0);
             $table->string('email_address')->nullable();
             $table->string('primary_telephone')->nullable();

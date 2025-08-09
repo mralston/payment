@@ -12,10 +12,12 @@ use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Traits\BootstrapsPayment;
+use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class FinanceController
 {
     use BootstrapsPayment;
+    use RedirectsOnActivePayment;
 
     public function __construct(
         private PaymentHelper $helper,
@@ -26,6 +28,8 @@ class FinanceController
     public function create(Request $request, int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $this->checkForActivePayment($parentModel);
 
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
 
@@ -52,6 +56,9 @@ class FinanceController
     public function store(SubmitFinanceApplicationRequest $request, int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $this->checkForActivePayment($parentModel);
+
         $survey = $parentModel->paymentSurvey;
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
 
