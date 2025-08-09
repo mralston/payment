@@ -18,7 +18,7 @@ return new class extends Migration
             $table->string('identifier')->unique();
             $table->integer('payment_provider_id')->index();
             $table->string('provider_foreign_id')->nullable();
-            $table->decimal('apr', 8, 1);
+            $table->decimal('apr', 8, 1)->nullable();
             $table->integer('term');
             $table->integer('deferred')->nullable();
             $table->integer('sort_order')->nullable();

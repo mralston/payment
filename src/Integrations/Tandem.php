@@ -23,6 +23,7 @@ use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
@@ -524,7 +525,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     'deferredPayments' => !empty($deferredPeriod) ? $deferredPeriod - 1 : 0,
                 ];
 
-                Log::info(print_r($data, true));
+//                Log::info(print_r($data, true));
 
                 try {
                     $url = $this->endpoint . '/financeCalculation';
@@ -614,7 +615,6 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 //Log::info(print_r($products, true));
 
                 $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount) {
-
                     // Fetch payments
                     try {
                         $payments = $this->calculatePayments(
@@ -647,18 +647,53 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         ];
                     }
 
+                    // If there are no payments, skip it
                     if ($payments['RepaymentDetails']['MonthlyRepayment'] <= 0) {
+                        Log::debug('No payment calc for product', $product);
                         return null;
                     }
 
+                    $productName = $paymentProvider->name . ' ' . $product['apr'] . '% ' .
+                        ($product['termMonths'] / 12) . ' years' .
+                        ($product['deferredPayments'] > 0 ? ' ' . $product['deferredPayments'] . ' months deferred' : '');
+
+//                    Log::debug('Creating Tandem Product', [
+//                        'payment_provider_id' => $paymentProvider->id,
+//                        'identifier' => 'tandem_' . $product['apr'] . '_' . $product['termMonths'] . ($product['deferredPayments'] > 0 ? '+' . $product['deferredPayments'] : ''),
+//                        'name' => $productName,
+//                        'apr' => $product['apr'],
+//                        'term' => $product['termMonths'],
+//                        'deferred' => $product['deferredPayments'] > 0 ? $product['deferredPayments'] : null,
+//                    ]);
+
+                    // Create the product if it doesn't exist
+                    $paymentProduct = $paymentProvider
+                        ->paymentProducts()
+                        ->withTrashed()
+                        ->firstOrCreate([
+                            'identifier' => 'tandem_' . $product['apr'] . '_' . $product['termMonths'] . ($product['deferredPayments'] > 0 ? '+' . $product['deferredPayments'] : ''),
+                        ], [
+                            'name' => $productName,
+                            'apr' => $product['apr'],
+                            'term' => $product['termMonths'],
+                            'deferred' => $product['deferredPayments'] > 0 ? $product['deferredPayments'] : null,
+                        ]);
+
+                    // If the product has been soft deleted, don't store the offer
+                    // This allows us to disable products we don't want to offer to customers
+                    if ($paymentProduct->trashed()) {
+                        Log::debug('Tandem product soft deleted', $product);
+                        return null;
+                    }
+
+                    // Create the offer
                     return $survey->paymentOffers()
                         ->create([
-                            'name' => $paymentProvider->name . ' ' . $product['apr'] . '% ' .
-                                ($product['termMonths'] / 12) . ' years' .
-                                ($product['deferredPayments'] > 0 ? ' ' . $product['deferredPayments'] . ' months deferred' : ''),
+                            'name' => $productName,
                             'type' => 'finance',
                             'amount' => $amount,
                             'payment_provider_id' => $paymentProvider->id,
+                            'payment_product_id' => $paymentProduct->id,
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'],

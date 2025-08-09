@@ -1002,6 +1002,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'type' => 'finance',
                             'amount' => $amount,
                             'payment_provider_id' => $paymentProvider->id,
+                            'payment_product_id' => $product->id,
                             'apr' => $product->apr,
                             'term' => $product->term,
                             'deferred' => $product->deferred,

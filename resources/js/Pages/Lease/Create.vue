@@ -111,7 +111,7 @@ function submit()
 
 
         <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.gdprOptIn }">
-            <input type="checkbox" v-model="form.gdprOptIn" id="gdprOptIn" class="mr-2" value="1">
+            <input type="checkbox" v-model="form.gdprOptIn" id="gdprOptIn" class="mr-2 outline-none" value="1">
             <label for="gdprOptIn"><b>I agree to my personal data being used as part of my loan application as described above.</b></label>
             <div v-if="form.errors.gdprOptIn" class="text-red-500">{{ form.errors.gdprOptIn }}</div>
         </div>

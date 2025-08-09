@@ -3,6 +3,7 @@
 namespace Mralston\Payment\Integrations;
 
 use Exception;
+use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Http;
@@ -20,8 +21,10 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\PaymentLookupValue;
 use Mralston\Payment\Models\PaymentOffer;
+use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
+use Throwable;
 
 class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 {
@@ -156,7 +159,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 ->get('/products')
                 ->throw()
                 ->json();
-        } catch (\Throwable $ex) {
+        } catch (Throwable $ex) {
             Log::error('Failed to retrieve products from API.');
             Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
             Log::error('URL: ' . $this->endpoint . '/products');
@@ -190,10 +193,30 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
                     $offers = collect($response['offers'])
                         ->map(function ($offer) use ($survey, $paymentProvider, $amount, $response) {
+                            $productName = $paymentProvider->name . ' ' . $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years'
+                                . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' : '');
+
+//                            Log::debug('Creating Hometree Product', [
+//                                'payment_provider_id' => $paymentProvider->id,
+//                                'identifier' => 'hometree_' . $offer['params']['term'] . ($offer['params']['upfront_payment_gross'] > 0 ? '_' . $offer['params']['upfront_payment_gross'] : ''),
+//                                'name' => $productName,
+//                                'term' => $offer['params']['term'],
+//                            ]);
+
+                            // Create the product if it doesn't exist
+                            $paymentProduct = $paymentProvider
+                                ->paymentProducts()
+                                ->firstOrCreate([
+                                'identifier' => 'hometree_' . $offer['params']['term'] . ($offer['params']['upfront_payment_gross'] > 0 ? '_' . $offer['params']['upfront_payment_gross'] : ''),
+                            ], [
+                                'name' => $productName,
+                                'term' => $offer['params']['term'],
+                            ]);
+
                             return $this->upsertPaymentOffer([
                                 'payment_survey_id' => $survey->id,
-                                'name' => $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years'
-                                    . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' : ''),
+                                'payment_product_id' => $paymentProduct->id,
+                                'name' => $productName,
                                 'type' => 'lease',
                                 'amount' => $amount,
                                 'payment_provider_id' => $paymentProvider->id,
@@ -224,7 +247,15 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                         errorMessage: $ex->getMessage(),
                         response: (string)$ex->response?->getBody(),
                     ));
-                } catch (\Throwable $ex) {
+                } catch (QueryException $ex) {
+                    event(new PrequalError(
+                        gateway: static::class,
+                        type: 'lease',
+                        surveyId: $survey->id,
+                        errorCode: 500,
+                        errorMessage: $ex->getMessage(),
+                    ));
+                } catch (Throwable $ex) {
                     event(new PrequalError(
                         gateway: static::class,
                         type: 'lease',
@@ -234,10 +265,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                     ));
                 }
             }
-
-//            Log::debug('offers size:', [strlen($offers->toJson())]);
-
-//            Log::debug('offers:', $offers->toArray());
 
             // Broadcast the offers
             event(new OffersReceived(

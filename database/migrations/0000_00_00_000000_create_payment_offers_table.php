@@ -18,6 +18,7 @@ return new class extends Migration
             $table->integer('payment_survey_id')->index();
             $table->decimal('amount', 8, 2);
             $table->integer('payment_provider_id')->index();
+            $table->integer('payment_product_id')->index();
             $table->decimal('apr', 8, 1)->nullable();
             $table->integer('term');
             $table->integer('deferred')->nullable();

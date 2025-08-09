@@ -160,6 +160,13 @@ class Payment extends Model
         return $this;
     }
 
+    public function withPaymentProduct(PaymentProduct $paymentProduct): static
+    {
+        $this->payment_product_id = $paymentProduct->id;
+
+        return $this;
+    }
+
     public function withSurvey(PaymentSurvey $survey): static
     {
         $customer = $survey->customers->first();
@@ -200,7 +207,7 @@ class Payment extends Model
     {
         $this->amount = $offer->amount;
         $this->payment_provider_id = $offer->payment_provider_id;
-//        $this->payment_product_id =
+        $this->payment_product_id =
         $this->apr = $offer->apr;
         $this->loan_term = $offer->term;
         $this->deferred_period = $offer->deferred;

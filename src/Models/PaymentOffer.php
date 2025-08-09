@@ -15,6 +15,7 @@ class PaymentOffer extends Model
         'type',
         'amount',
         'payment_provider_id',
+        'payment_product_id',
         'apr',
         'term',
         'deferred',

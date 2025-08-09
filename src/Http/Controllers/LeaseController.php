@@ -11,6 +11,7 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentOffer;
+use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentType;
 use Mralston\Payment\Traits\BootstrapsPayment;
@@ -51,12 +52,12 @@ class LeaseController
         $survey = $parentModel->paymentSurvey;
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
 
-        // TODO: Store the product if it doesn't already exist
         dump($request->all());
 
         // TODO: Create payment
         $payment = Payment::make()
             ->withPaymentType(PaymentType::byIdentifier(PaymentTypeEnum::LEASE))
+            ->withPaymentProduct(PaymentProduct::find($offer->payment_product_id))
             ->withSurvey($survey)
             ->withOffer($offer)
             ->setParent($parentModel)
@@ -67,6 +68,7 @@ class LeaseController
                 'read_terms_conditions' => $request->get('readTermsConditions'),
                 'bank_account_number' => $request->get('accountNumber'),
                 'bank_account_sort_code' => $request->get('sortCode'),
+
             ])
             ->save();
 
