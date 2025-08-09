@@ -16,7 +16,7 @@ const props = defineProps({
     }
 });
 
-const repaymentsBreakdown = computed(() => {
+const paymentsBreakdown = computed(() => {
     let result = [];
 
     for (let i = 0; i < (props.term / 12); i++) {
@@ -67,11 +67,11 @@ const repaymentsBreakdown = computed(() => {
                     <th>Yr</th>
                     <th>Acc. grand total</th>
                     <th>Savings</th>
-                    <th>Potential monthly repayment diff.</th>
+                    <th>Potential monthly payment diff.</th>
                 </tr>
             </thead>
             <tbody>
-                <tr v-for="row in repaymentsBreakdown">
+                <tr v-for="row in paymentsBreakdown">
                     <td>{{ row.year }}</td>
                     <td>{{ toPounds(row.savings) }}</td>
                     <td>{{ toPounds(row.monthly) }}</td>

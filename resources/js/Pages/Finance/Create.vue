@@ -88,9 +88,9 @@ function submit()
                 <OverpaymentCalculator
                     :loan_amount="totalCost - deposit"
                     :apr="makeNumeric(offer.apr)"
-                    :total_repayable="makeNumeric(offer.total_repayable)"
+                    :total_payable="makeNumeric(offer.total_payable)"
                     :default_loan_term="makeNumeric(offer.term)"
-                    :default_monthly_repayment="makeNumeric(offer.monthly_payment)"
+                    :default_monthly_payment="makeNumeric(offer.monthly_payment)"
                     :deferred_period="makeNumeric(offer.deferred)"/>
             </div>
         </div>
@@ -258,7 +258,7 @@ function submit()
             Please read the following important information before submitting your loan application.
         </p>
         <ul class="list-disc list-inside mb-4">
-            <li>You are satisfied that the monthly repayment fits your budget and is affordable over the life of the loan.</li>
+            <li>You are satisfied that the monthly payment fits your budget and is affordable over the life of the loan.</li>
             <li>You have considered any potential changes to your personal circumstances when considering the affordability of the loan e.g. redundancy, retirement, starting a family, etc.</li>
             <li>The application details which you have entered above are correct.</li>
             <li>The minimum payment must be made every month. If you miss payments you may incur additional charges and your ability to obtain credit in the future could be negatively impacted.</li>
@@ -278,7 +278,7 @@ function submit()
                                :first-payment="makeNumeric(offer.first_payment)"
                                :monthly-payment="makeNumeric(offer.monthly_payment)"
                                :final-payment="makeNumeric(offer.final_payment)"
-                               :total-repayable="makeNumeric(offer.total_repayable)" />
+                               :total-payable="makeNumeric(offer.total_payable)" />
 
         <div class="text-right">
             <button @click="submit" class="mt-10 rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">

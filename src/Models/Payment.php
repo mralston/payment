@@ -27,9 +27,9 @@ class Payment extends Model
         'apr',
         'loan_term',
         'deferred_period',
-        'monthly_repayment',
-        'total_repayable',
-        'repayments_breakdown',
+        'monthly_payment',
+        'total_payable',
+        'payments_breakdown',
         'eligible',
         'gdpr_opt_in',
         'title',
@@ -87,9 +87,9 @@ class Payment extends Model
         'apr' => 'float',
         'loan_term' => 'integer',
         'deferred_period' => 'integer',
-        'monthly_repayment' => 'float',
-        'total_repayable' => 'float',
-        'repayments_breakdown' => 'array',
+        'monthly_payment' => 'float',
+        'total_payable' => 'float',
+        'payments_breakdown' => 'array',
         'dependents_count' => 'integer',
         'addresses' => 'collection',
         'employer_address' => 'collection',
@@ -196,10 +196,10 @@ class Payment extends Model
         $this->apr = $offer->apr;
         $this->loan_term = $offer->term;
         $this->deferred_period = $offer->deferred;
-        $this->first_repayment = $offer->first_payment;
-        $this->monthly_repayment = $offer->monthly_payment;
-        $this->final_repayment = $offer->final_payment;
-        $this->total_repayable = $offer->total_repayable;
+        $this->first_payment = $offer->first_payment;
+        $this->monthly_payment = $offer->monthly_payment;
+        $this->final_payment = $offer->final_payment;
+        $this->total_payable = $offer->total_payable;
 
         return $this;
     }

@@ -509,10 +509,10 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         }
     }
 
-    public function calculateRepayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null)
+    public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null)
     {
         return Cache::remember(
-            'calculateRepayments-' . $loanAmount . '-' . $apr . '-' . $loanTerm . '-' . $deferredPeriod,
+            'calculatePayments-' . $loanAmount . '-' . $apr . '-' . $loanTerm . '-' . $deferredPeriod,
             60 * 10,
             function () use ($loanAmount, $loanTerm, $apr, $deferredPeriod) {
                 $data = [
@@ -542,7 +542,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
                     return $json;
                 } catch (\Throwable $ex) {
-                    Log::error('Failed to retrieve repayments from API.');
+                    Log::error('Failed to retrieve payments from API.');
                     Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
                     Log::error('URL: ' . $url);
                     Log::error('Data: ' . print_r($data, true));
@@ -553,9 +553,9 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         );
     }
 
-    public function calculateRepaymentsForApplication(FinanceApplication $financeApplication)
+    public function calculatePaymentsForApplication(FinanceApplication $financeApplication)
     {
-        return $this->calculateRepayments(
+        return $this->calculatePayments(
             $financeApplication->loan_amount,
             $financeApplication->apr,
             $financeApplication->loan_term,
@@ -579,7 +579,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
             return collect($json['financeProducts'] ?? []);
         } catch (\Throwable $ex) {
-            Log::error('Failed to retrieve repayments from API.');
+            Log::error('Failed to retrieve payments from API.');
             Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
             Log::error('URL: ' . $url);
 //            Log::error('Data: ' . print_r($data, true));
@@ -615,19 +615,20 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
                 $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount) {
 
-                    // Fetch repayments
+                    // Fetch payments
                     try {
-                        $repayments = $this->calculateRepayments(
+                        $payments = $this->calculatePayments(
                             loanAmount: $amount,
                             // Fake APR in local development as the testing API doesn't have the right rates
-                            apr: app()->environment('local') ? 11.9 : $product['apr'],
+                            apr: /*app()->environment('local') ? 11.9 :*/ $product['apr'],
                             loanTerm: $product['termMonths'],
                             deferredPeriod: $product['deferredPayments']
                         );
                     } catch (RequestException $ex) {
                         // Tandem's testing API often fails because it uses the live LMS
-                        // with rates from the testing environment and they don't always match up
-                        $repayments = [
+                        // with rates from the testing environment and they don't always match up.
+                        // Here we return a default (empty) result so the code can move on.
+                        $payments = [
                             'FinancialDetails' => [
                                 'LoanAmount' => $amount,
                                 'APR' => $product['apr'],
@@ -646,7 +647,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         ];
                     }
 
-                    if ($repayments['RepaymentDetails']['MonthlyRepayment'] <= 0) {
+                    if ($payments['RepaymentDetails']['MonthlyRepayment'] <= 0) {
                         return null;
                     }
 
@@ -660,10 +661,10 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'],
-                            'first_payment' => $repayments['RepaymentDetails']['FirstRepaymentAmount'],
-                            'monthly_payment' => $repayments['RepaymentDetails']['MonthlyRepayment'],
-                            'final_payment' => $repayments['RepaymentDetails']['FinalRepaymentAmount'],
-                            'total_repayable' => $repayments['FinancialDetails']['TotalPayable'],
+                            'first_payment' => $payments['RepaymentDetails']['FirstRepaymentAmount'],
+                            'monthly_payment' => $payments['RepaymentDetails']['MonthlyRepayment'],
+                            'final_payment' => $payments['RepaymentDetails']['FinalRepaymentAmount'],
+                            'total_payable' => $payments['FinancialDetails']['TotalPayable'],
                             'status' => 'final',
                         ]);
                 })

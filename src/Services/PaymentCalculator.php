@@ -4,16 +4,16 @@ namespace Mralston\Payment\Services;
 
 use Illuminate\Support\Facades\Log;
 
-class Repayments
+class PaymentCalculator
 {
     /**
-     * Calculates monthly repayments for a loan, with or without a deferred payment period.
+     * Calculates monthly payments for a loan, with or without a deferred payment period.
      *
      * @param float $amt The total loan amount.
      * @param float $apr The annual percentage rate.
      * @param int $term The loan term in months.
      * @param int $paymentDeferred The number of months the payment is deferred.
-     * @return array|null An associative array of repayment details or null if the term is invalid.
+     * @return array|null An associative array of payment details or null if the term is invalid.
      */
     public function calculate(float $amt, float $apr, int $term, ?int $paymentDeferred = 0): ?array
     {
@@ -30,19 +30,19 @@ class Repayments
             $balanceAtEndOfDeferredPeriod = pow(1 + $rate, $paymentDeferred) * $amt;
             $balanceOnFirstDueDate = (1 + $rate * 5 / 365 * 12) * $balanceAtEndOfDeferredPeriod;
 
-            $repayment = ($rate * ($balanceOnFirstDueDate * pow(1 + $rate, $term))) / ((1 + $rate) * (pow(1 + $rate, $term) - 1));
+            $payment = ($rate * ($balanceOnFirstDueDate * pow(1 + $rate, $term))) / ((1 + $rate) * (pow(1 + $rate, $term) - 1));
 
-            $finalRepayment = ((($repayment * (1 + $rate) * (pow(1 + $rate, $term - 1) - 1)) / $rate) - ($balanceOnFirstDueDate * pow(1 + $rate, $term - 1))) * -1;
+            $finalPayment = ((($payment * (1 + $rate) * (pow(1 + $rate, $term - 1) - 1)) / $rate) - ($balanceOnFirstDueDate * pow(1 + $rate, $term - 1))) * -1;
 
-            $totalRepayable = $repayment * ($term - 1) + $finalRepayment;
-            $interest = $totalRepayable - $amt;
+            $totalPayable = $payment * ($term - 1) + $finalPayment;
+            $interest = $totalPayable - $amt;
 
             return [
                 'term' => $term,
-                'firstRepayment' => $repayment,
-                'monthlyRepayment' => $repayment,
-                'finalRepayment' => $finalRepayment,
-                'total' => $totalRepayable,
+                'firstPayment' => $payment,
+                'monthlyPayment' => $payment,
+                'finalPayment' => $finalPayment,
+                'total' => $totalPayable,
                 'apr' => $apr,
                 'amt' => $amt,
                 'interest' => $interest
@@ -52,23 +52,23 @@ class Repayments
         // Calculate non-deferred
 
         $rate = $this->aprToRates($apr)['monthly'] / 100;
-        $repayment = 0.0;
+        $payment = 0;
 
         if ($apr == 0 || $rate == 0) {
-            $repayment = $amt / $term;
+            $payment = $amt / $term;
         } else {
             $calc = 1 / (1 + $rate);
-            $repayment = ($amt * ($calc - 1)) / ($calc * (pow($calc, $term) - 1));
+            $payment = ($amt * ($calc - 1)) / ($calc * (pow($calc, $term) - 1));
         }
 
-        $total = $repayment * $term;
+        $total = $payment * $term;
         $interest = $total - $amt;
 
         return [
             'term' => $term,
-            'firstRepayment' => $repayment,
-            'monthlyRepayment' => $repayment,
-            'finalRepayment' => $repayment,
+            'firstPayment' => $payment,
+            'monthlyPayment' => $payment,
+            'finalPayment' => $payment,
             'total' => round($total, 2),
             'apr' => $apr,
             'amt' => round($amt, 2),

@@ -111,11 +111,11 @@ const lowestLeaseOffer = computed(() => {
     });
 });
 
-const lowestFinanceMonthlyRepayment = computed(() => {
+const lowestFinanceMonthlyPayment = computed(() => {
     return lowestFinanceOffer.value?.monthly_payment ?? 0;
 });
 
-const lowestLeaseMonthlyRepayment = computed(() => {
+const lowestLeaseMonthlyPayment = computed(() => {
     return lowestLeaseOffer.value?.monthly_payment ?? 0;
 });
 

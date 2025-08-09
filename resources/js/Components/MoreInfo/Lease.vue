@@ -1,7 +1,7 @@
 <script setup>
 
 import {makeNumeric, toMax2DP} from "../../Helpers/Number.js";
-import RepaymentsSavingsTable from "../RepaymentsSavingsTable.vue";
+import PaymentsSavingsTable from "../PaymentsSavingsTable.vue";
 import {toPounds} from "../../Helpers/Currency.js";
 import Card from "../Card.vue";
 import OverpaymentCalculator from "../OverpaymentCalculator.vue";
@@ -46,7 +46,7 @@ const props = defineProps({
             <div>
                 <h2 class="text-2xl mb-4">Potential Savings</h2>
 
-                <RepaymentsSavingsTable :show-title="false"
+                <PaymentsSavingsTable :show-title="false"
                                         :term="makeNumeric(selectedOffer.term)"
                                         :deferred="makeNumeric(selectedOffer.deferred)"
                                         :monthly-payment="makeNumeric(selectedOffer.monthly_payment)"
@@ -70,7 +70,7 @@ const props = defineProps({
                          class="h-7 mr-4 inline-block">
                     <span v-else>selectedOffer.payment_provider.name</span>
                 </div>
-                <RepaymentsSavingsTable :term="makeNumeric(offer.term)"
+                <PaymentsSavingsTable :term="makeNumeric(offer.term)"
                                         :deferred="makeNumeric(offer.deferred)"
                                         :monthly-payment="makeNumeric(offer.monthly_payment)"
                                         :apr="makeNumeric(offer.apr)"

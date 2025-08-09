@@ -11,7 +11,7 @@ const props = defineProps({
     firstPayment: Number,
     monthlyPayment: Number,
     finalPayment: Number,
-    totalRepayable: Number,
+    totalPayable: Number,
 });
 
 const aer = computed(() => {
@@ -98,13 +98,13 @@ const aer = computed(() => {
                         </span>
                     </td>
                     <th class="bg-gray-100 p-1 mr-2">Interest payable</th>
-                    <td class="bg-gray-100 p-1">{{ toPounds(totalRepayable - amount) }}</td>
+                    <td class="bg-gray-100 p-1">{{ toPounds(totalPayable - amount) }}</td>
                 </tr>
                 <tr>
                     <th class="p-1 mr-2"></th>
                     <td class="p-1"></td>
                     <th class="p-1 mr-2">Total amount payable</th>
-                    <td class="p-1">{{ toPounds(totalRepayable) }}</td>
+                    <td class="p-1">{{ toPounds(totalPayable) }}</td>
                 </tr>
             </tbody>
         </table>

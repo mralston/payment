@@ -25,11 +25,11 @@ return new class extends Migration
             $table->decimal('apr', 8, 1)->nullable();
             $table->integer('loan_term')->nullable();
             $table->integer('deferred_period')->nullable();
-            $table->decimal('monthly_repayment', 8, 2)->nullable();
-            $table->decimal('first_repayment')->nullable();
-            $table->decimal('final_repayment')->nullable();
-            $table->decimal('total_repayable', 8, 2)->nullable();
-            $table->json('repayments_breakdown')->nullable();
+            $table->decimal('monthly_payment', 8, 2)->nullable();
+            $table->decimal('first_payment')->nullable();
+            $table->decimal('final_payment')->nullable();
+            $table->decimal('total_payable', 8, 2)->nullable();
+            $table->json('payments_breakdown')->nullable();
             $table->tinyInteger('eligible')->nullable();
             $table->tinyInteger('gdpr_opt_in')->nullable();
             $table->string('title')->nullable();

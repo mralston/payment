@@ -194,7 +194,7 @@ function submit()
                                :first-payment="makeNumeric(offer.first_payment)"
                                :monthly-payment="makeNumeric(offer.monthly_payment)"
                                :final-payment="makeNumeric(offer.final_payment)"
-                               :total-repayable="makeNumeric(offer.total_repayable)" />
+                               :total-payable="makeNumeric(offer.total_payable)" />
 
         <div class="text-right">
             <button @click="submit" class="mt-10 rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">

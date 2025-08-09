@@ -21,7 +21,7 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
-use Mralston\Payment\Services\Repayments;
+use Mralston\Payment\Services\PaymentCalculator;
 use Spatie\ArrayToXml\ArrayToXml;
 
 class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
@@ -348,14 +348,14 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     'DOCUMENTATION_FEE' => 0,
                     'DOCUMENT_TYPE' => $agreement['DOCUMENT_TYPE'],
                     'NUMBER_REGULAR_RENTALS' => $application->loan_term,
-                    'PAYMENT' => $application->monthly_repayment,
+                    'PAYMENT' => $application->monthly_payment,
                     'PAYMENT_FREQUENCY' => 1, #monthly
                     'RATE' => $application->apr,
                     'APR' => $application->apr,
                     'DEPOSIT' => $application->deposit ?? 0,
                     'TERM' => $application->loan_term,
                     'TOTAL_CASH_PRICE' => round($application->quote->gross, 2),
-                    'TOTAL_PAYABLE' => round($application->total_repayable, 2),
+                    'TOTAL_PAYABLE' => round($application->total_payable, 2),
                     'QUOTATION_TARGET' => 'PAYMENT',
                     'DOC_FEE_COMPONENT' => 'ARRANGEMENT_FEE',
                     'SUBSIDY' => 0,
@@ -989,12 +989,12 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 // Fetch products available from lender
                 $products = $paymentProvider->paymentProducts;
 
-                $calculator = app(Repayments::class);
+                $calculator = app(PaymentCalculator::class);
 
                 // Store products to offers
                 $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount, $calculator) {
 
-                    $repayments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
+                    $payments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
 
                     return $survey->paymentOffers()
                         ->create([
@@ -1006,10 +1006,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'term' => $product->term,
                             'deferred' => $product->deferred,
                             'priority' => $product->sort_order,
-                            'first_payment' => $repayments['firstRepayment'],
-                            'monthly_payment' => $repayments['monthlyRepayment'],
-                            'final_payment' => $repayments['finalRepayment'],
-                            'total_repayable' => $repayments['total'],
+                            'first_payment' => $payments['firstPayment'],
+                            'monthly_payment' => $payments['monthlyPayment'],
+                            'final_payment' => $payments['finalPayment'],
+                            'total_payable' => $payments['total'],
                             'status' => 'final',
                         ]);
                 });

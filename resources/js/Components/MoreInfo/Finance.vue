@@ -2,7 +2,7 @@
 
 import {makeNumeric, toMax2DP} from "../../Helpers/Number.js";
 import OverpaymentCalculator from "../OverpaymentCalculator.vue";
-import RepaymentsSavingsTable from "../RepaymentsSavingsTable.vue";
+import PaymentsSavingsTable from "../PaymentsSavingsTable.vue";
 import Card from "../Card.vue";
 import {toPounds} from "../../Helpers/Currency.js";
 
@@ -43,7 +43,7 @@ const props = defineProps({
             <div>
                 <h2 class="text-2xl mb-4">Potential Savings</h2>
 
-                <RepaymentsSavingsTable :show-title="false"
+                <PaymentsSavingsTable :show-title="false"
                                         :term="makeNumeric(selectedOffer.term)"
                                         :deferred="makeNumeric(selectedOffer.deferred)"
                                         :monthly-payment="makeNumeric(selectedOffer.monthly_payment)"
@@ -55,9 +55,9 @@ const props = defineProps({
                 <h2 class="text-2xl mb-4">Overpayments Estimator</h2>
                 <OverpaymentCalculator :loan_amount="totalCost - deposit"
                                        :apr="makeNumeric(selectedOffer.apr)"
-                                       :total_repayable="makeNumeric(selectedOffer.total_repayable)"
+                                       :total_payable="makeNumeric(selectedOffer.total_payable)"
                                        :default_loan_term="makeNumeric(selectedOffer.term)"
-                                       :default_monthly_repayment="makeNumeric(selectedOffer.monthly_payment)"
+                                       :default_monthly_payment="makeNumeric(selectedOffer.monthly_payment)"
                                        :deferred_period="makeNumeric(selectedOffer.deferred)"/>
             </div>
         </div>
@@ -76,7 +76,7 @@ const props = defineProps({
                          class="h-7 mr-4 inline-block">
                     <span v-else>selectedOffer.payment_provider.name</span>
                 </div>
-                <RepaymentsSavingsTable :term="makeNumeric(offer.term)"
+                <PaymentsSavingsTable :term="makeNumeric(offer.term)"
                                         :deferred="makeNumeric(offer.deferred)"
                                         :monthly-payment="makeNumeric(offer.monthly_payment)"
                                         :apr="makeNumeric(offer.apr)"

@@ -23,7 +23,7 @@ class PaymentOffer extends Model
         'monthly_payment',
         'final_payment',
         'minimum_payments',
-        'total_repayable',
+        'total_payable',
         'status',
         'preapproval_id',
         'priority',
