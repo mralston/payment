@@ -653,7 +653,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
                     return $survey->paymentOffers()
                         ->create([
-                            'name' => $paymentProvider->name . ' ' . $product['apr'] . '%' .
+                            'name' => $paymentProvider->name . ' ' . $product['apr'] . '% ' .
+                                ($product['termMonths'] / 12) . ' years' .
                                 ($product['deferredPayments'] > 0 ? ' ' . $product['deferredPayments'] . ' months deferred' : ''),
                             'type' => 'finance',
                             'amount' => $amount,

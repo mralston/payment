@@ -83,32 +83,73 @@ function sortOffers(offers) {
         }
 
         // If priorities are the same, sort by monthly_payment
-        return a.monthly_payment - b.monthly_payment;
+        if (parseFloat(a.monthly_payment) !== parseFloat(b.monthly_payment)) {
+            return parseFloat(a.monthly_payment) - parseFloat(b.monthly_payment);
+        }
+
+        // If monthly payments are also the same, use upfront_payment as a tie-breaker
+        return parseFloat(a.upfront_payment) - parseFloat(b.upfront_payment);
     });
 }
 
-const lowestFinanceOffer = computed(() => {
-    if (financeOffers.value.length === 0) {
-        return null; // Return null if no finance offers exist
+/**
+ * Finds the single best offer from a list based on a specific business logic.
+ *
+ * The selection criteria is as follows:
+ * 1. Prefer offers with a zero upfront payment.
+ * 2. Among zero-upfront offers, pick the one with the lowest monthly payment.
+ * 3. As a tie-breaker for monthly payment, pick the one with the shortest term.
+ * 4. If there are no zero-upfront offers, or as a final fallback, select the offer with the lowest monthly payment overall.
+ *
+ * @param {Array} offers - The array of offers to evaluate.
+ * @returns {Object|null} The best offer, or null if no offers exist.
+ */
+function getBestOffer(offers) {
+    if (!offers || offers.length === 0) {
+        return null;
     }
 
-    return financeOffers.value.reduce((minOffer, currentOffer) => {
-        const minPayment = parseFloat(minOffer.monthly_payment);
-        const currentPayment = parseFloat(currentOffer.monthly_payment);
-        return currentPayment < minPayment ? currentOffer : minOffer;
-    });
+    // Separate offers into two groups based on upfront payment
+    const zeroUpfrontOffers = offers.filter(offer => parseFloat(offer.upfront_payment) === 0);
+    const otherOffers = offers.filter(offer => parseFloat(offer.upfront_payment) > 0);
+
+    let bestOffer = null;
+
+    if (zeroUpfrontOffers.length > 0) {
+        // If there are zero-upfront offers, find the best one
+        bestOffer = zeroUpfrontOffers.reduce((best, current) => {
+            // First, compare by monthly payment (lower is better)
+            if (parseFloat(current.monthly_payment) < parseFloat(best.monthly_payment)) {
+                return current;
+            }
+            if (parseFloat(current.monthly_payment) > parseFloat(best.monthly_payment)) {
+                return best;
+            }
+
+            // If monthly payments are the same, compare by term (shorter is better)
+            if (current.term < best.term) {
+                return current;
+            }
+
+            return best;
+        }, zeroUpfrontOffers[0]);
+
+    } else if (otherOffers.length > 0) {
+        // If there are no zero-upfront offers, pick the one with the lowest monthly payment from the remaining list
+        bestOffer = otherOffers.reduce((best, current) => {
+            return parseFloat(current.monthly_payment) < parseFloat(best.monthly_payment) ? current : best;
+        }, otherOffers[0]);
+    }
+
+    return bestOffer;
+}
+
+const bestFinanceOffer = computed(() => {
+    return getBestOffer(financeOffers.value);
 });
 
-const lowestLeaseOffer = computed(() => {
-    if (leaseOffers.value.length === 0) {
-        return null; // Return null if no lease offers exist
-    }
-
-    return leaseOffers.value.reduce((minOffer, currentOffer) => {
-        const minPayment = parseFloat(minOffer.monthly_payment);
-        const currentPayment = parseFloat(currentOffer.monthly_payment);
-        return currentPayment < minPayment ? currentOffer : minOffer;
-    });
+const bestLeaseOffer = computed(() => {
+    return getBestOffer(leaseOffers.value);
 });
 
 const lowestFinanceMonthlyPayment = computed(() => {
@@ -129,14 +170,14 @@ onMounted(() => {
 });
 
 watch(pendingGateways, () => {
-    // Auto select lowest offers when all gateways have responded
+    // Auto select best offers when all gateways have responded
     if (pendingGateways.value.length === 0 && offers.value.length > 0) {
-        if (selectedFinanceOffer.value == null && lowestFinanceOffer.value != null) {
-            selectedFinanceOffer.value = lowestFinanceOffer.value;
+        if (selectedFinanceOffer.value == null && bestFinanceOffer.value != null) {
+            selectedFinanceOffer.value = bestFinanceOffer.value;
         }
 
-        if (selectedLeaseOffer.value == null && lowestLeaseOffer.value != null) {
-            selectedLeaseOffer.value = lowestLeaseOffer.value;
+        if (selectedLeaseOffer.value == null && bestLeaseOffer.value != null) {
+            selectedLeaseOffer.value = bestLeaseOffer.value;
         }
     }
 });
@@ -463,7 +504,8 @@ function financeVsLease()
 
                             <div class="mb-4">
                                 <img v-if="selectedFinanceProvider?.logo" :src="selectedFinanceProvider.logo" class="max-w-1/3 h-7" :alt="selectedFinanceProvider.name">
-                                <h3 v-else-if="selectedFinanceProvider" class="text-3xl font-semibold text-blue-800">selectedFinanceProvider.name</h3>
+                                <h3 v-else-if="selectedFinanceProvider" class="text-3xl font-semibold text-blue-800">{{ selectedFinanceProvider.name }}</h3>
+                                <h3 v-else-if="pendingGateways.length === 0" class="text-3xl font-semibold text-blue-800">Finance</h3>
                                 <SkeletonItem v-else class="h-7 w-5/6"/>
                             </div>
 
@@ -476,7 +518,7 @@ function financeVsLease()
                             <div class="mt-8 h-10">
                                 <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
                                 <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
-                                    <OfferStatusBadge :offer="selectedFinanceOffer" :lowest-offer="lowestFinanceOffer"/>
+                                    <OfferStatusBadge :offer="selectedFinanceOffer" :best-offer="bestFinanceOffer"/>
 
                                     <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedFinanceOffer?.monthly_payment ?? 0) }}</span>
                                     <span class="text-sm/6 font-semibold text-gray-600">/month</span>
@@ -530,14 +572,15 @@ function financeVsLease()
 
                             <div class="mb-4">
                                 <img v-if="selectedLeaseProvider?.logo" :src="selectedLeaseProvider.logo" class="max-w-1/3 h-7" :alt="selectedLeaseProvider.name">
-                                <h3 v-else-if="selectedLeaseProvider" class="text-3xl font-semibold text-blue-800">selectedLeaseProvider.name</h3>
+                                <h3 v-else-if="selectedLeaseProvider" class="text-3xl font-semibold text-blue-800">{{ selectedLeaseProvider.name }}</h3>
+                                <h3 v-else-if="pendingGateways.length === 0" class="text-3xl font-semibold text-blue-800">Lease Purchase</h3>
                                 <SkeletonItem v-else class="h-7 w-5/6"/>
                             </div>
 
                             <div class="mt-8 h-10">
                                 <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
                                 <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
-                                    <OfferStatusBadge :offer="selectedLeaseOffer" :lowest-offer="lowestLeaseOffer"/>
+                                    <OfferStatusBadge :offer="selectedLeaseOffer" :best-offer="bestLeaseOffer"/>
 
                                     <span class="text-5xl font-semibold tracking-tight text-gray-900">{{ formatCurrency(selectedLeaseOffer?.monthly_payment ?? 0) }}</span>
                                     <span class="text-sm/6 font-semibold text-gray-600">/month</span>

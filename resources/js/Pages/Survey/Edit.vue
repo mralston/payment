@@ -1,10 +1,11 @@
 <script setup>
 
 import { useForm } from '@inertiajs/vue3';
-import {Link} from "@inertiajs/vue3";
 import {router} from "@inertiajs/vue3";
 import { Head } from '@inertiajs/vue3'
 import AddressInput from "../../Components/AddressInput.vue";
+import ValidationBanner from "../../Components/ValidationBanner.vue";
+import ValidationWrapper from "../../Components/ValidationWrapper.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -102,6 +103,8 @@ function skip()
             Skip
         </button>
 
+        <ValidationBanner :form="form" class="mr-16"/>
+
         <h1 class="text-4xl font-bold">Survey</h1>
 
         <p class="mt-4 text-xl">We need to ask you a few basic questions so that we can find out which payment methods are right for you.</p>
@@ -112,11 +115,13 @@ function skip()
 
             <p class="mt-4">Please tell us about yourself and your partner; whoever is on your mortgage or lease agreement.</p>
 
-            <button type="button"
-                    class="mt-4 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                    @click="addCustomer">
-                Add Customer
-            </button>
+            <ValidationWrapper :form="form" field="customers" class="mt-4">
+                <button type="button"
+                        class="rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        @click="addCustomer">
+                    Add Customer
+                </button>
+            </ValidationWrapper>
 
             <div class="grid grid-cols-2 gap-6 mt-4">
 
@@ -135,24 +140,24 @@ function skip()
                         <div class="grid grid-cols-3 gap-6">
 
                             <div>
-                                <label :for="'firstName.' + index" class="block text-sm/6 font-medium text-gray-900">First name</label>
-                                <div class="mt-2">
-                                    <input type="text" v-model="customer.firstName" :id="'firstName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
+                                <label :for="`customers.${index}.firstName`" class="block text-sm/6 font-medium text-gray-900">First name</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.firstName`" class="mt-2">
+                                    <input type="text" v-model="customer.firstName" :id="`customers.${index}.firstName`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
                             </div>
 
                             <div>
-                                <label :for="'middleName.' + index" class="block text-sm/6 font-medium text-gray-900">Middle name</label>
-                                <div class="mt-2">
-                                    <input type="text" v-model="customer.middleName" :id="'middleName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
+                                <label :for="`customers.${index}.middleName`" class="block text-sm/6 font-medium text-gray-900">Middle name</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.middleName`" class="mt-2">
+                                    <input type="text" v-model="customer.middleName" :id="`customers.${index}.middleName`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
                             </div>
 
                             <div>
-                                <label :for="'lastName.' + index" class="block text-sm/6 font-medium text-gray-900">Last name</label>
-                                <div class="mt-2">
-                                    <input type="text" v-model="customer.lastName" :id="'lastName.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
+                                <label :for="`customers.${index}.lastName`" class="block text-sm/6 font-medium text-gray-900">Last name</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.lastName`" class="mt-2">
+                                    <input type="text" v-model="customer.lastName" :id="`customers.${index}.lastName`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
                             </div>
 
                         </div>
@@ -160,40 +165,22 @@ function skip()
                         <div class="grid grid-cols-3 gap-6 mt-5">
 
                             <div>
-                                <label :for="'email.' + index" class="block text-sm/6 font-medium text-gray-900">E-mail</label>
-                                <div class="mt-2">
-                                    <input type="text" v-model="customer.email" :id="'email.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
+                                <label :for="`customers.${index}.email`" class="block text-sm/6 font-medium text-gray-900">E-mail</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.email`" class="mt-2">
+                                    <input type="text" v-model="customer.email" :id="`customers.${index}.email`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
                             </div>
                             <div>
-                                <label :for="'phone.' + index" class="block text-sm/6 font-medium text-gray-900">Phone</label>
-                                <div class="mt-2">
-                                    <input type="text" v-model="customer.phone" :id="'phone.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
+                                <label :for="`customers.${index}.phone`" class="block text-sm/6 font-medium text-gray-900">Phone</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.phone`" class="mt-2">
+                                    <input type="text" v-model="customer.phone" :id="`customers.${index}.phone`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
                             </div>
                             <div>
-                                <label :for="'dateOfBirth.' + index" class="block text-sm/6 font-medium text-gray-900">Date of Birth</label>
-                                <div class="mt-2">
-                                    <input type="date" v-model="customer.dateOfBirth" :id="'dateOfBirth.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-6 mt-5">
-
-                            <div>
-                                <label :for="'grossAnnualIncome.' + index" class="block text-sm/6 font-medium text-gray-900">Gross Annual Income</label>
-                                <div class="mt-2">
-                                    <input type="number" v-model="customer.grossAnnualIncome" :id="'grossAnnualIncome.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
-                            </div>
-
-                            <div>
-                                <label :for="'netMonthlyIncome.' + index" class="block text-sm/6 font-medium text-gray-900">Net Monthly Income</label>
-                                <div class="mt-2">
-                                    <input type="number" v-model="customer.netMonthlyIncome" :id="'netMonthlyIncome.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
+                                <label :for="`customers.${index}.dateOfBirth`" class="block text-sm/6 font-medium text-gray-900">Date of Birth</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.dateOfBirth`" class="mt-2">
+                                    <input type="date" v-model="customer.dateOfBirth" :id="`customers.${index}.dateOfBirth`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
                             </div>
 
                         </div>
@@ -201,22 +188,40 @@ function skip()
                         <div class="grid grid-cols-2 gap-6 mt-5">
 
                             <div>
-                                <label :for="'employmentStatus.' + index" class="block text-sm/6 font-medium text-gray-900">Employment Status</label>
-                                <div class="mt-2">
-                                    <select v-model="customer.employmentStatus" :id="'employmentStatus.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                <label :for="`customers.${index}.grossAnnualIncome`" class="block text-sm/6 font-medium text-gray-900">Gross Annual Income</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.grossAnnualIncome`" class="mt-2">
+                                    <input type="number" v-model="customer.grossAnnualIncome" :id="`customers.${index}.grossAnnualIncome`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
+                            </div>
+
+                            <div>
+                                <label :for="`customers.${index}.netMonthlyIncome`" class="block text-sm/6 font-medium text-gray-900">Net Monthly Income</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.netMonthlyIncome`" class="mt-2">
+                                    <input type="number" v-model="customer.netMonthlyIncome" :id="`customers.${index}.netMonthlyIncome`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
+                            </div>
+
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-6 mt-5">
+
+                            <div>
+                                <label :for="`customers.${index}.employmentStatus`" class="block text-sm/6 font-medium text-gray-900">Employment Status</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.employmentStatus`" class="mt-2">
+                                    <select v-model="customer.employmentStatus" :id="`customers.${index}.employmentStatus`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                         <option></option>
                                         <option v-for="employmentStatus in employmentStatuses" :key="employmentStatuses.id" :value="employmentStatus.value">
                                             {{ employmentStatus.name }}
                                         </option>
                                     </select>
-                                </div>
+                                </ValidationWrapper>
                             </div>
 
                             <div>
-                                <label :for="'dependants.' + index" class="block text-sm/6 font-medium text-gray-900">Dependants</label>
-                                <div class="mt-2">
-                                    <input type="number" v-model="customer.dependants" :id="'dependants.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                                </div>
+                                <label :for="`customers.${index}.dependants`" class="block text-sm/6 font-medium text-gray-900">Dependants</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.dependants`" class="mt-2">
+                                    <input type="number" v-model="customer.dependants" :id="`customers.${index}.dependants`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
                             </div>
 
                         </div>
@@ -234,11 +239,13 @@ function skip()
 
             <p class="mt-4">Please tell us where you're living now, and if you've not long moved in, where you were before that.<br>We need a total of 3 years' address history.</p>
 
-            <button type="button"
-                    class="mt-4 rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                    @click="addAddress">
-                Add Address
-            </button>
+            <ValidationWrapper :form="form" field="addresses" class="mt-4">
+                <button type="button"
+                        class="rounded bg-blue-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                        @click="addAddress">
+                    Add Address
+                </button>
+            </ValidationWrapper>
 
             <div class="grid grid-cols-3 gap-6 mt-4">
 
@@ -255,13 +262,15 @@ function skip()
                     </div>
                     <div class="bg-gray-50 p-4">
 
-                        <AddressInput v-model:address="form.addresses[index]" :index="index" />
+                        <ValidationWrapper :form="form" :field="[`addresses.${index}.houseNumber`, `addresses.${index}.street`, `addresses.${index}.address1`, `addresses.${index}.address2`, `addresses.${index}.town`, `addresses.${index}.county`, `addresses.${index}.postcode`]" class="mt-2">
+                            <AddressInput v-model:address="form.addresses[index]" :index="index" />
+                        </ValidationWrapper>
 
                         <div class="mt-4">
-                            <label :for="'dateMovedIn.' + index" class="block text-sm/6 font-medium text-gray-900">Date moved in</label>
-                            <div class="mt-2">
-                                <input type="date" v-model="address.dateMovedIn" :id="'dateMovedIn.' + index" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                            </div>
+                            <label :for="`addresses.${index}.dateMovedIn`" class="block text-sm/6 font-medium text-gray-900">Date moved in</label>
+                            <ValidationWrapper :form="form" :field="`addresses.${index}.dateMovedIn`" class="mt-2">
+                                <input type="date" v-model="address.dateMovedIn" :id="`addresses.${index}.dateMovedIn`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                            </ValidationWrapper>
                         </div>
 
                     </div>
@@ -283,7 +292,3 @@ function skip()
     </div>
 
 </template>
-
-<style scoped>
-
-</style>

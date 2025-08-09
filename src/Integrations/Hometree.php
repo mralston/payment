@@ -65,7 +65,11 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         $payload = [
             'customer' => [
                 'first_name' => $firstCustomer['firstName'],
-                'middle_name' => $firstCustomer['middleName'] ?? '',
+                ...(
+                filled($firstCustomer['middleName']) ?
+                    ['middle_name' => $firstCustomer['middleName']] :
+                    [] // Omit the middle name field entirely if it's empty
+                ),
                 'last_name' => $firstCustomer['lastName'],
             ],
             'address' => [
@@ -91,7 +95,11 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 ->map(function ($customer) use ($survey, $firstAddress, $previousAddress) {
                     return [
                         'first_name' => $customer['firstName'],
-                        'middle_name' => $customer['middleName'] ?? '',
+                        ...(
+                            filled($customer['middleName']) ?
+                                ['middle_name' => $customer['middleName']] :
+                                [] // Omit the middle name field entirely if it's empty
+                        ),
                         'last_name' => $customer['lastName'],
                         'email' => $customer['email'],
                         'mobile_phone_number' => $customer['phone'],
@@ -264,9 +272,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         $paymentProviderId = PaymentProvider::byIdentifier('hometree')->id;
 
         dispatch(function () use ($surveyId, $applicationId, $amount, $paymentProviderId, $every, $for) {
-
-            Log::debug('Polling for Hometree updates...', [$surveyId, $applicationId, $every, $for]);
-
             $startTime = now();
 
             while (now()->diffInSeconds($startTime) < $for) {

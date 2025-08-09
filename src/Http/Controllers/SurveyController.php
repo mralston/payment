@@ -5,6 +5,7 @@ namespace Mralston\Payment\Http\Controllers;
 use Illuminate\Http\Request;
 use Inertia\Inertia;
 use Mralston\Payment\Enums\LookupField;
+use Mralston\Payment\Http\Requests\SubmitSurveyRequest;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentSurvey;
@@ -35,7 +36,7 @@ class SurveyController
         ])->withViewData($helper->getViewData());
     }
 
-    public function store(Request $request, int $parent, PaymentHelper $helper)
+    public function store(SubmitSurveyRequest $request, int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
@@ -60,7 +61,7 @@ class SurveyController
         ])->withViewData($helper->getViewData());
     }
 
-    public function update(Request $request, int $parent, PaymentHelper $helper)
+    public function update(SubmitSurveyRequest $request, int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
