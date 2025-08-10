@@ -29,7 +29,7 @@ class FinanceController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
 
@@ -57,7 +57,7 @@ class FinanceController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         $survey = $parentModel->paymentSurvey;
         $offer = PaymentOffer::findOrFail($request->get('offerId'));

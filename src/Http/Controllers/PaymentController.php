@@ -46,13 +46,16 @@ class PaymentController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         $this->setDefaultDeposit($parentModel);
 
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
-            'survey' => $parentModel->paymentSurvey,
+            'survey' => $parentModel->paymentSurvey->load([
+                'paymentOffers',
+                'paymentOffers.paymentProvider',
+            ]),
             'customers' => $this->helper->getCustomers(),
             'totalCost' => $this->helper->getTotalCost(),
             'deposit' => $this->helper->getDeposit(),

@@ -93,52 +93,47 @@ function sortOffers(offers) {
 }
 
 /**
- * Finds the single best offer from a list based on a specific business logic.
+ * Finds the single best offer based on consumer-centric logic.
  *
  * The selection criteria is as follows:
- * 1. Prefer offers with a zero upfront payment.
- * 2. Among zero-upfront offers, pick the one with the lowest monthly payment.
- * 3. As a tie-breaker for monthly payment, pick the one with the shortest term.
- * 4. If there are no zero-upfront offers, or as a final fallback, select the offer with the lowest monthly payment overall.
+ * 1. Strongly prefer offers with a zero upfront payment.
+ * 2. Among the preferred offers, find the one with the absolute lowest monthly payment.
+ * 3. The loan term is only used as a tiebreaker if two offers have the exact same monthly payment.
+ * 4. If no zero-upfront offers exist, find the lowest monthly payment among all other valid offers.
  *
  * @param {Array} offers - The array of offers to evaluate.
- * @returns {Object|null} The best offer, or null if no offers exist.
+ * @returns {Object|null} The best offer, or null if no valid offers exist.
  */
 function getBestOffer(offers) {
     if (!offers || offers.length === 0) {
         return null;
     }
 
-    // Separate offers into two groups based on upfront payment
-    const zeroUpfrontOffers = offers.filter(offer => parseFloat(offer.upfront_payment) === 0);
-    const otherOffers = offers.filter(offer => parseFloat(offer.upfront_payment) > 0);
-
+    const zeroUpfrontOffers = offers.filter(offer => parseFloat(offer.upfront_payment ?? 0) === 0);
     let bestOffer = null;
 
-    if (zeroUpfrontOffers.length > 0) {
-        // If there are zero-upfront offers, find the best one
-        bestOffer = zeroUpfrontOffers.reduce((best, current) => {
-            // First, compare by monthly payment (lower is better)
-            if (parseFloat(current.monthly_payment) < parseFloat(best.monthly_payment)) {
-                return current;
-            }
-            if (parseFloat(current.monthly_payment) > parseFloat(best.monthly_payment)) {
-                return best;
-            }
+    // We start with the group of zero-upfront offers if it exists.
+    const candidates = zeroUpfrontOffers.length > 0 ? zeroUpfrontOffers : offers;
 
-            // If monthly payments are the same, compare by term (shorter is better)
-            if (current.term < best.term) {
+    // Find the offer with the lowest monthly payment in the chosen group.
+    if (candidates.length > 0) {
+        bestOffer = candidates.reduce((best, current) => {
+            const bestMonthly = parseFloat(best.monthly_payment);
+            const currentMonthly = parseFloat(current.monthly_payment);
+
+            // If current offer's monthly payment is lower, it becomes the new best.
+            if (currentMonthly < bestMonthly) {
                 return current;
             }
 
+            // If monthly payments are identical, the shorter term wins.
+            if (currentMonthly === bestMonthly && current.term < best.term) {
+                return current;
+            }
+
+            // Otherwise, stick with the current best.
             return best;
-        }, zeroUpfrontOffers[0]);
-
-    } else if (otherOffers.length > 0) {
-        // If there are no zero-upfront offers, pick the one with the lowest monthly payment from the remaining list
-        bestOffer = otherOffers.reduce((best, current) => {
-            return parseFloat(current.monthly_payment) < parseFloat(best.monthly_payment) ? current : best;
-        }, otherOffers[0]);
+        });
     }
 
     return bestOffer;
@@ -164,13 +159,23 @@ const selectedFinanceOffer = ref(null);
 const selectedLeaseOffer = ref(null);
 
 onMounted(() => {
-    if (props.prequalOnLoad) {
+    if (props.survey.payment_offers.length > 0) {
+        // Load offers from props (if present)
+        offers.value = props.survey.payment_offers;
+        selectBestOffers();
+    } else if (props.prequalOnLoad) {
+        // Otherwise fetch with AJAX
         initiatePrequal();
     }
 });
 
 watch(pendingGateways, () => {
     // Auto select best offers when all gateways have responded
+    selectBestOffers();
+});
+
+function selectBestOffers()
+{
     if (pendingGateways.value.length === 0 && offers.value.length > 0) {
         if (selectedFinanceOffer.value == null && bestFinanceOffer.value != null) {
             selectedFinanceOffer.value = bestFinanceOffer.value;
@@ -180,7 +185,7 @@ watch(pendingGateways, () => {
             selectedLeaseOffer.value = bestLeaseOffer.value;
         }
     }
-});
+}
 
 useEcho(
     `offers.${props.survey.id}`,
@@ -199,7 +204,7 @@ useEcho(
     'PrequalError',
     (e) => {
         // Remove gateways that have replied from the pendingGateways array
-        pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise === e.gateway);
+        pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise !== e.gateway);
 
         // Store the error
         gatewayErrors[e.type] = e;
@@ -227,36 +232,63 @@ function initiatePrequal()
         });
 }
 
-function updateOffers(e)
-{
+function updateOffers(e) {
     e = decompress(e.payload);
 
-    // Remove gateways that have replied from the pendingGateways array
-    pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise === e.gateway);
+    let financeSelectionInvalidated = false;
+    let leaseSelectionInvalidated = false;
 
-    // Add the offers to the dropdown lists
-    offerLoop: for (const offer of e.offers) {
-        // Update the selected offers
-        if (offer.id === selectedFinanceOffer.value?.id) {
-            selectedFinanceOffer.value = offer;
-        }
-        if (offer.id === selectedLeaseOffer.value?.id) {
-            selectedLeaseOffer.value = offer;
-        }
+    // Process all incoming offers from the event
+    for (const incomingOffer of e.offers) {
+        const index = offers.value.findIndex(o => o.id === incomingOffer.id);
 
-        // If the offer exists in offers array, update it
-        for (let i = 0; i < offers.value.length; i++) {
-            if (offer.id === offers.value[i].id) {
-                offers.value[i] = offer;
-                continue offerLoop;
+        if (incomingOffer.status === 'declined') {
+            // Only proceed if the offer actually exists in our list
+            if (index > -1) {
+                // Check if the offer we're about to remove is currently selected.
+                // If so, flag that we need to pick a new one.
+                if (selectedFinanceOffer.value?.id === incomingOffer.id) {
+                    financeSelectionInvalidated = true;
+                }
+                if (selectedLeaseOffer.value?.id === incomingOffer.id) {
+                    leaseSelectionInvalidated = true;
+                }
+
+                // Remove the declined offer from the main array.
+                offers.value.splice(index, 1);
+            }
+        } else {
+            // If the offer is NOT declined, we either update it or add it.
+            if (index > -1) {
+                // The offer already exists, so update it in place.
+                offers.value[index] = incomingOffer;
+            } else {
+                // This is a new offer, so add it to the array.
+                offers.value.push(incomingOffer);
+            }
+
+            // If this offer is the currently selected one, ensure our `selected...Offer` ref
+            // points to the new, updated object. This keeps statuses fresh.
+            if (selectedFinanceOffer.value?.id === incomingOffer.id) {
+                selectedFinanceOffer.value = incomingOffer;
+            }
+            if (selectedLeaseOffer.value?.id === incomingOffer.id) {
+                selectedLeaseOffer.value = incomingOffer;
             }
         }
-
-        // TODO: If offer is declined, remove it
-
-        // Offer does not yet exist, add it
-        offers.value.push(offer);
     }
+
+    // After the loop, if a selection was invalidated, pick the new best offer.
+    // The `best...Offer` computed properties have already recalculated automatically.
+    if (financeSelectionInvalidated) {
+        selectedFinanceOffer.value = bestFinanceOffer.value;
+    }
+    if (leaseSelectionInvalidated) {
+        selectedLeaseOffer.value = bestLeaseOffer.value;
+    }
+
+    // Remove gateways that have replied from the pendingGateways array
+    pendingGateways.value = pendingGateways.value.filter((gateway) => gateway !== e.gateway);
 }
 
 function proceed(paymentType) {
@@ -647,3 +679,10 @@ function financeVsLease()
     </div>
 
 </template>
+
+<style scoped>
+INPUT, SELECT, TEXTAREA
+{
+    border-color: inherit;
+}
+</style>

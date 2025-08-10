@@ -6,7 +6,7 @@ use Mralston\Payment\Interfaces\PaymentParentModel;
 
 trait RedirectsOnActivePayment
 {
-    protected function checkForActivePayment(PaymentParentModel $parentModel)
+    protected function redirectToActivePayment(PaymentParentModel $parentModel)
     {
         // Check to see whether the parent has an active payment
         if (!empty($parentModel->activePayment)) {

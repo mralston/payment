@@ -31,6 +31,7 @@ class PaymentOffer extends Model
         'provider_application_id',
         'provider_offer_id',
         'small_print',
+        'selected',
     ];
 
     protected $hidden = [

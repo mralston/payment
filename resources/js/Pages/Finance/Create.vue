@@ -153,7 +153,7 @@ function submit()
                     <th class="p-1 mr-2">Marital status</th>
                     <td class="p-1">
                         <ValidationWrapper :form="form" field="maritalStatus">
-                            <select v-model="form.maritalStatus" id="maritalStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <select v-model="form.maritalStatus" id="maritalStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                 <option></option>
                                 <option v-for="maritalStatus in maritalStatuses" :key="maritalStatuses.id" :value="maritalStatus.value">
                                     {{ maritalStatus.name }}
@@ -166,7 +166,7 @@ function submit()
                     <th class="bg-gray-100 p-1 mr-2">Homeowner</th>
                     <td class="bg-gray-100 p-1">
                         <ValidationWrapper :form="form" field="residentialStatus">
-                            <select v-model="form.residentialStatus" id="residentialStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <select v-model="form.residentialStatus" id="residentialStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                 <option></option>
                                 <option v-for="residentialStatus in residentialStatuses" :key="residentialStatus.id" :value="residentialStatus.value">
                                     {{ residentialStatus.name }}
@@ -179,7 +179,7 @@ function submit()
                     <th class="bg-gray-100 p-1 mr-2">Nationality</th>
                     <td class="bg-gray-100 p-1">
                         <ValidationWrapper :form="form" field="nationality">
-                            <select v-model="form.nationality" id="nationality" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <select v-model="form.nationality" id="nationality" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                 <option></option>
                                 <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
                                     {{ nationality.name }}
@@ -241,7 +241,7 @@ function submit()
                     <th class="bg-gray-100 p-1 mr-2">Account number</th>
                     <td class="bg-gray-100 p-1">
                         <ValidationWrapper :form="form" field="accountNumber">
-                            <input type="text" v-model="form.accountNumber" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
+                            <input type="text" v-model="form.accountNumber" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
                         </ValidationWrapper>
                     </td>
                 </tr>
@@ -249,7 +249,7 @@ function submit()
                     <th class="p-1 mr-2">Sort code</th>
                     <td class="p-1">
                         <ValidationWrapper :form="form" field="sortCode">
-                            <input type="text" v-model="form.sortCode" class="p-1 border-gray-500 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
+                            <input type="text" v-model="form.sortCode" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
                         </ValidationWrapper>
                     </td>
                 </tr>
@@ -295,5 +295,8 @@ function submit()
 </template>
 
 <style scoped>
-
+INPUT, SELECT, TEXTAREA
+{
+    border-color: inherit;
+}
 </style>

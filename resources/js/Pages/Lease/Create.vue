@@ -223,5 +223,8 @@ function submit()
 </template>
 
 <style scoped>
-
+INPUT, SELECT, TEXTAREA
+{
+    border-color: inherit;
+}
 </style>

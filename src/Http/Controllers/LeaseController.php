@@ -33,7 +33,7 @@ class LeaseController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
 
@@ -55,7 +55,7 @@ class LeaseController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         $survey = $parentModel->paymentSurvey;
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
@@ -110,7 +110,16 @@ class LeaseController
             ),
         ]);
 
-        // Mark offers as submitted (cannot resubmit once an offer has been selected)
+        // Mark selected offer as submitted (cannot resubmit once an offer has been selected)
+        $offer->update([
+            'selected' => true,
+        ]);
+
+        // Delete other offers
+        $survey->paymentOffers()
+            ->where('id', '!=', $offer->id)
+            ->where('selected', false)
+            ->delete();
 
         return redirect()
             ->route('payment.lease.show', [

@@ -22,7 +22,7 @@ class CashController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         return Inertia::render('Cash/Create', [
             'totalCost' => $this->helper->getTotalCost(),

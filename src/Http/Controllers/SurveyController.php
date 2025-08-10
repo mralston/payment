@@ -21,7 +21,15 @@ class SurveyController
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
+
+        // If there is already a survey, redirect to the existing survey
+        if (!empty($parentModel->paymentSurvey)) {
+            return redirect()->route('payment.surveys.edit', [
+                'parent' => $parentModel,
+                'survey' => $parentModel->paymentSurvey->id
+            ]);
+        }
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
@@ -36,7 +44,7 @@ class SurveyController
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         $parentModel->paymentSurvey()
             ->create($request->all());
@@ -49,7 +57,7 @@ class SurveyController
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
@@ -65,7 +73,7 @@ class SurveyController
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        $this->checkForActivePayment($parentModel);
+        $this->redirectToActivePayment($parentModel);
 
         $parentModel->paymentSurvey()
             ->update($request->all());

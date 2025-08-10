@@ -34,6 +34,7 @@ return new class extends Migration
             $table->string('provider_offer_id')->nullable()->index();
             $table->string('provider_application_id')->nullable()->index();
             $table->string('small_print', 1000)->nullable();
+            $table->boolean('selected')->default(false);
             $table->timestamps();
         });
     }
