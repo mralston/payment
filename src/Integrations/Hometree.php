@@ -9,7 +9,6 @@ use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Mralston\Payment\Data\PrequalPromiseData;
-use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Events\OffersReceived;
 use Mralston\Payment\Events\OffersUpdated;
 use Mralston\Payment\Events\PrequalError;
@@ -130,7 +129,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                             'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
                         ]
                     ];
-                }),
+                })->toArray(),
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
 

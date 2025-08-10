@@ -8,4 +8,5 @@ enum LookupField: string
     case RESIDENTIAL_STATUS = 'residential_status';
     case EMPLOYMENT_STATUS = 'employment_status';
     case NATIONALITY = 'nationality';
+    case BANKRUPT_OR_IVA = 'bankrupt_or_iva';
 }

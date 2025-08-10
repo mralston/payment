@@ -35,8 +35,8 @@ class FinanceController
         $survey = $parentModel->paymentSurvey;
 
         if (!$survey->finance_questions_completed) {
-            return response()
-                ->redirect(route('payment.surveys.finance', $parentModel));
+            return redirect()
+                ->route('payment.surveys.finance', ['parent' => $parentModel, 'survey' => $survey]);
         }
 
         return Inertia::render('Finance/Create', [

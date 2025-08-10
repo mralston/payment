@@ -125,5 +125,18 @@ class PaymentLookupFieldTableSeeder extends Seeder
                     'tandem' => 'non-british',
                 ]],
             ]);
+
+        PaymentLookupField::create([
+            'name' => 'Bankrupt or IVA',
+            'identifier' => 'bankrupt_or_iva',
+        ])->paymentLookupValues()
+            ->createMany([
+                ['name' => 'Yes', 'value' => 'yes', 'payment_provider_values' => [
+                    'propensio' => 1,
+                ]],
+                ['name' => 'No', 'value' => 'no', 'payment_provider_values' => [
+                    'propensio' => 0,
+                ]],
+            ]);
     }
 }

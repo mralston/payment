@@ -5,6 +5,7 @@ namespace Mralston\Payment\Models;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Mralston\Payment\Data\FinanceData;
 
 class PaymentSurvey extends Model
 {
@@ -14,11 +15,15 @@ class PaymentSurvey extends Model
         'basic_questions_completed',
         'lease_questions_completed',
         'finance_questions_completed',
+        'finance_responses',
+        'lease_responses',
     ];
 
     protected $casts = [
         'customers' => 'collection',
         'addresses' => 'collection',
+        'finance_responses' => FinanceData::class,
+        //'lease_responses' => LeaseData::class,
     ];
 
     public function parentable(): MorphTo

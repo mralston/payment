@@ -16,20 +16,20 @@ Route::group(['middleware' => ['web', 'auth']], function () {
         ->name('payment.')
         ->group(function () {
 
-        Route::resource('{parent}/surveys', SurveyController::class)
-            ->names('surveys');
-
-        Route::get('{parent}/surveys/lease', [SurveyController::class, 'lease'])
+        Route::get('{parent}/surveys/{survey}/lease', [SurveyController::class, 'lease'])
             ->name('surveys.lease');
 
-        Route::get('{parent}/surveys/finance', [SurveyController::class, 'finane'])
+        Route::get('{parent}/surveys/{survey}/finance', [SurveyController::class, 'finance'])
             ->name('surveys.finance');
+
+        Route::resource('{parent}/surveys', SurveyController::class)
+            ->names('surveys');
 
         Route::get('{parent}/options', [PaymentController::class, 'options'])
             ->name('options');
 
-            Route::post('{parent}/cancel/{payment}', [PaymentController::class, 'cancel'])
-                ->name('cancel');
+        Route::post('{parent}/cancel/{payment}', [PaymentController::class, 'cancel'])
+            ->name('cancel');
 
         Route::post('{parent}/prequal', PrequalController::class)
             ->name('prequal');

@@ -4,6 +4,7 @@ namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
 use Inertia\Inertia;
+use Mralston\Payment\Data\FinanceData;
 use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Http\Requests\SubmitSurveyRequest;
 use Mralston\Payment\Interfaces\PaymentHelper;
@@ -33,8 +34,11 @@ class SurveyController
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
-            'customers' => $helper->getCustomers(),
-            'addresses' => [$helper->getAddress()],
+            'paymentSurvey' => new PaymentSurvey()
+                ->tap(function ($survey) use ($helper) {
+                    $survey->customers = $helper->getCustomers();
+                    $survey->addresses = [$helper->getAddress()];
+                }),
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
             'allowSkip' => true,
@@ -69,8 +73,6 @@ class SurveyController
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'paymentSurvey' => $survey,
-            'customers' => $survey->customers ?? [],
-            'addresses' => $survey->addresses ?? [],
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
             'allowSkip' => true,
@@ -87,13 +89,22 @@ class SurveyController
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'paymentSurvey' => $survey,
-            'customers' => $survey->customers ?? [],
-            'addresses' => $survey->addresses ?? [],
+            'title' => 'Finance Survey',
+            'financeResponses' => $survey->financeResponses ?? app(FinanceData::class),
+            'maritalStatuses' => PaymentLookupField::byIdentifier(LookupField::MARITAL_STATUS)
+                ->paymentLookupValues,
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
+                ->paymentLookupValues,
+            'residentialStatuses' => PaymentLookupField::byIdentifier(LookupField::RESIDENTIAL_STATUS)
+                ->paymentLookupValues,
+            'nationalities' => PaymentLookupField::byIdentifier(LookupField::NATIONALITY)
+                ->paymentLookupValues,
+            'bankruptOrIvas' => PaymentLookupField::byIdentifier(LookupField::BANKRUPT_OR_IVA)
                 ->paymentLookupValues,
             'allowSkip' => false,
             'showBasicQuestions' => false,
             'showFinanceQuestions' => true,
+
         ])->withViewData($helper->getViewData());
     }
 

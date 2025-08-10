@@ -17,6 +17,10 @@ const props = defineProps({
     index: {
         type: [String, Number],
         default: ''
+    },
+    showHouseNumber: {
+        type: Boolean,
+        default: true
     }
 });
 
@@ -52,10 +56,12 @@ const addressModel = computed({
 
 <template>
     <div class="border border-gray-300 rounded">
-        <input type="text" v-model="addressModel.houseNumber" :id="'houseNumber.' + uniqueId" placeholder="House" class="w-[4rem] border-0 border-r-[1px] border-r-gray-300 rounded-tl bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
-        <input type="text" v-model="addressModel.street" :id="'street.' + uniqueId" placeholder="Street" class="w-[calc(100%-4rem)] border-0 rounded-tr bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
-        <input type="text" v-model="addressModel.address1" :id="'address1.' + uniqueId" placeholder="Additional Line" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
-        <input type="text" v-model="addressModel.address2" :id="'address2.' + uniqueId" placeholder="Additional Line" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
+        <div v-if="showHouseNumber">
+            <input type="text" v-model="addressModel.houseNumber" :id="'houseNumber.' + uniqueId" placeholder="House" class="w-[4rem] border-0 border-r-[1px] border-r-gray-300 rounded-tl bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+            <input type="text" v-model="addressModel.street" :id="'street.' + uniqueId" placeholder="Street" class="w-[calc(100%-4rem)] border-0 rounded-tr bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+        </div>
+        <input type="text" v-model="addressModel.address1" :id="'address1.' + uniqueId" :placeholder="showHouseNumber ? 'Additional Line' : 'Line 1'" class="w-full border-0 border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" :class="{'border-t-[1px]': showHouseNumber, 'rounded-t': !showHouseNumber}" /><br>
+        <input type="text" v-model="addressModel.address2" :id="'address2.' + uniqueId" :placeholder="showHouseNumber ? 'Additional Line' : 'Line 2'" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
         <input type="text" v-model="addressModel.town" :id="'town.' + uniqueId" placeholder="Town" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
         <input type="text" v-model="addressModel.county" :id="'county.' + uniqueId" placeholder="County" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
         <input type="text" v-model="addressModel.postCode" :id="'postCode.' + uniqueId" placeholder="Post Code" class="w-full border-0 border-t-[1px] border-t-gray-300 rounded-b bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
