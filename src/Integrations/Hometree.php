@@ -78,7 +78,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 'last_name' => $firstCustomer['lastName'],
             ],
             'address' => [
-                'udprn' => $firstAddress['udprn'],
+                ...(!empty($firstAddress['udprn']) ? ['udprn' => $firstAddress['udprn']] : []),
+                ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
             ],
             'order' => [
                 'lines' => $helper->getBasketItems(),
@@ -110,13 +111,15 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                         'mobile_phone_number' => $customer['mobile'],
                         'dob' => $customer['dateOfBirth'],
                         'address' => [
-                            'udprn' => $firstAddress['udprn'],
+                            ...(!empty($firstAddress['udprn']) ? ['udprn' => $firstAddress['udprn']] : []),
+                            ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
                         ],
                         ...(
                             $previousAddress ?
                                 [
                                     'previous_address' => [
-                                        'udprn' => $previousAddress['udprn']
+                                        ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
+                                        ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
                                     ]
                                 ] :
                                 []
@@ -131,14 +134,20 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
 
+        Log::debug('Hometree prequal request:', $payload);
+
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
             ->withToken($this->key, 'Token')
-            ->post('/applications', $payload)
-            ->throw()
-            ->json();
+            ->post('/applications', $payload);
 
-        return $response;
+        $json = $response->json();
+
+        Log::debug('Hometree prequal response:', $json);
+
+        $response->throw();
+
+        return $json;
     }
 
     public function getApplication(string $applicationId): array
@@ -149,6 +158,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             ->get('/applications/' . rawurlencode($applicationId))
             ->throw()
             ->json();
+
+        Log::debug('Hometree prequal update:', $response);
 
         return $response;
     }
