@@ -40,7 +40,7 @@
   "extra": {
     "laravel": {
       "providers": [
-        "Mralston\\Payment\\Providers\\PaymentServiceProvider"
+        "Mralston\\Payment\\PaymentServiceProvider"
       ]
     }
   },

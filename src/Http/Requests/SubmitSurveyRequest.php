@@ -6,7 +6,8 @@ use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
 use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Models\PaymentLookupField;
-use Mralston\Payment\Models\PaymentLookupValue;
+use Propaganistas\LaravelPhone\Rules\Phone;
+use Propaganistas\LaravelPhone\PhoneNumber;
 
 class SubmitSurveyRequest extends FormRequest
 {
@@ -32,7 +33,8 @@ class SubmitSurveyRequest extends FormRequest
             'customers.*.middleName' => ['nullable', 'string', 'max:255'],
             'customers.*.lastName' => ['required', 'string', 'max:255'],
             'customers.*.email' => ['required', 'string', 'email', 'max:255'],
-            'customers.*.phone' => ['required', 'string', 'max:255'],
+            'customers.*.mobile' => ['required','string', 'numeric'],
+            'customers.*.landline' => ['nullable', 'string', 'numeric'],
             'customers.*.dateOfBirth' => ['required', 'date'],
             'customers.*.grossAnnualIncome' => ['required', 'numeric'],
             'customers.*.netMonthlyIncome' => ['required', 'numeric'],
@@ -65,7 +67,9 @@ class SubmitSurveyRequest extends FormRequest
             'customers.*.lastName.required' => 'You must enter a last name.',
             'customers.*.email.required' => 'You must enter an email address.',
             'customers.*.email.email' => 'The email address you entered is not valid.',
-            'customers.*.phone.required' => 'You must enter a phone number.',
+            'customers.*.mobile.required' => 'You must enter a mobile number.',
+            'customers.*.mobile.numeric' => 'The mobile number you entered is not valid.',
+            'customers.*.landline.numeric' => 'The mobile number you entered is not valid.',
             'customers.*.dateOfBirth.required' => 'You must enter a date of birth.',
             'customers.*.dateOfBirth.date' => 'The date of birth is not a valid date.',
             'customers.*.grossAnnualIncome.required' => 'You must enter a gross annual income.',
@@ -76,6 +80,7 @@ class SubmitSurveyRequest extends FormRequest
             'customers.*.employmentStatus.in' => 'The selected employment status is not valid.',
             'customers.*.dependants.required' => 'You must specify how many dependants you have.',
             'customers.*.dependants.numeric' => 'The number of dependants must be a number.',
+
 
             // Address validation messages
             'addresses.required' => 'You must enter at least one address.',

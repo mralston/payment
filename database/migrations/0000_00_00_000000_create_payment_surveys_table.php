@@ -10,8 +10,13 @@ return new class extends Migration {
         Schema::create('payment_surveys', function (Blueprint $table) {
             $table->id();
             $table->morphs('parentable');
+            $table->boolean('basic_questions_completed')->default(false);
+            $table->boolean('lease_questions_completed')->default(false);
+            $table->boolean('finance_questions_completed')->default(false);
             $table->json('customers');
             $table->json('addresses');
+            $table->json('finance_responses')->nullable();
+            $table->json('lease_responses')->nullable();
             $table->timestamps();
         });
     }

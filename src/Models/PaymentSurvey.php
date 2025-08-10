@@ -11,6 +11,9 @@ class PaymentSurvey extends Model
     protected $fillable = [
         'customers',
         'addresses',
+        'basic_questions_completed',
+        'lease_questions_completed',
+        'finance_questions_completed',
     ];
 
     protected $casts = [

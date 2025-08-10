@@ -32,6 +32,12 @@ class FinanceController
         $this->redirectToActivePayment($parentModel);
 
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
+        $survey = $parentModel->paymentSurvey;
+
+        if (!$survey->finance_questions_completed) {
+            return response()
+                ->redirect(route('payment.surveys.finance', $parentModel));
+        }
 
         return Inertia::render('Finance/Create', [
             'parentModel' => $parentModel,

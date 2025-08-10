@@ -37,6 +37,8 @@ class SurveyController
             'addresses' => [$helper->getAddress()],
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
+            'allowSkip' => true,
+            'showBasicQuestions' => true,
         ])->withViewData($helper->getViewData());
     }
 
@@ -47,7 +49,12 @@ class SurveyController
         $this->redirectToActivePayment($parentModel);
 
         $parentModel->paymentSurvey()
-            ->create($request->all());
+            ->create([
+                ...$request->except('basicQuestionsCompleted', 'leaseQuestionsCompleted', 'financeQuestionsCompleted'),
+                ...($request->boolean('basicQuestionsCompleted') ? ['basic_questions_completed' => '1'] : []),
+                ...($request->boolean('leaseQuestionsCompleted') ? ['lease_questions_completed' => '1'] : []),
+                ...($request->boolean('financeQuestionsCompleted') ? ['finance_questions_completed' => '1'] : []),
+            ]);
 
         return redirect()
             ->route('payment.options', ['parent' => $parentModel]);
@@ -66,6 +73,27 @@ class SurveyController
             'addresses' => $survey->addresses ?? [],
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
+            'allowSkip' => true,
+            'showBasicQuestions' => true,
+        ])->withViewData($helper->getViewData());
+    }
+
+    public function finance(int $parent, PaymentSurvey $survey, PaymentHelper $helper)
+    {
+        $parentModel = $this->bootstrap($parent, $helper);
+
+        $this->redirectToActivePayment($parentModel);
+
+        return Inertia::render('Survey/Edit', [
+            'parentModel' => $parentModel,
+            'paymentSurvey' => $survey,
+            'customers' => $survey->customers ?? [],
+            'addresses' => $survey->addresses ?? [],
+            'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
+                ->paymentLookupValues,
+            'allowSkip' => false,
+            'showBasicQuestions' => false,
+            'showFinanceQuestions' => true,
         ])->withViewData($helper->getViewData());
     }
 
@@ -76,7 +104,12 @@ class SurveyController
         $this->redirectToActivePayment($parentModel);
 
         $parentModel->paymentSurvey()
-            ->update($request->all());
+            ->update([
+                ...$request->except('basicQuestionsCompleted', 'leaseQuestionsCompleted', 'financeQuestionsCompleted'),
+                ...($request->boolean('basicQuestionsCompleted') ? ['basic_questions_completed' => '1'] : []),
+                ...($request->boolean('leaseQuestionsCompleted') ? ['lease_questions_completed' => '1'] : []),
+                ...($request->boolean('financeQuestionsCompleted') ? ['finance_questions_completed' => '1'] : []),
+            ]);
 
         return redirect()
             ->route('payment.options', ['parent' => $parentModel]);

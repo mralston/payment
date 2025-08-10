@@ -10,12 +10,33 @@ import ValidationWrapper from "../../Components/ValidationWrapper.vue";
 const props = defineProps({
     parentModel: Object,
     paymentSurvey: Object,
+    title: {
+        type: String,
+        default: 'Survey',
+    },
+    showBasicQuestions: {
+        type: Boolean,
+        default: true,
+    },
+    showLeaseQuestions: {
+        type: Boolean,
+        default: false,
+    },
+    showFinanceQuestions: {
+        type: Boolean,
+        default: false,
+    },
+    redirect: String,
     customers: Array,
     addresses: Array,
     employmentStatuses: Array,
 });
 
 const form = useForm({
+    redirect: props.redirect,
+    basicQuestionsCompleted: props.showBasicQuestions,
+    leaseQuestionsCompleted: props.showLeaseQuestions,
+    financeQuestionsCompleted: props.showFinanceQuestions,
     customers: props.customers,
     addresses: props.addresses,
 });
@@ -92,7 +113,7 @@ function skip()
 <template>
 
     <Head>
-        <title>Survey</title>
+        <title>{{ title }}</title>
     </Head>
 
     <div class="p-4">
@@ -105,11 +126,11 @@ function skip()
 
         <ValidationBanner :form="form" class="mr-16"/>
 
-        <h1 class="text-4xl font-bold">Survey</h1>
+        <h1 class="text-4xl font-bold">{{ title }}</h1>
 
         <p class="mt-4 text-xl">We need to ask you a few basic questions so that we can find out which payment methods are right for you.</p>
 
-        <section>
+        <section v-if="showBasicQuestions">
 
             <h2 class="text-xl font-bold mt-4">Section 1: Customers</h2>
 
@@ -162,7 +183,7 @@ function skip()
 
                         </div>
 
-                        <div class="grid grid-cols-3 gap-6 mt-5">
+                        <div class="grid grid-cols-4 gap-6 mt-5">
 
                             <div>
                                 <label :for="`customers.${index}.email`" class="block text-sm/6 font-medium text-gray-900">E-mail</label>
@@ -171,9 +192,15 @@ function skip()
                                 </ValidationWrapper>
                             </div>
                             <div>
-                                <label :for="`customers.${index}.phone`" class="block text-sm/6 font-medium text-gray-900">Phone</label>
-                                <ValidationWrapper :form="form" :field="`customers.${index}.phone`" class="mt-2">
-                                    <input type="text" v-model="customer.phone" :id="`customers.${index}.phone`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                <label :for="`customers.${index}.mobile`" class="block text-sm/6 font-medium text-gray-900">Mobile</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.mobile`" class="mt-2">
+                                    <input type="tel" v-model="customer.mobile" :id="`customers.${index}.mobile`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
+                            </div>
+                            <div>
+                                <label :for="`customers.${index}.landline`" class="block text-sm/6 font-medium text-gray-900">Land Line</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.landline`" class="mt-2">
+                                    <input type="text" v-model="customer.landline" :id="`customers.${index}.landline`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                                 </ValidationWrapper>
                             </div>
                             <div>
@@ -241,7 +268,7 @@ function skip()
 
         </section>
 
-        <section>
+        <section v-if="showBasicQuestions">
 
             <h2 class="text-xl font-bold mt-4">Section 2: Addresses</h2>
 

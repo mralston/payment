@@ -19,6 +19,12 @@ Route::group(['middleware' => ['web', 'auth']], function () {
         Route::resource('{parent}/surveys', SurveyController::class)
             ->names('surveys');
 
+        Route::get('{parent}/surveys/lease', [SurveyController::class, 'lease'])
+            ->name('surveys.lease');
+
+        Route::get('{parent}/surveys/finance', [SurveyController::class, 'finane'])
+            ->name('surveys.finance');
+
         Route::get('{parent}/options', [PaymentController::class, 'options'])
             ->name('options');
 

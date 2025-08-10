@@ -107,7 +107,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                         ),
                         'last_name' => $customer['lastName'],
                         'email' => $customer['email'],
-                        'mobile_phone_number' => $customer['phone'],
+                        'mobile_phone_number' => $customer['mobile'],
                         'dob' => $customer['dateOfBirth'],
                         'address' => [
                             'udprn' => $firstAddress['udprn'],
