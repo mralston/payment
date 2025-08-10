@@ -982,6 +982,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
                 ->where('amount', $amount)
+                ->where('selected', false)
                 ->get();
 
             // If there aren't any offers...

@@ -4,12 +4,12 @@ namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Mralston\Payment\Events\PaymentCancelled;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
-use Mralston\Payment\Services\PrequalService;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
@@ -53,7 +53,7 @@ class PaymentController
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
             'survey' => $parentModel->paymentSurvey->load([
-                'paymentOffers',
+                'paymentOffers' => fn ($query) => $query->where('selected', false),
                 'paymentOffers.paymentProvider',
             ]),
             'customers' => $this->helper->getCustomers(),
@@ -83,5 +83,19 @@ class PaymentController
             // Set the deposit
             return $this->helper->setDeposit($deposit);
         }
+    }
+
+    public function cancel(int $parent, Payment $payment)
+    {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $payment->update([
+            'payment_status_id' => PaymentStatus::byIdentifier('customer_cancelled')?->id,
+        ]);
+
+        event(new PaymentCancelled($payment));
+
+        return redirect()
+            ->route('payment.options', $parentModel);
     }
 }

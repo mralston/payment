@@ -1,10 +1,6 @@
 <script setup>
 
-import {Head} from "@inertiajs/vue3";
-import {cleanUrl} from "../../Helpers/Strings.js";
-import {formatDate, fromNow} from "../../Helpers/Date.js";
-import {makeNumeric} from "../../Helpers/Number.js";
-import RepresentativeExample from "../../Components/RepresentativeExample.vue";
+import {Head, router} from "@inertiajs/vue3";
 import {formatCurrency} from "../../Helpers/Currency.js";
 
 const props = defineProps({
@@ -13,7 +9,6 @@ const props = defineProps({
     payment: Object,
     response: Object,
     offer: Object,
-    errors: Array,
 });
 
 function cancel()
@@ -22,7 +17,7 @@ function cancel()
         return;
     }
 
-    alert('TODO: Cancel application :(');
+    router.post(route('payment.cancel', {parent: props.parentModel, payment: props.payment}));
 }
 
 </script>

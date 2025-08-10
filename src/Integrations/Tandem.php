@@ -603,7 +603,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
                 ->where('amount', $amount)
-                ->where('monthly_payment', '>', 0);
+                ->where('monthly_payment', '>', 0)
+                ->where('selected', false);
 
             $offers = $offers->get();
 

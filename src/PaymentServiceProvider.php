@@ -8,6 +8,7 @@ use Mralston\Payment\Integrations\Hometree;
 use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Providers\EventServiceProvider;
 
 class PaymentServiceProvider extends ServiceProvider
 {
@@ -48,6 +49,8 @@ class PaymentServiceProvider extends ServiceProvider
     public function register()
     {
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'payment');
+
+        $this->app->register(EventServiceProvider::class);
 
         $this->app->singleton(Tandem::class, function ($app) {
             return new Tandem(

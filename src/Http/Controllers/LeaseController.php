@@ -74,7 +74,6 @@ class LeaseController
                 'read_terms_conditions' => $request->get('readTermsConditions'),
                 'bank_account_number' => $request->get('accountNumber'),
                 'bank_account_sort_code' => $request->get('sortCode'),
-
             ]);
         $payment->save();
 

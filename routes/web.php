@@ -22,6 +22,9 @@ Route::group(['middleware' => ['web', 'auth']], function () {
         Route::get('{parent}/options', [PaymentController::class, 'options'])
             ->name('options');
 
+            Route::post('{parent}/cancel/{payment}', [PaymentController::class, 'cancel'])
+                ->name('cancel');
+
         Route::post('{parent}/prequal', PrequalController::class)
             ->name('prequal');
 

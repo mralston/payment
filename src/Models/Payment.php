@@ -224,6 +224,7 @@ class Payment extends Model
         $this->monthly_payment = $offer->monthly_payment;
         $this->final_payment = $offer->final_payment;
         $this->total_payable = $offer->total_payable;
+        $this->provider_foreign_id = $offer->provider_application_id;
 
         return $this;
     }

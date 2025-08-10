@@ -186,6 +186,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                 ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
                 ->where('amount', $amount)
+                ->where('selected', false)
                 ->get();
 
             // If there aren't any offers...
@@ -395,4 +396,30 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         return $this->responseData;
     }
 
+    public function cancel(Payment $payment)
+    {
+        $this->requestData = [
+            'reason' => 'customer.unknown',
+        ];
+
+        $response = Http::baseUrl($this->endpoint)
+            ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+            ->withToken($this->key, 'Token')
+            ->post('/applications/' . $payment->provider_foreign_id . '/abandon', $this->requestData);
+
+        // Add application and offer IDs to the request data stored to the DB for easier troubleshooting
+        $this->requestData = [
+            ...$this->requestData,
+            'application_id' => $payment->provider_foreign_id,
+        ];
+
+        $this->responseData = $response->json();
+
+        Log::debug($this->requestData);
+        Log::debug($this->responseData);
+
+        $response->throw();
+
+        return $this->responseData;
+    }
 }
