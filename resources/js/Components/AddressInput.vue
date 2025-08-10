@@ -1,5 +1,11 @@
 <script setup>
 import { ref, watch, computed } from 'vue';
+import { MagnifyingGlassIcon } from '@heroicons/vue/16/solid';
+import Modal from "./Modal.vue";
+
+defineOptions({
+    inheritAttrs: false
+});
 
 const props = defineProps({
     address: {
@@ -21,6 +27,10 @@ const props = defineProps({
     showHouseNumber: {
         type: Boolean,
         default: true
+    },
+    allowManualEntry: {
+        type: Boolean,
+        default: false
     }
 });
 
@@ -43,28 +53,137 @@ const addressModel = computed({
     set(newValue) {
         // When an input inside AddressInput changes, this setter is called.
         // We need to emit the full address object back to the parent.
-        // We achieve this by merging the existing 'props.address' (which includes 'dateMovedIn')
+        // We achieve this by merging the existing 'props.address'
         // with the 'newValue' (which contains the updated fields from this component's inputs).
-        // This ensures that 'dateMovedIn' is preserved and only the relevant address fields are updated.
         emit('update:address', {
             ...props.address, // Keep all existing properties from the original address object
             ...newValue // Merge in the updated fields from this component's inputs
         });
     }
 });
+
+const addresses = ref([]);
+
+const addressLookupModal = ref(null);
+
+const selectedAddress = ref();
+
+function lookup()
+{
+    axios.get(route('payment.address.lookup', addressModel.value.postCode))
+        .then(response => {
+            addresses.value = response.data;
+            addressLookupModal.value.show();
+        });
+}
+
+function selectAddress()
+{
+    if (selectedAddress.value === undefined) {
+        return;
+    }
+
+    if (props.showHouseNumber) {
+        addressModel.value.houseNumber = selectedAddress.value.addressLine1;
+        addressModel.value.street = selectedAddress.value.addressLine2;
+        addressModel.value.address1 = null;
+        addressModel.value.address2 = null;
+    } else {
+        addressModel.value.houseNumber = null;
+        addressModel.value.street = null;
+
+        if (selectedAddress.value.addressLine1) {
+            addressModel.value.address1 = selectedAddress.value.addressLine1;
+            addressModel.value.address2 = selectedAddress.value.addressLine2;
+        } else {
+            addressModel.value.address1 = selectedAddress.value.addressLine2;
+            addressModel.value.address2 = null;
+        }
+
+
+    }
+
+
+    addressModel.value.town = selectedAddress.value.city;
+    addressModel.value.county = selectedAddress.value.county;
+    addressModel.value.postCode = selectedAddress.value.postcode;
+    addressModel.value.uprn = selectedAddress.value.uprn;
+}
+
 </script>
 
 <template>
-    <div class="border border-gray-300 rounded">
+
+    <Modal ref="addressLookupModal" type="question" title="Select Address" class="w-1/2" :buttons="['ok', 'cancel']" @ok="selectAddress">
+        <select v-model="selectedAddress" class="w-full rounded-lg" size="10">
+            <option v-for="address in addresses" :key="address.uprn" :value="address">
+                {{ address.text }}
+            </option>
+        </select>
+    </Modal>
+
+    <div v-bind="$attrs" class="border border-gray-300 rounded">
         <div v-if="showHouseNumber">
-            <input type="text" v-model="addressModel.houseNumber" :id="'houseNumber.' + uniqueId" placeholder="House" class="w-[4rem] border-0 border-r-[1px] border-r-gray-300 rounded-tl bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
-            <input type="text" v-model="addressModel.street" :id="'street.' + uniqueId" placeholder="Street" class="w-[calc(100%-4rem)] border-0 rounded-tr bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+            <input type="text"
+                   v-model="addressModel.houseNumber"
+                   :id="'houseNumber.' + uniqueId"
+                   placeholder="House"
+                   :disabled="!allowManualEntry"
+                   class="w-[4rem] border-0 border-r-[1px] border-b-[1px] border-r-gray-300 border-b-gray-300 rounded-tl bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
+
+            <input type="text"
+                   v-model="addressModel.street"
+                   :id="'street.' + uniqueId"
+                   placeholder="Street"
+                   :disabled="!allowManualEntry"
+                   class="w-[calc(100%-4rem)] border-0 border-b-[1px] border-b-gray-300 rounded-tr bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
         </div>
-        <input type="text" v-model="addressModel.address1" :id="'address1.' + uniqueId" :placeholder="showHouseNumber ? 'Additional Line' : 'Line 1'" class="w-full border-0 border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" :class="{'border-t-[1px]': showHouseNumber, 'rounded-t': !showHouseNumber}" /><br>
-        <input type="text" v-model="addressModel.address2" :id="'address2.' + uniqueId" :placeholder="showHouseNumber ? 'Additional Line' : 'Line 2'" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
-        <input type="text" v-model="addressModel.town" :id="'town.' + uniqueId" placeholder="Town" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
-        <input type="text" v-model="addressModel.county" :id="'county.' + uniqueId" placeholder="County" class="w-full border-0 border-t-[1px] border-t-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" /><br>
-        <input type="text" v-model="addressModel.postCode" :id="'postCode.' + uniqueId" placeholder="Post Code" class="w-full border-0 border-t-[1px] border-t-gray-300 rounded-b bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-indigo-600 sm:text-sm/6" />
+
+        <input v-if="!showHouseNumber"
+               type="text"
+               v-model="addressModel.address1"
+               :id="'address1.' + uniqueId"
+               :disabled="!allowManualEntry"
+               :placeholder="showHouseNumber ? 'Additional Line' : 'Line 1'"
+               class="w-full rounded-t border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"
+               :class="{'border-t-[1px]': showHouseNumber, 'rounded-t': !showHouseNumber}"/>
+
+        <input v-if="!showHouseNumber"
+               type="text"
+               v-model="addressModel.address2"
+               :id="'address2.' + uniqueId"
+               :disabled="!allowManualEntry"
+               :placeholder="showHouseNumber ? 'Additional Line' : 'Line 2'"
+               class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
+        <input type="text"
+               v-model="addressModel.town"
+               :id="'town.' + uniqueId"
+               placeholder="Town"
+               :disabled="!allowManualEntry"
+               class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"
+        />
+
+        <input type="text"
+               v-model="addressModel.county"
+               :id="'county.' + uniqueId"
+               placeholder="County"
+               :disabled="!allowManualEntry"
+               class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
+
+        <div class="flex items-center">
+            <input type="text"
+                   v-model="addressModel.postCode"
+                   :id="'postCode.' + uniqueId"
+                   placeholder="Post Code"
+                   class="flex-grow border-0 rounded-bl bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
+
+            <button type="button"
+                    class="flex-shrink-0 self-stretch rounded-br border-l-[1px] border-l-gray-300 bg-gray-50 disabled:bg-gray-50 px-3 hover:bg-gray-100 disabled:bg-inherit focus:outline-2 focus:outline-offset-2 focus:outline-blue-600"
+                    @click="lookup"
+                    :disabled="!addressModel.postCode">
+                <MagnifyingGlassIcon class="h-4 w-4 text-gray-600" aria-hidden="true"/>
+            </button>
+        </div>
     </div>
 </template>
 

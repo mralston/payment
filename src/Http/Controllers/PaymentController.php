@@ -50,9 +50,18 @@ class PaymentController
 
         $this->setDefaultDeposit($parentModel);
 
+        $survey = $parentModel->paymentSurvey;
+
+        if (empty($survey)) {
+            $survey = $parentModel->paymentSurvey()->create([
+                'customers' => $this->helper->getCustomers(),
+                'addresses' => [$this->helper->getAddress()],
+            ]);
+        }
+
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
-            'survey' => $parentModel->paymentSurvey->load([
+            'survey' => $survey->load([
                 'paymentOffers' => fn ($query) => $query->where('selected', false),
                 'paymentOffers.paymentProvider',
             ]),

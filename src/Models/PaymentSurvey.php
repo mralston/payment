@@ -2,13 +2,17 @@
 
 namespace Mralston\Payment\Models;
 
+use GregoryDuckworth\Encryptable\EncryptableTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Mralston\Payment\Data\BankAccountData;
 use Mralston\Payment\Data\FinanceData;
 
 class PaymentSurvey extends Model
 {
+    use EncryptableTrait;
+
     protected $fillable = [
         'customers',
         'addresses',
@@ -24,6 +28,10 @@ class PaymentSurvey extends Model
         'addresses' => 'collection',
         'finance_responses' => FinanceData::class,
         //'lease_responses' => LeaseData::class,
+    ];
+
+    protected $encryptable = [
+//        'finance_responses',
     ];
 
     public function parentable(): MorphTo

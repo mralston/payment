@@ -24,6 +24,7 @@ class CustomerData extends Data
         public ?string $martialStatus = null,
         public ?string $residentialStatus = null,
         public ?string $nationality = null,
+        public ?string $bankruptOrIva = null,
     ) {
         //
     }

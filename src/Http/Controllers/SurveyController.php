@@ -80,7 +80,22 @@ class SurveyController
         ])->withViewData($helper->getViewData());
     }
 
-    public function finance(int $parent, PaymentSurvey $survey, PaymentHelper $helper)
+    public function lease(Request $request, int $parent, PaymentSurvey $survey, PaymentHelper $helper)
+    {
+        $parentModel = $this->bootstrap($parent, $helper);
+
+        $this->redirectToActivePayment($parentModel);
+
+        return Inertia::render('Survey/Edit', [
+            'parentModel' => $parentModel,
+            'paymentSurvey' => $survey,
+            'allowSkip' => false,
+            'showBasicQuestions' => true,
+            'redirect' => route('payment.lease.create', ['parent' => $parent, 'offerId' => $request->get('offerId')]),
+        ])->withViewData($helper->getViewData());
+    }
+
+    public function finance(Request $request, int $parent, PaymentSurvey $survey, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
@@ -104,7 +119,7 @@ class SurveyController
             'allowSkip' => false,
             'showBasicQuestions' => false,
             'showFinanceQuestions' => true,
-
+            'redirect' => route('payment.finance.create', ['parent' => $parent, 'offerId' => $request->get('offerId')]),
         ])->withViewData($helper->getViewData());
     }
 
@@ -116,11 +131,24 @@ class SurveyController
 
         $parentModel->paymentSurvey()
             ->update([
-                ...$request->except('basicQuestionsCompleted', 'leaseQuestionsCompleted', 'financeQuestionsCompleted'),
+                ...$request->except(
+                    'basicQuestionsCompleted',
+                    'leaseQuestionsCompleted',
+                    'financeQuestionsCompleted',
+                    'leaseResponses',
+                    'financeResponses',
+                    'redirect',
+                ),
                 ...($request->boolean('basicQuestionsCompleted') ? ['basic_questions_completed' => '1'] : []),
                 ...($request->boolean('leaseQuestionsCompleted') ? ['lease_questions_completed' => '1'] : []),
                 ...($request->boolean('financeQuestionsCompleted') ? ['finance_questions_completed' => '1'] : []),
+                'lease_responses' => $request->get('leaseResponses'),
+                'finance_responses' => $request->get('financeResponses'),
             ]);
+
+        if ($request->get('redirect')) {
+            return redirect($request->get('redirect'));
+        }
 
         return redirect()
             ->route('payment.options', ['parent' => $parentModel]);

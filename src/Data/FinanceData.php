@@ -11,10 +11,15 @@ class FinanceData extends Data
         public ?string $employerName = null,
         public ?AddressData $employerAddress = null,
         public ?string $occupation = null,
-        public ?Carbon $dateStartedEmployment = null,
+        public /*?Carbon*/ ?string $dateStartedEmployment = null,
+        public ?BankAccountData $bankAccount = null,
     ) {
         if (is_null($this->employerAddress)) {
             $this->employerAddress = new AddressData();
+        }
+
+        if (is_null($this->bankAccount)) {
+            $this->bankAccount = new BankAccountData();
         }
     }
 }

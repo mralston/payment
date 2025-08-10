@@ -42,7 +42,7 @@ const form = useForm({
     financeQuestionsCompleted: props.showFinanceQuestions,
     customers: props.paymentSurvey.customers,
     addresses: props.paymentSurvey.addresses,
-    financeResponses: props.financeResponses,
+    financeResponses: props.paymentSurvey.finance_responses,
 });
 
 function addCustomer() {
@@ -73,7 +73,7 @@ function addAddress() {
         town: null,
         county: null,
         postCode: null,
-        dateMovedIn: 0,
+        dateMovedIn: null,
     });
 }
 
@@ -295,8 +295,8 @@ function skip()
                     </div>
                     <div class="bg-gray-50 p-4">
 
-                        <ValidationWrapper :form="form" :field="[`addresses.${index}.houseNumber`, `addresses.${index}.street`, `addresses.${index}.address1`, `addresses.${index}.address2`, `addresses.${index}.town`, `addresses.${index}.county`, `addresses.${index}.postcode`]" class="mt-2">
-                            <AddressInput v-model:address="form.addresses[index]" :index="index" class="mb-4"/>
+                        <ValidationWrapper :form="form" :field="[/*`addresses.${index}.houseNumber`, `addresses.${index}.street`, `addresses.${index}.address1`, `addresses.${index}.address2`, `addresses.${index}.town`, `addresses.${index}.county`,*/ `addresses.${index}.postcode`, `addresses.${index}.uprn`]" class="mb-4">
+                            <AddressInput v-model:address="form.addresses[index]" :index="index"/>
                         </ValidationWrapper>
 
                         <div class="mb-4">
@@ -317,7 +317,7 @@ function skip()
 
             <p class="mb-4">We need to ask a few more questions for your finance application.</p>
 
-            <div class="grid grid-cols-2 gap-6 mb-4">
+            <div class="grid grid-cols-3 gap-6 mb-4">
 
                 <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-50 shadow mb-4">
                     <div class="px-3 py-2 font-bold bg-blue-50">
@@ -327,8 +327,8 @@ function skip()
 
                         <div class="mb-4">
                             <label for="maritalStatus" class="block text-sm/6 font-medium text-gray-900">Marital Status</label>
-                            <ValidationWrapper :form="form" field="maritalStatus">
-                                <select v-model="form.maritalStatus" id="maritalStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <ValidationWrapper :form="form" field="customers.0.maritalStatus">
+                                <select v-model="form.customers[0].maritalStatus" id="maritalStatus" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                     <option></option>
                                     <option v-for="maritalStatus in maritalStatuses" :key="maritalStatuses.id" :value="maritalStatus.value">
                                         {{ maritalStatus.name }}
@@ -339,8 +339,8 @@ function skip()
 
                         <div class="mb-4">
                             <label for="residentialStatus" class="block text-sm/6 font-medium text-gray-900">Residential Status</label>
-                            <ValidationWrapper :form="form" field="residentialStatus">
-                                <select v-model="form.residentialStatus" id="residentialStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <ValidationWrapper :form="form" field="customers.0.residentialStatus">
+                                <select v-model="form.customers[0].residentialStatus" id="residentialStatus" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                     <option></option>
                                     <option v-for="residentialStatus in residentialStatuses" :key="residentialStatus.id" :value="residentialStatus.value">
                                         {{ residentialStatus.name }}
@@ -352,8 +352,8 @@ function skip()
 
                         <div class="mb-4">
                             <label for="maritalStatus" class="block text-sm/6 font-medium text-gray-900">Nationality</label>
-                            <ValidationWrapper :form="form" field="nationality">
-                                <select v-model="form.nationality" id="nationality" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <ValidationWrapper :form="form" field="customers.0.nationality">
+                                <select v-model="form.customers[0].nationality" id="nationality" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                     <option></option>
                                     <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
                                         {{ nationality.name }}
@@ -364,50 +364,13 @@ function skip()
 
                         <div class="mb-4">
                             <label for="bankruptOrIva" class="block text-sm/6 font-medium text-gray-900">Have you ever been declared bankrupt or entered into an Individual Voluntary Agreement (IVA)?</label>
-                            <ValidationWrapper :form="form" field="bankruptOrIva">
-                                <select v-model="form.bankruptOrIva" id="bankruptOrIva" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                            <ValidationWrapper :form="form" field="customers.0.bankruptOrIva">
+                                <select v-model="form.customers[0].bankruptOrIva" id="bankruptOrIva" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                     <option></option>
                                     <option v-for="bankruptOrIva in bankruptOrIvas" :key="bankruptOrIva.id" :value="bankruptOrIva.value">
                                         {{ bankruptOrIva.name }}
                                     </option>
                                 </select>
-                            </ValidationWrapper>
-                        </div>
-
-                    </div>
-                </div>
-
-                <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-50 shadow">
-                    <div class="px-3 py-2 font-bold bg-blue-50">
-                        Bank Details
-                    </div>
-                    <div class="bg-gray-50 p-4">
-
-                        <div class="mb-4">
-                            <label for="bankName" class="block text-sm/6 font-medium text-gray-900">Bank Name</label>
-                            <ValidationWrapper :form="form" field="bankName">
-                                <input type="text" v-model="form.bankName" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
-                            </ValidationWrapper>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="accountName" class="block text-sm/6 font-medium text-gray-900">Account Name</label>
-                            <ValidationWrapper :form="form" field="accountName">
-                                <input type="text" v-model="form.accountName" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
-                            </ValidationWrapper>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="accountNumber" class="block text-sm/6 font-medium text-gray-900">Account Number</label>
-                            <ValidationWrapper :form="form" field="accountNumber">
-                                <input type="text" v-model="form.accountNumber" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
-                            </ValidationWrapper>
-                        </div>
-
-                        <div class="mb-4">
-                            <label for="sortCode" class="block text-sm/6 font-medium text-gray-900">Sort Code</label>
-                            <ValidationWrapper :form="form" field="sortCode">
-                                <input type="text" v-model="form.sortCode" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
                             </ValidationWrapper>
                         </div>
 
@@ -422,7 +385,7 @@ function skip()
 
                         <div class="mb-4">
                             <label for="customers.0.employmentStatus" class="block text-sm/6 font-medium text-gray-900">Employment Status</label>
-                            <ValidationWrapper :form="form" :field="`customers.0.employmentStatus`" class="mt-2">
+                            <ValidationWrapper :form="form" field="customers.0.employmentStatus" class="mt-2">
                                 <select v-model="form.customers[0].employmentStatus" :id="`customers.0.employmentStatus`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
                                     <option></option>
                                     <option v-for="employmentStatus in employmentStatuses" :key="employmentStatuses.id" :value="employmentStatus.value">
@@ -434,34 +397,73 @@ function skip()
 
                         <div class="mb-4">
                             <label for="occupation" class="block text-sm/6 font-medium text-gray-900">Occupation</label>
-                            <ValidationWrapper :form="form" :field="occupation" class="mt-2">
+                            <ValidationWrapper :form="form" field="financeResponses.occupation" class="mt-2">
                                 <input type="text" v-model="form.financeResponses.occupation" id="occupation" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>
                         </div>
 
                         <div class="mb-4">
                             <label for="employerName" class="block text-sm/6 font-medium text-gray-900">Employer name</label>
-                            <ValidationWrapper :form="form" :field="employerName" class="mt-2">
+                            <ValidationWrapper :form="form" field="financeResponses.employerName" class="mt-2">
                                 <input type="text" v-model="form.financeResponses.employerName" id="employerName" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>
                         </div>
 
                         <div class="mb-4">
                             <label class="block text-sm/6 font-medium text-gray-900">Employer Address</label>
-                            <ValidationWrapper :form="form" :field="['form.financeResponses.employerAddress.houseNumber', 'form.financeResponses.employerAddress.street', 'form.financeResponses.employerAddress.address1', 'form.financeResponses.employerAddress.address2', 'form.financeResponses.employerAddress.town', 'form.financeResponses.employerAddress.county','form.financeResponses.employerAddress.postcode']" class="mt-2">
+                            <ValidationWrapper :form="form" :field="[/*'financeResponses.employerAddress.houseNumber', 'financeResponses.employerAddress.street', 'financeResponses.employerAddress.address1', 'financeResponses.employerAddress.address2', 'financeResponses.employerAddress.town', 'financeResponses.employerAddress.county',*/ 'financeResponses.employerAddress.postCode', 'financeResponses.employerAddress.uprn']" class="mt-2">
                                 <AddressInput v-model:address="form.financeResponses.employerAddress" :index="index" :showHouseNumber="false" class="mb-4"/>
                             </ValidationWrapper>
                         </div>
 
                         <div class="mb-4">
                             <label for="dateStartedEmployment" class="block text-sm/6 font-medium text-gray-900">Date started</label>
-                            <ValidationWrapper :form="form" field="dateStartedEmployment">
+                            <ValidationWrapper :form="form" field="financeResponses.dateStartedEmployment">
                                 <input type="date" v-model="form.financeResponses.dateStartedEmployment" id="dateStartedEmployment" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>
                         </div>
 
                     </div>
                 </div>
+
+                <div class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-50 shadow">
+                    <div class="px-3 py-2 font-bold bg-blue-50">
+                        Bank Details
+                    </div>
+                    <div class="bg-gray-50 p-4">
+
+                        <div class="mb-4">
+                            <label for="bankName" class="block text-sm/6 font-medium text-gray-900">Bank Name</label>
+                            <ValidationWrapper :form="form" field="financeResponses.bankAccount.bankName">
+                                <input type="text" v-model="form.financeResponses.bankAccount.bankName" class="w-full p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300">
+                            </ValidationWrapper>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="accountName" class="block text-sm/6 font-medium text-gray-900">Account Name</label>
+                            <ValidationWrapper :form="form" field="financeResponses.bankAccount.accountName">
+                                <input type="text" v-model="form.financeResponses.bankAccount.accountName" class="w-full p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300">
+                            </ValidationWrapper>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="accountNumber" class="block text-sm/6 font-medium text-gray-900">Account Number</label>
+                            <ValidationWrapper :form="form" field="financeResponses.bankAccount.accountNumber">
+                                <input type="text" v-model="form.financeResponses.bankAccount.accountNumber" class="w-full p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
+                            </ValidationWrapper>
+                        </div>
+
+                        <div class="mb-4">
+                            <label for="sortCode" class="block text-sm/6 font-medium text-gray-900">Sort Code</label>
+                            <ValidationWrapper :form="form" field="financeResponses.bankAccount.sortCode">
+                                <input type="text" v-model="form.financeResponses.bankAccount.sortCode" class="w-full p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
+                            </ValidationWrapper>
+                        </div>
+
+                    </div>
+                </div>
+
+
 
             </div>
 

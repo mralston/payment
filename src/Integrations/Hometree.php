@@ -123,17 +123,22 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                                 ] :
                                 []
                         ),
-                        'affordability' => [
-                            'gross_annual_income' => $customer['grossAnnualIncome'],
-                            'dependants' => $customer['dependants'],
-                            'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
-                        ]
+                        ...(
+                            $survey->basic_questions_completed ? [
+                                'affordability' => [
+                                    'gross_annual_income' => $customer['grossAnnualIncome'],
+                                    'dependants' => $customer['dependants'],
+                                    'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
+                                ]
+                            ] : []
+                        ),
+
                     ];
                 })->toArray(),
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
 
-        Log::debug('Hometree prequal request:', $payload);
+//        Log::debug('Hometree prequal request:', $payload);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -142,7 +147,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
         $json = $response->json();
 
-        Log::debug('Hometree prequal response:', $json);
+//        Log::debug('Hometree prequal response:', $json);
 
         $response->throw();
 
@@ -158,7 +163,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             ->throw()
             ->json();
 
-        Log::debug('Hometree prequal update:', $response);
+//        Log::debug('Hometree prequal update:', $response);
 
         return $response;
     }

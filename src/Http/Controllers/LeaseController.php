@@ -36,6 +36,12 @@ class LeaseController
         $this->redirectToActivePayment($parentModel);
 
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
+        $survey = $parentModel->paymentSurvey;
+
+        if (!$survey->basic_questions_completed) {
+            return redirect()
+                ->route('payment.surveys.lease', ['parent' => $parentModel, 'survey' => $survey, 'offerId' => $request->get('offerId')]);
+        }
 
         return Inertia::render('Lease/Create', [
             'parentModel' => $parentModel,

@@ -152,58 +152,43 @@ function submit()
                 <tr>
                     <th class="p-1 mr-2">Marital status</th>
                     <td class="p-1">
-                        <ValidationWrapper :form="form" field="maritalStatus">
-                            <select v-model="form.maritalStatus" id="maritalStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                                <option></option>
-                                <option v-for="maritalStatus in maritalStatuses" :key="maritalStatuses.id" :value="maritalStatus.value">
-                                    {{ maritalStatus.name }}
-                                </option>
-                            </select>
-                        </ValidationWrapper>
+                        {{ maritalStatuses.filter((item) => item.value === survey.customers[0].maritalStatus)[0]?.name }}
                     </td>
                 </tr>
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Homeowner</th>
                     <td class="bg-gray-100 p-1">
-                        <ValidationWrapper :form="form" field="residentialStatus">
-                            <select v-model="form.residentialStatus" id="residentialStatus" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                                <option></option>
-                                <option v-for="residentialStatus in residentialStatuses" :key="residentialStatus.id" :value="residentialStatus.value">
-                                    {{ residentialStatus.name }}
-                                </option>
-                            </select>
-                        </ValidationWrapper>
+                        {{ residentialStatuses.filter((item) => item.value === survey.customers[0].residentialStatus)[0]?.name }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Nationality</th>
-                    <td class="bg-gray-100 p-1">
-                        <ValidationWrapper :form="form" field="nationality">
-                            <select v-model="form.nationality" id="nationality" class="block w-1/2 rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                                <option></option>
-                                <option v-for="nationality in nationalities" :key="nationality.id" :value="nationality.value">
-                                    {{ nationality.name }}
-                                </option>
-                            </select>
-                        </ValidationWrapper>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Date of birth</th>
+                    <th class="p-1 mr-2">Nationality</th>
                     <td class="p-1">
+                        {{ nationalities.filter((item) => item.value === survey.customers[0].nationality)[0]?.name }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="bg-gray-100 p-1 mr-2">Date of birth</th>
+                    <td class="bg-gray-100 p-1">
                         {{ formatDate(survey.customers[0].dateOfBirth, 'DD/MM/YYYY') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Dependants</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Dependants</th>
+                    <td class="p-1">
                         {{ survey.customers[0].dependants }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Telephone</th>
+                    <th class="bg-gray-100 p-1 mr-2">Mobile</th>
+                    <td class="bg-gray-100 p-1">
+                        {{ survey.customers[0].mobile }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="p-1 mr-2">Land line</th>
                     <td class="p-1">
-                        {{ survey.customers[0].phone }}
+                        {{ survey.customers[0].landline }}
                     </td>
                 </tr>
                 <tr>
@@ -240,17 +225,13 @@ function submit()
                 <tr>
                     <th class="bg-gray-100 p-1 mr-2">Account number</th>
                     <td class="bg-gray-100 p-1">
-                        <ValidationWrapper :form="form" field="accountNumber">
-                            <input type="text" v-model="form.accountNumber" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{8}" placeholder="12345678">
-                        </ValidationWrapper>
+                        {{ survey.finance_responses.bankAccount.accountNumber }}
                     </td>
                 </tr>
                 <tr>
                     <th class="p-1 mr-2">Sort code</th>
                     <td class="p-1">
-                        <ValidationWrapper :form="form" field="sortCode">
-                            <input type="text" v-model="form.sortCode" class="p-1 border-gray-300 rounded invalid:bg-red-100 placeholder:text-gray-300" pattern="\d{2}-\d{2}-\d{2}|\d{6}" placeholder="12-34-56">
-                        </ValidationWrapper>
+                        {{ survey.finance_responses.bankAccount.sortCode }}
                     </td>
                 </tr>
             </tbody>
