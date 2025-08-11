@@ -9,6 +9,10 @@ import {titleCase} from "../../Helpers/Strings.js";
 const props = defineProps({
     payments: Object,
     parentRouteName: String,
+    parentModelDescription: {
+        type: String,
+        default: 'Parent Model',
+    },
 });
 
 </script>
@@ -29,7 +33,7 @@ const props = defineProps({
                         <th scope="col" class="py-3.5 pl-4 pr-4 text-left text-sm font-semibold text-gray-900 sm:pl-0">ID</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Ref</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Parent</th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">{{ parentModelDescription }}</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Customer</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Post Code</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900">Amount</th>

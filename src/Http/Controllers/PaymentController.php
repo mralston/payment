@@ -33,11 +33,12 @@ class PaymentController
                     'parentable',
                     'paymentProvider',
                     'parentable.user',
-                    'paymentStatus'
+                    'paymentStatus',
                 ])
                 ->orderBy('updated_at', 'desc')
                 ->paginate(10),
             'parentRouteName' => $this->helper->getParentRouteName(),
+            'parentModelDescription' => config('payment.parent_model_description'),
         ])
             ->withViewData($this->helper->getViewData());
     }

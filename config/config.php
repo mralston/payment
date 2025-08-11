@@ -11,6 +11,10 @@ return [
     // The class used should implement \Mralston\Payment\Interfaces\PaymentParentModel
     'parent_model' => env('PAYMENT_PARENT_MODEL', null),
 
+    // This is the name that the package will use to refer to the parent record
+    // of the payments, for example 'Quote' or 'Contract'
+    'parent_model_description' => env('PAYMENT_PARENT_MODEL_DESCRIPTION', 'Parent'),
+
     // The parent application's user model
     'user_model' => env('PAYMENT_USER_MODEL', 'App\Models\User'),
 
