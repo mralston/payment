@@ -34,6 +34,15 @@ class PaymentSurvey extends Model
 //        'finance_responses',
     ];
 
+    public function __construct(array $attributes = [])
+    {
+        parent::__construct($attributes);
+
+        if (empty($this->financeResponses)) {
+            $this->financeResponses = new FinanceData();
+        }
+    }
+
     public function parentable(): MorphTo
     {
         return $this->morphTo();

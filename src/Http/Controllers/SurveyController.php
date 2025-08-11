@@ -101,6 +101,10 @@ class SurveyController
 
         $this->redirectToActivePayment($parentModel);
 
+        if (empty($survey->finance_responses)) {
+            $survey->finance_responses = app(FinanceData::class);
+        }
+
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'paymentSurvey' => $survey,
