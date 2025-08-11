@@ -54,10 +54,19 @@ class SurveyController
 
         $parentModel->paymentSurvey()
             ->create([
-                ...$request->except('basicQuestionsCompleted', 'leaseQuestionsCompleted', 'financeQuestionsCompleted'),
+                ...$request->except(
+                    'basicQuestionsCompleted',
+                    'leaseQuestionsCompleted',
+                    'financeQuestionsCompleted',
+                    'leaseResponses',
+                    'financeResponses',
+                    'redirect',
+                ),
                 ...($request->boolean('basicQuestionsCompleted') ? ['basic_questions_completed' => '1'] : []),
                 ...($request->boolean('leaseQuestionsCompleted') ? ['lease_questions_completed' => '1'] : []),
                 ...($request->boolean('financeQuestionsCompleted') ? ['finance_questions_completed' => '1'] : []),
+                'lease_responses' => $request->get('leaseResponses'),
+                'finance_responses' => $request->get('financeResponses'),
             ]);
 
         return redirect()
