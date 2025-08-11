@@ -19,8 +19,8 @@
   "dependencies": {
     "@headlessui/vue": "^1.7.23",
     "@heroicons/vue": "^2.2.0",
-    "@laravel/echo-vue": "^2.1.7",
-    "moment": "^2.30.1",
-    "pako": "^2.1.0"
+    "@laravel/echo-vue": "^2.2.0",
+    "pako": "^2.1.0",
+    "moment": "^2.30.1"
   }
 }
