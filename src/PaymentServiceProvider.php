@@ -7,8 +7,11 @@ use Inertia\Inertia;
 use Mralston\Payment\Integrations\Hometree;
 use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
+use Mralston\Payment\Interfaces\PaymentAddressLookup;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Providers\EventServiceProvider;
+use Mralston\Payment\Services\MugService;
 
 class PaymentServiceProvider extends ServiceProvider
 {
@@ -75,6 +78,10 @@ class PaymentServiceProvider extends ServiceProvider
 
         $this->app->singleton(PaymentHelper::class, function ($app) {
             return app(config('payment.helper'));
+        });
+
+        $this->app->bind(PaymentAddressLookup::class, function ($app) {
+            return app(MugService::class);
         });
     }
 }

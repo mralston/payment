@@ -68,6 +68,8 @@ const addressLookupModal = ref(null);
 
 const selectedAddress = ref();
 
+const addressesFound = computed(() => Object.keys(addresses.value).length > 0);
+
 function lookup()
 {
     axios.get(route('payment.address.lookup', addressModel.value.postCode))
@@ -84,29 +86,41 @@ function selectAddress()
     }
 
     if (props.showHouseNumber) {
-        addressModel.value.houseNumber = selectedAddress.value.addressLine1;
-        addressModel.value.street = selectedAddress.value.addressLine2;
-        addressModel.value.address1 = null;
-        addressModel.value.address2 = null;
+        // We've been asked to show the house number & street
+        if (selectedAddress.value.houseNumber) {
+            // Pull directly from the lookup data's house number and street (if present)
+            addressModel.value.houseNumber = selectedAddress.value.houseNumber;
+            addressModel.value.street = selectedAddress.value.street;
+            addressModel.value.address1 = selectedAddress.value.address1;
+            addressModel.value.address2 = selectedAddress.value.address2;
+        } else {
+            // If the lookup data's house number and street are blank, use address1 & 2 instead
+            addressModel.value.houseNumber = selectedAddress.value.address1;
+            addressModel.value.street = selectedAddress.value.address2;
+            addressModel.value.address1 = null;
+            addressModel.value.address2 = null;
+        }
     } else {
+        // We've been asked not to show the house number & street (good for businesses)
         addressModel.value.houseNumber = null;
         addressModel.value.street = null;
 
-        if (selectedAddress.value.addressLine1) {
-            addressModel.value.address1 = selectedAddress.value.addressLine1;
-            addressModel.value.address2 = selectedAddress.value.addressLine2;
+        if (selectedAddress.value.houseNumber) {
+            // Pull the address1 & 2 from the house number & street if present in the lookup data
+            // Based on UAT, we might need to remove this logic and always use address1 & 2
+            addressModel.value.address1 = selectedAddress.value.houseNumber;
+            addressModel.value.address2 = selectedAddress.value.street;
         } else {
-            addressModel.value.address1 = selectedAddress.value.addressLine2;
-            addressModel.value.address2 = null;
+            // Otherwise use the actual address1 & 2 lines
+            addressModel.value.address1 = selectedAddress.value.address1;
+            addressModel.value.address2 = selectedAddress.value.address2;
         }
-
-
     }
 
-
+    // The remaining fields are easier to come by
     addressModel.value.town = selectedAddress.value.city;
     addressModel.value.county = selectedAddress.value.county;
-    addressModel.value.postCode = selectedAddress.value.postcode;
+    addressModel.value.postCode = selectedAddress.value.postCode;
     addressModel.value.uprn = selectedAddress.value.uprn;
 }
 
@@ -115,11 +129,12 @@ function selectAddress()
 <template>
 
     <Modal ref="addressLookupModal" type="question" title="Select Address" class="w-1/2" :buttons="['ok', 'cancel']" @ok="selectAddress">
-        <select v-model="selectedAddress" class="w-full rounded-lg" size="10">
+        <select v-if="addressesFound > 0" v-model="selectedAddress" class="w-full rounded-lg" size="10">
             <option v-for="address in addresses" :key="address.uprn" :value="address">
-                {{ address.text }}
+                {{ address.summary }}
             </option>
         </select>
+        <div v-else>No addresses matched the post code.</div>
     </Modal>
 
     <div v-bind="$attrs" class="border border-gray-300 rounded">

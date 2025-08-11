@@ -53,8 +53,6 @@ class SubmitSurveyRequest extends FormRequest
                     'addresses' => ['required', 'array'],
                     'addresses.*.houseNumber' => ['required', 'string', 'max:255'],
                     'addresses.*.street' => ['required', 'string', 'max:255'],
-                    'addresses.*.town' => ['required', 'string', 'max:255'],
-                    'addresses.*.county' => ['nullable', 'string', 'max:255'],
                     'addresses.*.postCode' => ['required', 'string', 'max:255'],
                     'addresses.*.dateMovedIn' => ['required', 'date'],
                     'addresses.*.uprn' => ['required'],
@@ -89,7 +87,6 @@ class SubmitSurveyRequest extends FormRequest
 
                     'financeResponses.employerAddress.address1' => ['required', 'string', 'max:255'],
                     'financeResponses.employerAddress.address2' => ['nullable', 'string', 'max:255'],
-                    'financeResponses.employerAddress.town' => ['required', 'string', 'max:255'],
                     'financeResponses.employerAddress.county' => ['nullable', 'string', 'max:255'],
                     'financeResponses.employerAddress.postCode' => ['required', 'string', 'max:255'],
                     'financeResponses.employerAddress.uprn' => ['required'],

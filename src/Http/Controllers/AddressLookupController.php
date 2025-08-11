@@ -3,16 +3,24 @@
 namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Support\Collection;
-use Mralston\Mug\Facades\Mug;
+use Mralston\Payment\Data\AddressLookupResultData;
+use Mralston\Payment\Interfaces\PaymentAddressLookup;
 
 class AddressLookupController
 {
+    public function __construct(
+        protected PaymentAddressLookup $lookupService
+    ) {
+        //
+    }
+
+    /**
+     * @param string $postCode
+     * @return Collection<AddressLookupResultData>
+     */
     public function lookup(string $postcode): Collection
     {
-        // Get list of addresses for postcode
-        $addressList = Mug::addressRecco($postcode);
-
-        return $addressList;
+        return $this->lookupService->lookup($postcode);
     }
 
 }
