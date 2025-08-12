@@ -8,6 +8,10 @@ use Mralston\Payment\Http\Controllers\LeaseController;
 use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
+use Mralston\Payment\Http\Controllers\WebhookController;
+
+Route::post('webhook/hometree', [WebhookController::class, 'hometree'])
+        ->name('webhook.hometree');
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 
