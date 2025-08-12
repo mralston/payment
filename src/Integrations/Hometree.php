@@ -96,45 +96,51 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                     'vat_value' => $helper->getVat(),
                 ]
             ],
-            'applicants' => $survey->customers
-                ->map(function ($customer) use ($survey, $firstAddress, $previousAddress) {
-                    return [
-                        'first_name' => $customer['firstName'],
-                        ...(
-                            filled($customer['middleName']) ?
-                                ['middle_name' => $customer['middleName']] :
-                                [] // Omit the middle name field entirely if it's empty
-                        ),
-                        'last_name' => $customer['lastName'],
-                        'email' => $customer['email'],
-                        'mobile_phone_number' => $customer['mobile'],
-                        'dob' => $customer['dateOfBirth'],
-                        'address' => [
-                            ...(!empty($firstAddress['udprn']) ? ['udprn' => $firstAddress['udprn']] : []),
-                            ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
-                        ],
-                        ...(
-                            $previousAddress ?
-                                [
-                                    'previous_address' => [
-                                        ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
-                                        ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
-                                    ]
-                                ] :
-                                []
-                        ),
-                        ...(
-                            $survey->basic_questions_completed ? [
-                                'affordability' => [
-                                    'gross_annual_income' => $customer['grossAnnualIncome'],
-                                    'dependants' => $customer['dependants'],
-                                    'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
-                                ]
-                            ] : []
-                        ),
+            ...(
+                ($survey?->basic_questions_completed ?? false) ?
+                    [
+                        'applicants' => $survey->customers
+                            ->map(function ($customer) use ($survey, $firstAddress, $previousAddress) {
+                                return [
+                                    'first_name' => $customer['firstName'],
+                                    ...(
+                                    filled($customer['middleName']) ?
+                                        ['middle_name' => $customer['middleName']] :
+                                        [] // Omit the middle name field entirely if it's empty
+                                    ),
+                                    'last_name' => $customer['lastName'],
+                                    'email' => $customer['email'],
+                                    'mobile_phone_number' => $customer['mobile'],
+                                    'dob' => $customer['dateOfBirth'],
+                                    'address' => [
+                                        ...(!empty($firstAddress['udprn']) ? ['udprn' => $firstAddress['udprn']] : []),
+                                        ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
+                                    ],
+                                    ...(
+                                    $previousAddress ?
+                                        [
+                                            'previous_address' => [
+                                                ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
+                                                ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
+                                            ]
+                                        ] :
+                                        []
+                                    ),
+                                    ...(
+                                    $survey->basic_questions_completed ? [
+                                        'affordability' => [
+                                            'gross_annual_income' => $customer['grossAnnualIncome'],
+                                            'dependants' => $customer['dependants'],
+                                            'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
+                                        ]
+                                    ] : []
+                                    ),
 
-                    ];
-                })->toArray(),
+                                ];
+                            })->toArray(),
+                    ] :
+                    []
+            ),
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
 
