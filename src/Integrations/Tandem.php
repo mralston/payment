@@ -241,11 +241,10 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
-            ->post($this->endpoint . '/' . $application->lender_application_id . '/getApplicationSigningLink', $data)
+            ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationSigningLink', $data)
             ->throw();
 
         $json = $response->json();
-        Log::channel('finance')->debug($json['signingLink']);
         // Work around for dev API bug. Hopefully due to be fixed upstream
         $json['signingLink'] = str_replace('honeycombexternal.com', 'alliummoney.co.uk', $json['signingLink']);
 
