@@ -19,12 +19,14 @@ use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Interfaces\Signable;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Services\PaymentCalculator;
 use Spatie\ArrayToXml\ArrayToXml;
 
-class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
+class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Signable
 {
     public const UNEXPECTED_ERROR = 0; // Any error that we were not expecting. i.e. an Exception
     public const TARGET_REFERENCE_UNKNOWN = 1; // Target reference not recognised
@@ -534,7 +536,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return 'online_non_interactive';
     }
 
-    public function getSigningUrl(FinanceApplication $application, ?string $return_url = null)
+    public function getSigningUrl(Payment $payment)
     {
         return false;
     }

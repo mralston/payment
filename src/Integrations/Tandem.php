@@ -24,6 +24,7 @@ use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Interfaces\Signable;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
@@ -231,15 +232,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         return 'online';
     }
 
-    /**
-     * Retrieves the URL to the finance application signing page
-     *
-     * @param FinanceApplication $application
-     * @param string|null $return_url
-     * @return mixed
-     * @throws RequestException
-     */
-    public function getSigningUrl(FinanceApplication $application, ?string $return_url = null)
+    public function getSigningUrl(Payment $payment)
     {
         $data = [
             'returnURL' => $return_url
