@@ -61,7 +61,7 @@ const props = defineProps({
 
     <Card header-class="bg-gray-100" :collapsed="true">
         <template v-slot:header>
-            <span class="text-2xl">Other offers</span>
+            <span class="text-2xl">Other options</span>
         </template>
         <div class="grid grid-cols-2 gap-4">
             <div v-for="offer in otherOffers" :key="offer.id">

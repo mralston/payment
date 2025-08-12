@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Mralston\Payment\Events\PaymentUpdated;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Observers\PaymentObserver;
 
@@ -16,6 +17,10 @@ class Payment extends Model
 {
     use EncryptableTrait;
     use SoftDeletes;
+
+    protected $dispatchesEvents = [
+        'updated' => PaymentUpdated::class,
+    ];
 
     protected $fillable = [
         'uuid',
