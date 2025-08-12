@@ -12,6 +12,7 @@ use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Mralston\Payment\Traits\RedirectsOnActivePayment;
+use Illuminate\Http\Request;
 
 class PaymentController
 {
@@ -95,17 +96,32 @@ class PaymentController
         }
     }
 
-    public function cancel(int $parent, Payment $payment)
+    public function cancel(Request $request, int $parent, Payment $payment)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $payment->update([
-            'payment_status_id' => PaymentStatus::byIdentifier('customer_cancelled')?->id,
+            'payment_status_id' => PaymentStatus::byIdentifier($request->payment_status_identifier ?? 'customer_cancelled')?->id,
         ]);
 
         event(new PaymentCancelled($payment));
 
         return redirect()
             ->route('payment.options', $parentModel);
+    }
+
+    public function show(Payment $payment,)
+    {
+        $survey = $payment->parentable->paymentSurvey;
+
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($payment->parentable);
+        
+        return Inertia::render('Payment/Show', [
+            'payment' => $payment
+                ->load('paymentProvider', 'paymentStatus', 'parentable', 'parentable.user')
+                ->withSurvey($survey),
+            'products' => $helper->getBasketItems(),
+        ])->withViewData($this->helper->getViewData());
     }
 }
