@@ -144,9 +144,9 @@ function submit()
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Telephone</th>
+                    <th class="p-1 mr-2">Mobile</th>
                     <td class="p-1">
-                        {{ survey.customers[0].phone }}
+                        {{ survey.customers[0].mobile }}
                     </td>
                 </tr>
                 <tr>

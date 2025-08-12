@@ -40,19 +40,21 @@ const props = defineProps({
                 <span v-if="selectedOffer.deferred > 0">
                     ({{ selectedOffer.deferred }} months deferred)
                 </span>
+                <span v-if="selectedOffer.upfront_payment > 0">
+                ({{ toPounds(selectedOffer.upfront_payment) }} up front)
+            </span>
             </div>
         </template>
         <div class="grid grid-cols-2 gap-4">
             <div>
-                <h2 class="text-2xl mb-4">Potential Savings</h2>
-
                 <PaymentsSavingsTable :show-title="false"
-                                        :term="makeNumeric(selectedOffer.term)"
-                                        :deferred="makeNumeric(selectedOffer.deferred)"
-                                        :monthly-payment="makeNumeric(selectedOffer.monthly_payment)"
-                                        :apr="makeNumeric(selectedOffer.apr)"
-                                        :system-savings="systemSavings"
-                                        class="bg-white mb-4"/>
+                                       :term="makeNumeric(selectedOffer.term)"
+                                       :deferred="makeNumeric(selectedOffer.deferred)"
+                                       :upfront-payment="makeNumeric(selectedOffer.upfront_payment)"
+                                       :yearly-payments="selectedOffer.yearly_payments"
+                                       :apr="makeNumeric(selectedOffer.apr)"
+                                       :system-savings="systemSavings"
+                                       class="bg-white mb-4"/>
             </div>
         </div>
     </Card>
@@ -71,11 +73,12 @@ const props = defineProps({
                     <span v-else>selectedOffer.payment_provider.name</span>
                 </div>
                 <PaymentsSavingsTable :term="makeNumeric(offer.term)"
-                                        :deferred="makeNumeric(offer.deferred)"
-                                        :monthly-payment="makeNumeric(offer.monthly_payment)"
-                                        :apr="makeNumeric(offer.apr)"
-                                        :system-savings="systemSavings"
-                                        class="mb-4"/>
+                                      :deferred="makeNumeric(offer.deferred)"
+                                      :upfront-payment="makeNumeric(offer.upfront_payment)"
+                                      :yearly-payments="offer.yearly_payments"
+                                      :apr="makeNumeric(offer.apr)"
+                                      :system-savings="systemSavings"
+                                      class="mb-4"/>
             </div>
         </div>
     </Card>
