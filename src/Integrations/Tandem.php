@@ -23,11 +23,12 @@ use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Interfaces\Signable;
 use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
-class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
+class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Signable
 {
     /**
      * Endpoints to be used based on environment.
