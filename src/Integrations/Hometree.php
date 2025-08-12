@@ -378,9 +378,11 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
     {
         $offer = $payment->paymentOffer;
 
-        $this->requestData = [
-            'preapproval_id' => $offer->preapproval_id,
-        ];
+        $this->requestData = null;
+
+        if (!empty($offer->preapproval_id)) {
+            $this->requestData = ['preapproval_id' => $offer->preapproval_id];
+        }
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -389,12 +391,15 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
         // Add application and offer IDs to the request data stored to the DB for easier troubleshooting
         $this->requestData = [
-            ...$this->requestData,
+            ...($this->requestData ?? []),
             'application_id' => $offer->provider_application_id,
             'offer_id' => $offer->provider_offer_id,
         ];
 
         $this->responseData = $response->json();
+
+        Log::debug($this->requestData);
+        Log::debug($this->responseData);
 
         $response->throw();
 

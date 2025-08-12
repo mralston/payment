@@ -182,13 +182,13 @@ class Payment extends Model
         $this->first_name = $customer['firstName'];
         $this->middle_name = $customer['middleName'];
         $this->last_name = $customer['lastName'];
-        $this->marital_status = $customer['maritalStatus'];
-        $this->residential_status = $customer['residentialStatus'];
+        $this->marital_status = $customer['maritalStatus'] ?? null;
+        $this->residential_status = $customer['residentialStatus'] ?? null;
         $this->date_of_birth = $customer['dateOfBirth'];
         $this->dependants = $customer['dependants'];
         // TODO: bankrupt_or_iva
         $this->email_address = $customer['email'];
-        $this->primary_telephone = $customer['phone'];
+        $this->primary_telephone = $customer['mobile'];
         // TODO: secondary_telephone
         $this->addresses = $survey->addresses;
         $this->employment_status = $customer['employmentStatus'];
