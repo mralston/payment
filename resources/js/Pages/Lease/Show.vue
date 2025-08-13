@@ -33,12 +33,6 @@ useEcho(
     }
 );
 
-// const processing = computed(() => payment.value.payment_status.identifier === 'processing' ||
-//     payment.value.payment_status.identifier === 'pending-customer-choice'
-// );
-
-const processing = ref(false);
-
 </script>
 
 <template>
@@ -49,7 +43,7 @@ const processing = ref(false);
 
     <div class="p-4">
 
-        <img v-if="processing && payment.payment_provider.animated_logo"
+        <img v-if="payment.payment_status.processing && payment.payment_provider.animated_logo"
              :src="payment.payment_provider.animated_logo"
              class="max-w-1/3 h-14 mb-6"
              :alt="payment.payment_provider.name">
@@ -62,7 +56,7 @@ const processing = ref(false);
         </h1>
 
 
-        <div v-if="processing">
+        <div v-if="payment.payment_status.processing">
 
             <p class="mb-4">
                 <ArrowPathIcon v-if="!payment.payment_provider.animated_logo" class="inline-block h-6 w-6 mr-2 text-black animate-spin"/>
@@ -71,7 +65,7 @@ const processing = ref(false);
 
         </div>
 
-        <div v-else-if="payment.payment_status.identifier === 'error'">
+        <div v-else-if="payment.payment_status.error">
 
             <p class="mb-4">Looks like something went wrong with this application.</p>
 
@@ -87,12 +81,6 @@ const processing = ref(false);
 
         </div>
 
-<!--        <div v-if="payment.payment_status.identifier === 'pending'">-->
-
-<!--            <p class="mb-4">Your application is pending.</p>-->
-
-<!--        </div>-->
-
         <div v-else>
 
             <button type="button"
@@ -101,7 +89,7 @@ const processing = ref(false);
                 Cancel Application
             </button>
 
-            <p class="mb-4">Great news! Hometree have accepted your application. They'll get in touch with you soon.</p>
+            <p class="mb-4">Great news! {{ payment.payment_provider.name }} have accepted your application. They'll get in touch with you soon.</p>
 
             <table class="mb-4 w-full md:w-1/2">
                 <tbody>

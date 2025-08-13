@@ -157,8 +157,6 @@ class LeaseController
             $result = $this->submitApplication($gateway, $payment, $offer, $survey, $parent);
         }
 
-        // TODO: Figure out why the background status check isn't firing an event for Echo
-
         // Watch the status in the background for a little while and see if it updates
         dispatch(function () use ($payment, $gateway, $offer, $survey, $parent) {
             Log::debug('watching status');

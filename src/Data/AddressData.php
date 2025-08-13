@@ -17,7 +17,7 @@ class AddressData extends Data
         public ?string $town = null,
         public ?string $county = null,
         public ?string $postCode = null,
-        public ?Carbon $dateMovedIn = null,
+        public ?string $dateMovedIn = null,
     ) {
         //
     }

@@ -5,27 +5,30 @@ namespace Mralston\Payment\Integrations;
 use Illuminate\Database\QueryException;
 use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
+use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
+use Mralston\Payment\Data\ErrorCollectionData;
+use Mralston\Payment\Data\ErrorData;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Events\OffersReceived;
 use Mralston\Payment\Events\OffersUpdated;
 use Mralston\Payment\Events\PrequalError;
 use Mralston\Payment\Interfaces\LeaseGateway;
+use Mralston\Payment\Interfaces\ParsesErrors;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupValue;
 use Mralston\Payment\Models\PaymentOffer;
-use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 use Throwable;
 
-class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
+class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, ParsesErrors
 {
     /**
      * Endpoints to be used based on environment.
@@ -51,7 +54,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
     private $responseData = null;
 
     public function __construct(
-        private string $key,
+        protected string $key,
         string $endpoint,
     ) {
         $this->endpoint = $this->endpoints[$endpoint];
@@ -467,7 +470,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         return PaymentOffer::create($data);
     }
 
-    public function apply(Payment $payment)
+    public function apply(Payment $payment): array // TODO: Update Payment object with result & change return type to Payment
     {
         $offer = $payment->paymentOffer;
 
@@ -503,17 +506,17 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         return $this->responseData;
     }
 
-    public function getRequestData()
+    public function getRequestData(): ?array
     {
         return $this->requestData;
     }
 
-    public function getResponseData()
+    public function getResponseData(): ?array
     {
         return $this->responseData;
     }
 
-    public function cancel(Payment $payment)
+    public function cancel(Payment $payment): bool
     {
         $this->requestData = [
             'reason' => 'customer.unknown',
@@ -539,6 +542,21 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
         $response->throw();
 
-        return $this->responseData;
+        return true;
+    }
+
+    public function pollStatus(Payment $payment): array
+    {
+        return $this->getApplication($payment->provider_foreign_id);
+    }
+
+    public function parseErrors(Collection $response): ErrorCollectionData
+    {
+        return new ErrorCollectionData(
+            $response
+                ->map(function ($value, $key) {
+                    return new ErrorData($key, $value[0]);
+                })
+        );
     }
 }

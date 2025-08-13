@@ -104,7 +104,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         return false;
     }
 
-    public function apply(FinanceApplication $application)
+    public function apply(Payment $payment): Payment
     {
         // Temporary workaround. Can be removed pretty sharpish
         if (empty($application->reference)) {
@@ -541,7 +541,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         return false;
     }
 
-    public function pollStatus(FinanceApplication $application): array
+    public function pollStatus(Payment $payment): array
     {
         // Some applications don't have a lender ID (it was a bug), so they can't be polled.
         if (empty($application->lender_application_id)) {
@@ -637,7 +637,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         ];
     }
 
-    public function cancel(FinanceApplication $application)
+    public function cancel(Payment $payment): bool
     {
         $data = [
             'AGREEMENT' => [
@@ -1032,5 +1032,25 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             gateway: static::class,
             surveyId: $survey->id,
         );
+    }
+
+    public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array
+    {
+        // TODO: Implement calculatePayments() method.
+    }
+
+    public function financeProducts(): Collection
+    {
+        // TODO: Implement financeProducts() method.
+    }
+
+    public function getRequestData(): ?array
+    {
+        // TODO: Implement getRequestData() method.
+    }
+
+    public function getResponseData(): ?array
+    {
+        // TODO: Implement getResponseData() method.
     }
 }
