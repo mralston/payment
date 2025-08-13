@@ -52,7 +52,7 @@ const props = defineProps({
             <DetailsRow
                 icon="fa6-solid:solar-panel"
                 :stack="true"
-                label="Purpose of loan"
+                :label="'Purpose of ' + paymentType"
                 value="Home Improvements"
             />
             <DetailsRow
