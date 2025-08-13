@@ -127,7 +127,7 @@ class PaymentController
         
         return Inertia::render('Payment/Show', [
             'payment' => $payment
-                ->load('paymentProvider', 'paymentStatus', 'parentable', 'parentable.user', 'paymentCancellations'),
+                ->load('paymentProvider', 'paymentStatus', 'parentable', 'parentable.user', 'paymentCancellations', 'paymentOffer'),
             'products' => $helper->getBasketItems(),
         ])->withViewData($this->helper->getViewData());
     }

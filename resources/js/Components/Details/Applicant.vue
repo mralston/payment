@@ -53,7 +53,7 @@ const props = defineProps({
             <div class="w-1/2 max-md:w-full">
                 <DetailsRow
                     label="Date of birth"
-                    :value="moment(payment.date_of_birth).format('DD/MM/YYYY')"
+                    :value="payment.date_of_birth ? moment(payment.date_of_birth).format('DD/MM/YYYY') : ''"
                 />
                 <DetailsRow
                     label="Marital status"

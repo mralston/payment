@@ -1,6 +1,6 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
-import { ref } from 'vue';
+import { ref, computed } from 'vue';
 import BreadCrumbs from '../../Components/BreadCrumbs.vue';
 import Summary from '../../Components/Details/Summary.vue';
 import Loan from '../../Components/Details/Loan.vue';
@@ -12,6 +12,7 @@ import BankAccount from '../../Components/Details/BankAccount.vue';
 import MarketingConsent from '../../Components/Details/MarketingConsent.vue';
 import DetailsBanner from '../../Components/Details/DetailsBanner.vue';
 import { Icon } from '@iconify/vue';
+import { PaymentProvider } from '../../Enums/PaymentProvider';
 
 const props = defineProps({
     payment: Object,
@@ -42,6 +43,13 @@ const layout = {
     },
 }
 
+const paymentType = computed(() => {
+    if (props.payment.payment_provider.identifier === PaymentProvider.HOMETREE) {
+        return 'Lease';
+    }
+    return 'Loan';
+});
+
 </script>
 
 <template>
@@ -63,6 +71,7 @@ const layout = {
         <div class="w-1/4 max-md:w-full">
             <Summary
                 :payment="payment"
+                :paymentType="paymentType"
             />
 
         </div>
@@ -73,6 +82,7 @@ const layout = {
             <div :class="layout[view].container">
                 <Loan
                     :payment="payment"
+                    :paymentType="paymentType"
                     :products="products"/>
 
                 <Applicant

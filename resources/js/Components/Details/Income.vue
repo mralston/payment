@@ -42,11 +42,11 @@ const props = defineProps({
                 <div class="w-1/2 max-md:w-full">
                     <DetailsRow
                         label="Mortgage (monthly)"
-                        :value="formatCurrency(payment.mortgage_monthly ?? 0)"
+                        :value="payment.mortgage_monthly ? formatCurrency(payment.mortgage_monthly) : ''"
                     />
                     <DetailsRow
                         label="Rent (monthly)"
-                        :value="formatCurrency(payment.rent_monthly ?? 0)"
+                        :value="payment.rent_monthly ? formatCurrency(payment.rent_monthly) : ''"
                     />
                 </div>
             </div>
