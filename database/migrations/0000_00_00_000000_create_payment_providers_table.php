@@ -18,6 +18,7 @@ return new class extends Migration
             $table->string('identifier')->unique();
             $table->string('gateway')->nullable();
             $table->string('logo')->nullable();
+            $table->string('animated_logo')->nullable();
             $table->string('intro', 1000)->nullable();
             $table->integer('sort_order')->nullable();
             $table->string('telephone')->nullable();

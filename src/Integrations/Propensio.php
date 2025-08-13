@@ -992,10 +992,12 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 // Fetch products available from lender
                 $products = $paymentProvider->paymentProducts;
 
+                $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
+
                 $calculator = app(PaymentCalculator::class);
 
                 // Store products to offers
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount, $calculator) {
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $amount, $calculator) {
 
                     $payments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
 
@@ -1003,6 +1005,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                         ->create([
                             'name' => $product->name,
                             'type' => 'finance',
+                            'reference' => $reference,
                             'amount' => $amount,
                             'payment_provider_id' => $paymentProvider->id,
                             'payment_product_id' => $product->id,

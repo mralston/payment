@@ -60,6 +60,11 @@ function show()
     open.value = true;
 }
 
+function hide()
+{
+    open.value = false;
+}
+
 function ok()
 {
     open.value = false;
@@ -98,6 +103,7 @@ function submit()
 
 defineExpose({
     show,
+    hide,
 });
 
 </script>

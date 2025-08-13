@@ -3,6 +3,7 @@
 namespace Mralston\Payment\Integrations;
 
 use Illuminate\Database\QueryException;
+use Illuminate\Http\Client\ConnectionException;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
@@ -56,6 +57,12 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
         $this->endpoint = $this->endpoints[$endpoint];
     }
 
+    /**
+     * Creates an application returns lease offers
+     *
+     * @throws RequestException
+     * @throws ConnectionException
+     */
     public function createApplication(
         PaymentSurvey $survey,
     ): array {
@@ -96,14 +103,93 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                     'vat_value' => $helper->getVat(),
                 ]
             ],
+            ...(
+                ($survey?->basic_questions_completed ?? false) ?
+                    [
+                        'applicants' => $survey->customers
+                            ->map(function ($customer) use ($survey, $firstAddress, $previousAddress) {
+                                return [
+                                    'first_name' => $customer['firstName'],
+                                    ...(
+                                    filled($customer['middleName']) ?
+                                        ['middle_name' => $customer['middleName']] :
+                                        [] // Omit the middle name field entirely if it's empty
+                                    ),
+                                    'last_name' => $customer['lastName'],
+                                    'email' => $customer['email'],
+                                    'mobile_phone_number' => $customer['mobile'],
+                                    'dob' => $customer['dateOfBirth'],
+                                    'address' => [
+                                        ...(!empty($firstAddress['udprn']) ? ['udprn' => $firstAddress['udprn']] : []),
+                                        ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
+                                    ],
+                                    ...(
+                                    $previousAddress ?
+                                        [
+                                            'previous_address' => [
+                                                ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
+                                                ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
+                                            ]
+                                        ] :
+                                        []
+                                    ),
+                                    ...(
+                                    $survey->basic_questions_completed ? [
+                                        'affordability' => [
+                                            'gross_annual_income' => $customer['grossAnnualIncome'],
+                                            'dependants' => $customer['dependants'],
+                                            'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
+                                        ]
+                                    ] : []
+                                    ),
+
+                                ];
+                            })->toArray(),
+                    ] :
+                    []
+            ),
+            'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
+        ];
+
+//        Log::debug('Hometree prequal request:', $payload);
+        Log::debug('POST /applications');
+
+        $response = Http::baseUrl($this->endpoint)
+            ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+            ->withToken($this->key, 'Token')
+            ->post('/applications', $payload);
+
+        $json = $response->json();
+
+//        Log::debug('Hometree prequal response:', $json);
+
+        $response->throw();
+
+        return $json;
+    }
+
+    /**
+     * Updates applicants on an application
+     *
+     * @throws RequestException
+     * @throws ConnectionException
+     */
+    public function updateApplication(
+        PaymentSurvey $survey,
+        string $applicationId
+    ): array {
+        $firstAddress = $survey->addresses->first();
+        $previousAddress = $survey->addresses->get(1);
+
+        $payload = [
             'applicants' => $survey->customers
                 ->map(function ($customer) use ($survey, $firstAddress, $previousAddress) {
                     return [
                         'first_name' => $customer['firstName'],
                         ...(
-                            filled($customer['middleName']) ?
-                                ['middle_name' => $customer['middleName']] :
-                                [] // Omit the middle name field entirely if it's empty
+                        filled($customer['middleName']) ?
+                            ['middle_name' => $customer['middleName']] :
+                            [] // Omit the middle name field entirely if it's empty
                         ),
                         'last_name' => $customer['lastName'],
                         'email' => $customer['email'],
@@ -114,40 +200,42 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                             ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
                         ],
                         ...(
-                            $previousAddress ?
-                                [
-                                    'previous_address' => [
-                                        ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
-                                        ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
-                                    ]
-                                ] :
-                                []
+                        $previousAddress ?
+                            [
+                                'previous_address' => [
+                                    ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
+                                    ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
+                                ]
+                            ] :
+                            []
                         ),
                         ...(
-                            $survey->basic_questions_completed ? [
-                                'affordability' => [
-                                    'gross_annual_income' => $customer['grossAnnualIncome'],
-                                    'dependants' => $customer['dependants'],
-                                    'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
-                                ]
-                            ] : []
+                        $survey->basic_questions_completed ? [
+                            'affordability' => [
+                                'gross_annual_income' => $customer['grossAnnualIncome'],
+                                'dependants' => $customer['dependants'],
+                                'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
+                            ]
+                        ] : []
                         ),
 
                     ];
                 })->toArray(),
-            'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
 
-        Log::debug('Hometree prequal request:', $payload);
+//        Log::debug('Hometree update application request:', $payload);
+        Log::debug('PATCH /applications/' . $applicationId);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
             ->withToken($this->key, 'Token')
-            ->post('/applications', $payload);
+            ->patch('/applications/' . $applicationId, $payload);
 
         $json = $response->json();
 
-        Log::debug('Hometree prequal response:', $json);
+        Log::debug('status: ' . $json['status']);
+
+//        Log::debug('Hometree update application response:', $json);
 
         $response->throw();
 
@@ -156,6 +244,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
     public function getApplication(string $applicationId): array
     {
+        Log::debug('GET /applications/' . $applicationId);
+
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
             ->withToken($this->key, 'Token')
@@ -163,7 +253,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             ->throw()
             ->json();
 
-        Log::debug('Hometree prequal update:', $response);
+//        Log::debug('Hometree prequal update:', $response);
+
+        Log::debug('status: ' . $response['status']);
 
         return $response;
     }
@@ -233,6 +325,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                                 'payment_product_id' => $paymentProduct->id,
                                 'name' => $productName,
                                 'type' => 'lease',
+                                'reference' => $response['reference'],
                                 'amount' => $amount,
                                 'payment_provider_id' => $paymentProvider->id,
                                 'term' => $offer['params']['term'],
@@ -378,9 +471,13 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
     {
         $offer = $payment->paymentOffer;
 
-        $this->requestData = [
-            'preapproval_id' => $offer->preapproval_id,
-        ];
+        $this->requestData = null;
+
+        if (!empty($offer->preapproval_id)) {
+            $this->requestData = ['preapproval_id' => $offer->preapproval_id];
+        }
+
+        Log::debug('POST /applications/' . $offer->provider_application_id . '/offers/' . $offer->provider_offer_id . '/select');
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -389,12 +486,17 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
         // Add application and offer IDs to the request data stored to the DB for easier troubleshooting
         $this->requestData = [
-            ...$this->requestData,
+            ...($this->requestData ?? []),
             'application_id' => $offer->provider_application_id,
             'offer_id' => $offer->provider_offer_id,
         ];
 
         $this->responseData = $response->json();
+
+        Log::debug('status: ' . $this->responseData['status']);
+
+//        Log::debug($this->requestData);
+//        Log::debug($this->responseData);
 
         $response->throw();
 
@@ -417,6 +519,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
             'reason' => 'customer.unknown',
         ];
 
+        Log::debug('POST /applications/' . $payment->provider_foreign_id . '/abandon');
+
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
             ->withToken($this->key, 'Token')
@@ -430,8 +534,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
 
         $this->responseData = $response->json();
 
-        Log::debug($this->requestData);
-        Log::debug($this->responseData);
+//        Log::debug($this->requestData);
+//        Log::debug($this->responseData);
 
         $response->throw();
 

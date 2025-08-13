@@ -98,9 +98,13 @@ class SurveyController
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'paymentSurvey' => $survey,
+            'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
+                ->paymentLookupValues,
+            'title' => 'Lease Survey',
             'allowSkip' => false,
             'showBasicQuestions' => true,
             'redirect' => route('payment.lease.create', ['parent' => $parent, 'offerId' => $request->get('offerId')]),
+            'basicIntroText' => 'We need you to answer these questions for your lease application.',
         ])->withViewData($helper->getViewData());
     }
 

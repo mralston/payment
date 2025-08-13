@@ -14,6 +14,10 @@ const props = defineProps({
         type: String,
         default: 'Survey',
     },
+    allowSkip: {
+        type: Boolean,
+        default: true,
+    },
     showBasicQuestions: {
         type: Boolean,
         default: true,
@@ -25,6 +29,18 @@ const props = defineProps({
     showFinanceQuestions: {
         type: Boolean,
         default: false,
+    },
+    basicIntroText: {
+        type: String,
+        default: 'We need to ask you a few basic questions so that we can find out which payment methods are right for you.',
+    },
+    leaseIntroText: {
+        type: String,
+        default: 'We need to ask a few more questions for your lease application.',
+    },
+    financeIntroText: {
+        type: String,
+        default: 'We need to ask a few more questions for your finance application.',
     },
     redirect: String,
     financeResponses: Object,
@@ -122,7 +138,8 @@ function skip()
 
     <div class="p-4">
 
-        <button type="button"
+        <button v-if="allowSkip"
+                type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                 @click="skip">
             Skip
@@ -134,7 +151,7 @@ function skip()
 
         <section v-if="showBasicQuestions">
 
-            <p class="text-xl">We need to ask you a few basic questions so that we can find out which payment methods are right for you.</p>
+            <p class="mb-4">{{ basicIntroText }}</p>
 
             <h2 class="text-xl font-bold mb-4">Section 1: Customers</h2>
 
@@ -315,7 +332,7 @@ function skip()
 
         <section v-if="showFinanceQuestions" class="mb-4">
 
-            <p class="mb-4">We need to ask a few more questions for your finance application.</p>
+            <p class="mb-4">{{ financeIntroText }}</p>
 
             <div class="grid grid-cols-3 gap-6 mb-4">
 

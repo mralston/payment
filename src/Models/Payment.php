@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Mralston\Payment\Events\PaymentUpdated;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Observers\PaymentObserver;
 
@@ -17,6 +18,10 @@ class Payment extends Model
 {
     use EncryptableTrait;
     use SoftDeletes;
+
+    protected $dispatchesEvents = [
+        'updated' => PaymentUpdated::class,
+    ];
 
     protected $fillable = [
         'uuid',
@@ -189,12 +194,12 @@ class Payment extends Model
         $this->middle_name = $customer['middleName'];
         $this->last_name = $customer['lastName'];
         $this->marital_status = $customer['maritalStatus'] ?? null;
-        $this->residential_status = $customer['residentialStatus'];
+        $this->residential_status = $customer['residentialStatus'] ?? null;
         $this->date_of_birth = $customer['dateOfBirth'];
         $this->dependants = $customer['dependants'];
         // TODO: bankrupt_or_iva
         $this->email_address = $customer['email'];
-        $this->primary_telephone = $customer['phone'] ?? null;
+        $this->primary_telephone = $customer['mobile'] ?? null;
         // TODO: secondary_telephone
         $this->addresses = $survey->addresses;
         $this->employment_status = $customer['employmentStatus'];
@@ -218,6 +223,7 @@ class Payment extends Model
 
     public function withOffer(PaymentOffer $offer): static
     {
+        $this->reference = $offer->reference;
         $this->amount = $offer->amount;
         $this->payment_provider_id = $offer->payment_provider_id;
         $this->payment_product_id = $offer->payment_product_id;

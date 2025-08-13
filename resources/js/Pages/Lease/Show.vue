@@ -2,14 +2,18 @@
 
 import {Head, router} from "@inertiajs/vue3";
 import {formatCurrency} from "../../Helpers/Currency.js";
+import {useEcho} from "@laravel/echo-vue";
+import {computed, ref} from "vue";
+import { ArrowPathIcon } from '@heroicons/vue/16/solid';
 
 const props = defineProps({
     parentModel: Object,
     survey: Object,
     payment: Object,
-    response: Object,
     offer: Object,
 });
+
+const payment = ref(props.payment);
 
 function cancel()
 {
@@ -19,6 +23,21 @@ function cancel()
 
     router.post(route('payment.cancel', {parent: props.parentModel, payment: props.payment}));
 }
+
+useEcho(
+    `payments.${props.payment.id}`,
+    'PaymentUpdated',
+    (e) => {
+        console.log(e);
+        payment.value = e.payment;
+    }
+);
+
+// const processing = computed(() => payment.value.payment_status.identifier === 'processing' ||
+//     payment.value.payment_status.identifier === 'pending-customer-choice'
+// );
+
+const processing = ref(false);
 
 </script>
 
@@ -30,24 +49,49 @@ function cancel()
 
     <div class="p-4">
 
-        <div v-if="payment.payment_provider.logo" class="mb-6">
-            <img :src="payment.payment_provider.logo" class="max-w-1/3 h-14" :alt="payment.payment_provider.name">
-        </div>
+        <img v-if="processing && payment.payment_provider.animated_logo"
+             :src="payment.payment_provider.animated_logo"
+             class="max-w-1/3 h-14 mb-6"
+             :alt="payment.payment_provider.name">
+        <img v-else-if="payment.payment_provider.logo"
+             :src="payment.payment_provider.logo"
+             class="max-w-1/3 h-14 mb-6"
+             :alt="payment.payment_provider.name">
         <h1 v-else class="text-4xl font-bold mb-6">
             {{ payment.payment_provider.name }}
         </h1>
 
-        <div v-if="payment.payment_status.identifier === 'error'">
+
+        <div v-if="processing">
+
+            <p class="mb-4">
+                <ArrowPathIcon v-if="!payment.payment_provider.animated_logo" class="inline-block h-6 w-6 mr-2 text-black animate-spin"/>
+                Your application is being processed.
+            </p>
+
+        </div>
+
+        <div v-else-if="payment.payment_status.identifier === 'error'">
 
             <p class="mb-4">Looks like something went wrong with this application.</p>
 
-            <ul v-for="field in response.errors" class="list-disc list-inside text-red-500">
+            <ul v-for="field in payment.provider_response_data?.errors" class="list-disc list-inside text-red-500">
                 <li v-for="error in field">
                     {{ error.description }}
                 </li>
             </ul>
 
+            <div v-if="!payment.provider_response_data?.errors" class="text-red-500">
+                We don't have any details about this error. Please try again later.
+            </div>
+
         </div>
+
+<!--        <div v-if="payment.payment_status.identifier === 'pending'">-->
+
+<!--            <p class="mb-4">Your application is pending.</p>-->
+
+<!--        </div>-->
 
         <div v-else>
 
@@ -64,7 +108,7 @@ function cancel()
                     <tr>
                         <th class="bg-gray-100 p-1 mr-2">Reference</th>
                         <td class="bg-gray-100 p-1">
-                            {{ response.reference }}
+                            {{ payment.reference }}
                         </td>
                     </tr>
                     <tr>

@@ -2,8 +2,10 @@
 
 namespace Mralston\Payment\Http\Requests;
 
+use Carbon\Carbon;
 use Illuminate\Foundation\Http\FormRequest;
 use Illuminate\Validation\Rule;
+use Illuminate\Validation\Validator;
 use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Models\PaymentLookupField;
 use Propaganistas\LaravelPhone\Rules\Phone;
@@ -32,14 +34,14 @@ class SubmitSurveyRequest extends FormRequest
             $rules = [
                 ...[
                     // Customer validation rules
-                    'customers' => ['required', 'array'],
+                    'customers' => ['required', 'array', 'min:1'],
                     'customers.*.firstName' => ['required', 'string', 'max:255'],
                     'customers.*.middleName' => ['nullable', 'string', 'max:255'],
                     'customers.*.lastName' => ['required', 'string', 'max:255'],
                     'customers.*.email' => ['required', 'string', 'email', 'max:255'],
                     'customers.*.mobile' => ['required','string', 'numeric'],
                     'customers.*.landline' => ['nullable', 'string', 'numeric'],
-                    'customers.*.dateOfBirth' => ['required', 'date'],
+                    'customers.*.dateOfBirth' => ['required', 'date', 'before_or_equal:' . Carbon::now()->subYears(18)->toDateString()],
                     'customers.*.grossAnnualIncome' => ['required', 'numeric'],
                     'customers.*.netMonthlyIncome' => ['required', 'numeric'],
                     'customers.*.dependants' => ['required', 'numeric'],
@@ -50,7 +52,7 @@ class SubmitSurveyRequest extends FormRequest
                     )],
 
                     // Address validation rules
-                    'addresses' => ['required', 'array'],
+                    'addresses' => ['required', 'array', 'min:1'],
                     'addresses.*.houseNumber' => ['required', 'string', 'max:255'],
                     'addresses.*.street' => ['required', 'string', 'max:255'],
                     'addresses.*.postCode' => ['required', 'string', 'max:255'],
@@ -105,7 +107,6 @@ class SubmitSurveyRequest extends FormRequest
     public function messages(): array
     {
         return [
-            // Customer validation messages
             'customers.required' => 'You must enter at least one customer.',
             'customers.*.firstName.required' => 'You must enter a first name.',
             'customers.*.lastName.required' => 'You must enter a last name.',
@@ -116,6 +117,7 @@ class SubmitSurveyRequest extends FormRequest
             'customers.*.landline.numeric' => 'The mobile number you entered is not valid.',
             'customers.*.dateOfBirth.required' => 'You must enter a date of birth.',
             'customers.*.dateOfBirth.date' => 'The date of birth is not a valid date.',
+            'customers.*.dateOfBirth.before_or_equal' => 'You must be at least 18 years old.',
             'customers.*.grossAnnualIncome.required' => 'You must enter a gross annual income.',
             'customers.*.grossAnnualIncome.numeric' => 'The gross annual income must be a number.',
             'customers.*.netMonthlyIncome.required' => 'You must enter a net monthly income.',
@@ -124,8 +126,11 @@ class SubmitSurveyRequest extends FormRequest
             'customers.*.employmentStatus.in' => 'The selected employment status is not valid.',
             'customers.*.dependants.required' => 'You must specify how many dependants you have.',
             'customers.*.dependants.numeric' => 'The number of dependants must be a number.',
+            'customers.*.maritalStatus.required' => 'You must select your marital status.',
+            'customers.*.residentialStatus.required' => 'You must select your residential status.',
+            'customers.*.nationality.required' => 'You must select your nationality.',
+            'customers.*.bankruptOrIva.required' => 'You must select your bankrupt or IVA status.',
 
-            // Address validation messages
             'addresses.required' => 'You must enter at least one address.',
             'addresses.*.houseNumber.required' => 'You must enter a house number.',
             'addresses.*.street.required' => 'You must enter a street name.',
@@ -136,14 +141,10 @@ class SubmitSurveyRequest extends FormRequest
             'addresses.*.dateMovedIn.date' => 'The date moved in is not a valid date.',
             'addresses.*.uprn.required' => 'You must use the post code lookup button to select an exact address.',
 
-            'customers.*.maritalStatus.required' => 'You must select your marital status.',
-            'customers.*.residentialStatus.required' => 'You must select your residential status.',
-            'customers.*.nationality.required' => 'You must select your nationality.',
-            'customers.*.bankruptOrIva.required' => 'You must select your bankrupt or IVA status.',
-
             'financeResponses.occupation.required' => 'You must enter your occupation.',
             'financeResponses.employerName.required' => 'You must enter the name of your employer.',
             'financeResponses.dateStartedEmployment.required' => 'You must enter the date you started employment.',
+
             'financeResponses.employerAddress.address1.required' => 'You must enter the first line.',
             'financeResponses.employerAddress.town.required' => 'You must enter the town.',
             'financeResponses.employerAddress.postCode.required' => 'You must enter the post code.',
@@ -156,7 +157,50 @@ class SubmitSurveyRequest extends FormRequest
             'financeResponses.bankAccount.accountNumber.digits' => 'The account number must be 8 digits.',
             'financeResponses.bankAccount.sortCode.required' => 'You must enter the sort code.',
             'financeResponses.bankAccount.sortCode.regex' => 'The sort code must be in the format 123456 or 12-34-56.',
-
         ];
+    }
+
+    /**
+     * Adds validation of address dates
+     *
+     * @param  \Illuminate\Validation\Validator  $validator
+     * @return void
+     */
+    public function withValidator(Validator $validator): void
+    {
+        // Only apply these rules if the relevant form section was submitted.
+        if (!$this->boolean('basicQuestionsCompleted')) {
+            return;
+        }
+
+        $validator->after(function ($validator) {
+            $addresses = $this->input('addresses');
+
+            // The 'required', 'array', and 'min:1' rules should catch this,
+            // but it's a safe check before we proceed.
+            if (!is_array($addresses) || empty($addresses)) {
+                return;
+            }
+
+            // Sort addresses by dateMovedIn to check them chronologically.
+            $sortedAddresses = collect($addresses)->sortBy('dateMovedIn')->values();
+
+            // Check if the oldest address provides at least 3 years of history.
+            try {
+                $oldestDate = Carbon::parse($sortedAddresses->first()['dateMovedIn']);
+
+                if ($oldestDate->gt(Carbon::now()->subYears(3))) {
+                    $validator->errors()->add(
+                        'addresses', // Add error to the general addresses field for better UX.
+                        'Please provide at least 3 years of address history.'
+                    );
+                }
+            } catch (\Exception $e) {
+                // This can happen if the date format is invalid. The 'date' rule
+                // should catch this, but we add a fallback error message.
+                $validator->errors()->add('addresses', 'One or more of the move-in dates provided is invalid.');
+                return; // Stop further processing if a date is unparseable.
+            }
+        });
     }
 }
