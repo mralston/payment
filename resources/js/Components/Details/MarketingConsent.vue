@@ -27,11 +27,11 @@ const props = defineProps({
                 />
                 <DetailsRow
                     label="Is UK resident?"
-                    value="####"
+                    :value="payment.british_citizen ? 'Yes' : 'No'"
                 />
                 <DetailsRow
                     label="Owns own property?"
-                    value="###"
+                    :value="payment.homeowner_status ? 'Yes' : 'No'"
                 />
                 <DetailsRow
                     label="Is employed, self employed, or..."
