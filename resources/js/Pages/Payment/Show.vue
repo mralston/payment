@@ -11,6 +11,7 @@ import Address from '../../Components/Details/Address.vue';
 import BankAccount from '../../Components/Details/BankAccount.vue';
 import MarketingConsent from '../../Components/Details/MarketingConsent.vue';
 import DetailsBanner from '../../Components/Details/DetailsBanner.vue';
+import { Icon } from '@iconify/vue';
 
 const props = defineProps({
     payment: Object,
@@ -29,6 +30,18 @@ const crumbs = ref([
         href: payment.value?.id ? route('payments.show', payment.value.id) : '#',
     },
 ]);
+
+const view = ref('view 1');
+
+const layout = {
+    'view 1' : {
+        container : 'flex-col',
+    },
+    'view 2' : {
+        container : 'grid grid-cols-2 gap-4',
+    },
+}
+
 </script>
 
 <template>
@@ -36,7 +49,17 @@ const crumbs = ref([
         <title>Payment</title>
     </Head>
 
-    <div class="flex max-w-7xl mx-auto max-md:flex-col text-sm p-10 gap-4">
+    <div class="flex max-w-8xl mx-auto max-md:flex-col text-sm px-10 gap-4 justify-between items-center">
+        <BreadCrumbs :crumbs="crumbs" />
+        <button
+            @click="view = view === 'view 1' ? 'view 2' : 'view 1'"
+            class="text-blue-500 text-md"
+        >
+            <Icon icon="fa6-solid:window-maximize" class="text-2xl" />
+        </button>
+    </div>
+
+    <div class="flex max-w-8xl mx-auto max-md:flex-col text-sm p-10 gap-4">
         <div class="w-1/4 max-md:w-full">
             <Summary
                 :payment="payment"
@@ -44,34 +67,33 @@ const crumbs = ref([
 
         </div>
         <div class="w-3/4 max-md:w-full flex flex-col gap-4">
-            <div class="flex flex-row gap-4">
-                <BreadCrumbs :crumbs="crumbs" />
-            </div>
-
             <DetailsBanner
-                :payment="payment"
-            />
-            <Loan
-                :payment="payment"
-                :products="products"/>
-
-            <Applicant
                 :payment="payment"/>
 
-            <Employment
-                :payment="payment"/>
+            <div :class="layout[view].container">
+                <Loan
+                    :payment="payment"
+                    :products="products"/>
 
-            <Income
-                :payment="payment"/>
+                <Applicant
+                    :payment="payment"/>
 
-            <Address
-                :payment="payment"/>
+                <Employment
+                    :payment="payment"/>
 
-            <BankAccount
-                :payment="payment"/>
+                <Income
+                    :payment="payment"/>
 
-            <MarketingConsent
-                :payment="payment"/>
+                <Address
+                    :payment="payment"/>
+
+                <BankAccount
+                    :payment="payment"/>
+
+                <MarketingConsent
+                    :payment="payment"/>
+
+            </div>
 
         </div>
     </div>
