@@ -15,6 +15,7 @@ return new class extends Migration
             $table->id();
             $table->string('name')->nullable();
             $table->string('type');
+            $table->string('reference')->nullable();
             $table->integer('payment_survey_id')->index();
             $table->decimal('amount', 8, 2);
             $table->integer('payment_provider_id')->index();

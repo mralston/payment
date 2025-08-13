@@ -79,7 +79,7 @@ function lookup()
         });
 }
 
-function selectAddress()
+function returnSelectedAddress()
 {
     if (selectedAddress.value === undefined) {
         return;
@@ -122,18 +122,37 @@ function selectAddress()
     addressModel.value.county = selectedAddress.value.county;
     addressModel.value.postCode = selectedAddress.value.postCode;
     addressModel.value.uprn = selectedAddress.value.uprn;
+
+    addressLookupModal.value.hide();
+}
+
+function selectAddress(address)
+{
+    selectedAddress.value = address;
+}
+
+function selectAddressAndClose(address)
+{
+    selectAddress(address);
+    returnSelectedAddress();
 }
 
 </script>
 
 <template>
 
-    <Modal ref="addressLookupModal" type="question" title="Select Address" class="w-1/2" :buttons="['ok', 'cancel']" @ok="selectAddress">
-        <select v-if="addressesFound > 0" v-model="selectedAddress" class="w-full rounded-lg" size="10">
-            <option v-for="address in addresses" :key="address.uprn" :value="address">
+    <Modal ref="addressLookupModal" type="question" title="Select Address" class="w-1/2" :buttons="['ok', 'cancel']" @ok="returnSelectedAddress">
+        <div v-if="addressesFound > 0" class="w-full border border-gray-300 rounded-lg max-h-[20rem] overflow-y-auto">
+            <button type="button"
+                    v-for="(address, index) in addresses"
+                    :key="address.uprn"
+                    class="w-full p-2 text-left"
+                    :class="{'bg-gray-100': index % 2 === 0 && address !== selectedAddress, 'bg-blue-500 text-white': address === selectedAddress}"
+                    @click="selectAddress(address)"
+                    @dblclick="selectAddressAndClose(address)">
                 {{ address.summary }}
-            </option>
-        </select>
+            </button>
+        </div>
         <div v-else>No addresses matched the post code.</div>
     </Modal>
 

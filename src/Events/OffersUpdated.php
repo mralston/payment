@@ -2,20 +2,17 @@
 
 namespace Mralston\Payment\Events;
 
+use Event;
 use Illuminate\Broadcasting\Channel;
 use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Collection;
-use Illuminate\Support\Facades\Log;
-use Mralston\Payment\Data\OfferData;
-use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Models\PaymentOffer;
-use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Services\Compression;
 
-class OffersUpdated implements ShouldBroadcast
+class OffersUpdated extends Event implements ShouldBroadcast
 {
     use InteractsWithQueue;
     use SerializesModels;
