@@ -14,14 +14,19 @@ const props = defineProps({
         type: Array,
         required: true,
     },
+    paymentType: {
+        type: String,
+        required: true,
+    },
 });
+
 </script>
 
 <template>
     <Card class="border border-[#ed6058]" header-class="border-[#ed6058]">
         <template #header>
             <div class="flex flex-row gap-2 items-center">
-                <h2 class="text-xl font-bold flex flex-row gap-2 items-center"><Icon icon="fa6-solid:money-bill-wave" /> Loan</h2>
+                <h2 class="text-xl font-bold flex flex-row gap-2 items-center"><Icon icon="fa6-solid:money-bill-wave" /> {{ paymentType }}</h2>
             </div>
         </template>
         <div class="bg-white">
@@ -60,6 +65,7 @@ const props = defineProps({
                         :value="String(Math.round(payment.apr / 12, 7)) + '&percnt;'"
                     />
                     <DetailsRow
+                        v-if="payment.apr"
                         label="APR"
                         :value="String(payment.apr) + '&percnt;'" />
                     <DetailsRow
@@ -74,7 +80,7 @@ const props = defineProps({
                 <div class="w-1/2 max-md:w-full">
                     <DetailsRow
                         label="Application submitted date"
-                        :value="moment(payment.submitted_at).format('DD/MM/YYYY')"
+                        :value="payment.submitted_at ? moment(payment.submitted_at).format('DD/MM/YYYY') : ''"
                     />
                     <DetailsRow
                         label="Agreement signed"
@@ -86,11 +92,11 @@ const props = defineProps({
                     />
                     <DetailsRow
                         label="Offer expiry date"
-                        :value="moment(payment.offer_expiration_date).format('DD/MM/YYYY')"
+                        :value="payment.offer_expiration_date ? moment(payment.offer_expiration_date).format('DD/MM/YYYY') : ''"
                     />
                     <DetailsRow
                         label="Agreement signed date"
-                        :value="moment(payment.signed_at).format('DD/MM/YYYY')"
+                        :value="payment.signed_at ? moment(payment.signed_at).format('DD/MM/YYYY') : ''"
                     />
                     <DetailsRow
                         label="Cancellation expiry date"

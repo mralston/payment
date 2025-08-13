@@ -9,10 +9,11 @@ const props = defineProps({
         type: Object,
         required: true,
     },
+    paymentType: {
+        type: String,
+        required: true,
+    },
 });
-
-const loan = props.payment.term + ' months' + (props.payment.apr > 0 ? ' at ' + props.payment.apr + '%' : ' Interest free') + ' APR'
-        + (props.payment.deferred !== null ? ' + ' + props.payment.deferred + ' months deferred' : '');
 </script>
 
 <template>
@@ -33,8 +34,8 @@ const loan = props.payment.term + ' months' + (props.payment.apr > 0 ? ' at ' + 
             <DetailsRow
                 icon="fa6-solid:hand-holding-dollar"
                 :stack="true"
-                label="Loan"
-                :value="loan"
+                :label="paymentType"
+                :value="payment.payment_offer.name"
             />
             <DetailsRow
                 icon="fa6-solid:building"

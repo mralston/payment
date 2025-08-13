@@ -11,7 +11,7 @@ defineProps({
         <div v-if="payment.payment_status.identifier === 'cancelled'">
             Payment cancelled
             <div v-for="cancellation in payment.payment_cancellations" :key="cancellation.id">
-                {{ moment(cancellation.created_at).format('DD/MM/YYYY') }} - {{ cancellation.reason }}
+                {{ cancellation.created_at ? moment(cancellation.created_at).format('DD/MM/YYYY') + ' - ' : '' }} {{ cancellation.reason }}
             </div>
         </div>
         <span v-else-if="payment.signed_at">Agreement signed on: <span class="font-bold">{{ moment(payment.signed_at).format('DD/MM/YYYY') }}</span></span>
