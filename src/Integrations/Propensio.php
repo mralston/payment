@@ -536,7 +536,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         return 'online_non_interactive';
     }
 
-    public function getSigningUrl(Payment $payment)
+    public function getSigningUrl(Payment $payment): string
     {
         return false;
     }

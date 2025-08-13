@@ -7,8 +7,10 @@ import { Icon } from '@iconify/vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
 import Card from '../../Components/Card.vue';
 import Button from '../../Components/Button.vue';
+import CancellationModal from '../../Components/CancellationModal.vue';
 import Modal from '../../Components/Modal.vue';
 import Banner from '../../Components/Details/Banner.vue';
+import { router } from '@inertiajs/vue3';
 
 const props = defineProps({
     payment: Object,
@@ -16,40 +18,51 @@ const props = defineProps({
 });
 
 const payment = ref(props.payment);
-
-const cancelModal = ref(null);
-
+const signingLink = ref({ success: null, url: '' });
+const showCancelModal = ref(false);
+const signingLinkModal = ref(false);
+const isCancelling = ref(false);
+const isGettingSigningLink = ref(false);
 const loan = props.payment.term + ' months' + (props.payment.apr > 0 ? ' at ' + props.payment.apr + '%' : ' Interest free') + ' APR'
         + (props.payment.deferred !== null ? ' + ' + props.payment.deferred + ' months deferred' : '');
 
-const status = ref(props.payment.payment_status.identifier);
+function openCancelModal() {
+    showCancelModal.value = true;
+}
 
-function cancelPayment()
-{
-    fetch(route('payment.cancel', { 
+function closeCancelModal() {
+    showCancelModal.value = false;
+}
+
+function cancelPayment(reason) {
+    isCancelling.value = true;
+    router.post(route('payment.cancel', { 
         parent: props.payment.id,
         payment: props.payment.id
     }), {
-        method: 'POST',
-        headers: {
-            'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
-            'Content-Type': 'application/json',
+        payment_status_identifier: 'cancelled',
+        cancellation_reason: reason || null,
+        source: 'rep',
+    }, {
+        onSuccess: () => {
+            console.log('Payment cancelled');
+            closeCancelModal();
+            isCancelling.value = false;
+            // The redirect will happen automatically from the backend
         },
-        body: JSON.stringify({
-            payment_status_identifier: 'cancelled',
-        }),
-    })
-    .then(response => response.json())
-    .then(data => {
-        status.value = 'cancelled'; // Update the local ref instead of the prop
-    })
-    .catch(error => {
-        console.error('Failed to cancel payment:', error);
+        onError: (errors) => {
+            console.error('Failed to cancel payment:', errors);
+            isCancelling.value = false;
+        },
+        onFinish: () => {
+            isCancelling.value = false;
+        }
     });
 }
 
 function getSigningLink()
 {
+    isGettingSigningLink.value = true;
     fetch(route('payment.finance.signing-link', { 
         payment: props.payment.id 
     }), {
@@ -60,7 +73,20 @@ function getSigningLink()
     })
         .then(response => response.json())
         .then(data => {
-            window.open(data.url, '_blank');
+            signingLink.value = {
+                success: data.success,
+                url: data.url
+            };
+            signingLinkModal.value.show();
+            isGettingSigningLink.value = false;
+        })
+        .catch(error => {
+            console.error('Failed to get signing link:', error);
+            signingLink.value = {
+                success: false,
+                url: ''
+            };
+            isGettingSigningLink.value = false;
         });
 }
 
@@ -72,11 +98,28 @@ function getSigningLink()
     </Head>
 
     <Modal
-        ref="cancelModal"
+        ref="signingLinkModal"
         type="question"
-        title="Cancel Payment"
-        :buttons="['ok', 'cancel']"
-        @ok="cancelPayment"
+        title="Signing Link"
+        class="w-1/2"
+        :buttons="['ok']"
+    >
+        <div class="flex flex-col gap-4">
+            <p v-if="!signingLink.success">Failed to get signing link</p>
+            <p v-else>{{ signingLink.url }}</p>
+            <Button
+                v-if="signingLink.success === null" 
+                type="success" 
+                :loading="isGettingSigningLink"
+                @click="getSigningLink">Get Signing Link</Button>
+        </div>
+    </Modal>
+
+    <CancellationModal
+        :open="showCancelModal"
+        @close="closeCancelModal"
+        @confirm="cancelPayment"
+        :loading="isCancelling"
     />
 
     <div class="flex max-w-7xl mx-auto max-md:flex-col text-sm p-10 gap-4">
@@ -84,7 +127,11 @@ function getSigningLink()
             <div class="p-10 bg-white border border-[#ed6058] rounded-lg">
                 <h1 class="text-xl font-bold flex flex-row gap-2 items-center"><Icon icon="fa6-solid:file-invoice" /> Summary</h1>
                 <div class="mt-10 flex flex-col gap-8">
-                    <Button v-if="payment.payment_status.identifier === 'accepted'" type="success" @click="getSigningLink()">Get Signing Link</Button>
+                    <Button
+                        v-if="payment.payment_status.identifier == 'accepted'"
+                        type="success"
+                        :loading="isGettingSigningLink"
+                        @click="getSigningLink()">Get Signing Link</Button>
                     <DetailsRow 
                         icon="fa6-solid:file-invoice"
                         :stack="true"
@@ -124,15 +171,23 @@ function getSigningLink()
                         :stack="true"
                         label="Consultant ref"
                         :value="payment.parentable?.user?.name" />
-                    <Button type="delete" @click="cancelModal.show()">Cancel</Button>
+                    <Button
+                        v-if="payment.payment_status.identifier !== 'cancelled'"
+                        type="delete"
+                        @click="openCancelModal">Cancel</Button>
                 </div>
             </div>
 
         </div>
         <div class="w-3/4 max-md:w-full flex flex-col gap-4">
 
-            <Banner :type="status === 'cancelled' ? 'error' : 'success'">
-                <span v-if="status === 'cancelled'">Payment cancelled</span>
+            <Banner :type="payment.payment_status.identifier === 'cancelled' ? 'error' : 'success'">
+                <div v-if="payment.payment_status.identifier === 'cancelled'">
+                    Payment cancelled
+                    <div v-for="cancellation in payment.payment_cancellations" :key="cancellation.id">
+                        {{ moment(cancellation.created_at).format('DD/MM/YYYY') }} - {{ cancellation.reason }}
+                    </div>
+                </div>
                 <span v-else-if="payment.signed_at">Agreement signed on: <span class="font-bold">{{ moment(payment.signed_at).format('DD/MM/YYYY') }}</span></span>
                 <span v-else>Agreement not signed</span>
             </Banner>
@@ -246,8 +301,8 @@ function getSigningLink()
                             :value="payment.last_name"
                         />
                         <DetailsRow
-                            label="Email"
-                            :value="payment.email"
+                            label="Email address"
+                            :value="payment.email_address"
                         />
                         <DetailsRow
                             label="Primary phone"

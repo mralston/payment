@@ -232,16 +232,12 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         return 'online';
     }
 
-    public function getSigningUrl(Payment $payment)
+    public function getSigningUrl(Payment $payment): string
     {
-        $data = [
-            'returnURL' => $return_url
-        ];
-
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
-            ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationSigningLink', $data)
+            ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationSigningLink', [])
             ->throw();
 
         $json = $response->json();
@@ -399,7 +395,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         }
     }
 
-    public function cancel(FinanceApplication $application)
+    public function cancel(Payment $payment)
     {
         $data = [
             'cancellationReason' => 'Customer Withdrawn',
@@ -409,7 +405,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             $response = Http::withHeaders([
                 'Ocp-Apim-Subscription-Key' => $this->key
             ])
-                ->post($this->endpoint . '/' . $application->lender_application_id . '/cancelApplication', $data)
+                ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/cancelApplication', $data)
                 ->throw();
 
             // The underwriting team have asked to be e-mailed explicitly

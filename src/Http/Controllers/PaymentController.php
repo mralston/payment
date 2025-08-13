@@ -13,6 +13,8 @@ use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Mralston\Payment\Traits\RedirectsOnActivePayment;
 use Illuminate\Http\Request;
+use Mralston\Payment\Services\PaymentService;
+use Mralston\Payment\Dto\CancellationDto;
 
 class PaymentController
 {
@@ -21,6 +23,7 @@ class PaymentController
 
     public function __construct(
         private PaymentHelper $helper,
+        private PaymentService $paymentService,
     ) {
         //
     }
@@ -100,17 +103,22 @@ class PaymentController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $payment->update([
-            'payment_status_id' => PaymentStatus::byIdentifier($request->payment_status_identifier ?? 'customer_cancelled')?->id,
-        ]);
+        $this->paymentService->cancel(
+            new CancellationDto(
+                paymentId: $payment->id,
+                paymentStatusIdentifier: $request->payment_status_identifier,
+                reason: $request->cancellation_reason,
+                source: $request->source,
+                userId: auth()->user()->id,
+            )
+        );
 
         event(new PaymentCancelled($payment));
 
-        return redirect()
-            ->route('payment.options', $parentModel);
+        return Inertia::location(route('payments.show', $payment));
     }
 
-    public function show(Payment $payment,)
+    public function show(Payment $payment)
     {
         $survey = $payment->parentable->paymentSurvey;
 
@@ -119,8 +127,7 @@ class PaymentController
         
         return Inertia::render('Payment/Show', [
             'payment' => $payment
-                ->load('paymentProvider', 'paymentStatus', 'parentable', 'parentable.user')
-                ->withSurvey($survey),
+                ->load('paymentProvider', 'paymentStatus', 'parentable', 'parentable.user', 'paymentCancellations'),
             'products' => $helper->getBasketItems(),
         ])->withViewData($this->helper->getViewData());
     }

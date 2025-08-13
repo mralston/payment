@@ -6,6 +6,7 @@ use GregoryDuckworth\Encryptable\EncryptableTrait;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mralston\Payment\Interfaces\PaymentParentModel;
@@ -146,6 +147,11 @@ class Payment extends Model
     public function paymentStatus(): BelongsTo
     {
         return $this->belongsTo(PaymentStatus::class);
+    }
+
+    public function paymentCancellations(): HasMany
+    {
+        return $this->hasMany(PaymentCancellation::class);
     }
 
     public function paymentOffer(): BelongsTo
