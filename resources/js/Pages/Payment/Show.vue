@@ -35,7 +35,7 @@ const view = ref('view 1');
 
 const layout = {
     'view 1' : {
-        container : 'flex-col',
+        container : 'flex flex-col gap-4',
     },
     'view 2' : {
         container : 'grid grid-cols-2 gap-4',
