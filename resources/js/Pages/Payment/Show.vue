@@ -1,7 +1,7 @@
 <script setup>
 import { Head } from '@inertiajs/vue3';
 import { ref } from 'vue';
-import moment from 'moment';
+import BreadCrumbs from '../../Components/BreadCrumbs.vue';
 import Summary from '../../Components/Details/Summary.vue';
 import Loan from '../../Components/Details/Loan.vue';
 import Applicant from '../../Components/Details/Applicant.vue';
@@ -10,7 +10,7 @@ import Income from '../../Components/Details/Income.vue';
 import Address from '../../Components/Details/Address.vue';
 import BankAccount from '../../Components/Details/BankAccount.vue';
 import MarketingConsent from '../../Components/Details/MarketingConsent.vue';
-import Banner from '../../Components/Details/Banner.vue';
+import DetailsBanner from '../../Components/Details/DetailsBanner.vue';
 
 const props = defineProps({
     payment: Object,
@@ -19,6 +19,16 @@ const props = defineProps({
 
 const payment = ref(props.payment);
 
+const crumbs = ref([
+    {
+        name: 'Payments',
+        href: route('payments.index'),
+    },
+    {
+        name: payment.value?.reference,
+        href: payment.value?.id ? route('payments.show', payment.value.id) : '#',
+    },
+]);
 </script>
 
 <template>
@@ -34,18 +44,13 @@ const payment = ref(props.payment);
 
         </div>
         <div class="w-3/4 max-md:w-full flex flex-col gap-4">
+            <div class="flex flex-row gap-4">
+                <BreadCrumbs :crumbs="crumbs" />
+            </div>
 
-            <Banner :type="payment.payment_status.identifier === 'cancelled' ? 'error' : 'success'">
-                <div v-if="payment.payment_status.identifier === 'cancelled'">
-                    Payment cancelled
-                    <div v-for="cancellation in payment.payment_cancellations" :key="cancellation.id">
-                        {{ moment(cancellation.created_at).format('DD/MM/YYYY') }} - {{ cancellation.reason }}
-                    </div>
-                </div>
-                <span v-else-if="payment.signed_at">Agreement signed on: <span class="font-bold">{{ moment(payment.signed_at).format('DD/MM/YYYY') }}</span></span>
-                <span v-else>Agreement not signed</span>
-            </Banner>
-            
+            <DetailsBanner
+                :payment="payment"
+            />
             <Loan
                 :payment="payment"
                 :products="products"/>

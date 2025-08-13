@@ -1,8 +1,5 @@
 <script setup>
-import { ref } from 'vue';
-
-const props = defineProps({
-    payment: Object,
+defineProps({
     type: String,
 });
 </script>
