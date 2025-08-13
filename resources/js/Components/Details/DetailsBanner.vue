@@ -1,13 +1,26 @@
 <script setup>
 import Banner from '../Banner.vue';
+import moment from "moment";
+import {computed} from "vue";
 
-defineProps({
+const props = defineProps({
     payment: Object,
 });
+
+const bannerType = computed(() => {
+    if (props.payment.payment_status.identifier === 'cancelled') {
+        return 'error';
+    } else if (!props.payment.signed_at) {
+        return 'warning';
+    } else {
+        return 'success';
+    }
+});
+
 </script>
 
 <template>
-    <Banner :type="payment.payment_status.identifier === 'cancelled' ? 'error' : 'success'">
+    <Banner :type="bannerType">
         <div v-if="payment.payment_status.identifier === 'cancelled'">
             Payment cancelled
             <div v-for="cancellation in payment.payment_cancellations" :key="cancellation.id">

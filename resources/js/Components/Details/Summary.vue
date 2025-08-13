@@ -21,10 +21,10 @@ const props = defineProps({
         <h1 class="text-xl font-bold flex flex-row gap-2 items-center"><Icon icon="fa6-solid:file-invoice" /> Summary</h1>
         <div class="mt-10 flex flex-col gap-8">
             <SigningLink :payment="payment" />
-            <DetailsRow 
+            <DetailsRow
                 icon="fa6-solid:file-invoice"
                 :stack="true"
-                label="Application #"
+                label="Reference"
                 :value="payment.reference"
             />
             <DetailsRow
@@ -35,12 +35,12 @@ const props = defineProps({
                 icon="fa6-solid:hand-holding-dollar"
                 :stack="true"
                 :label="paymentType"
-                :value="payment.payment_offer.name"
+                :value="payment.payment_offer?.name ?? payment.apr + '% ' + payment.term + ' months' + (payment.deferred ? ' (' + payment.deferred + ' months deferred)' : '')"
             />
             <DetailsRow
                 icon="fa6-solid:building"
                 :stack="true"
-                label="Lender"
+                label="Provider"
                 :value="payment.payment_provider.name"
             />
             <DetailsRow

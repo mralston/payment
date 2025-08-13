@@ -124,10 +124,18 @@ class PaymentController
 
         $helper = app(PaymentHelper::class)
             ->setParentModel($payment->parentable);
-        
+
         return Inertia::render('Payment/Show', [
             'payment' => $payment
-                ->load('paymentProvider', 'paymentStatus', 'parentable', 'parentable.user', 'paymentCancellations', 'paymentOffer'),
+                ->load([
+                    'paymentProvider',
+                    'paymentStatus',
+                    'parentable',
+                    'parentable.user',
+                    'paymentCancellations',
+                    'paymentOffer',
+                    'employmentStatus',
+                ]),
             'products' => $helper->getBasketItems(),
         ])->withViewData($this->helper->getViewData());
     }

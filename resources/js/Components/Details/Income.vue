@@ -32,11 +32,11 @@ const props = defineProps({
                     />
                     <DetailsRow
                         label="Other income (annual)"
-                        :value="formatCurrency((payment.gross_income_household ?? 0) - (payment.gross_income_individual ?? 0))"
+                        :value="payment.gross_income_household ? formatCurrency((payment.gross_income_household ?? 0) - formatCurrency(payment.gross_income_individual ?? 0)) : ''"
                     />
                     <DetailsRow
                         label="Total income (annual)"
-                        :value="formatCurrency(payment.gross_income_household ?? 0)"
+                        :value="payment.gross_income_household ? formatCurrency(payment.gross_income_household ?? 0) : formatCurrency(payment.gross_income_individual ?? 0)"
                     />
                 </div>
                 <div class="w-1/2 max-md:w-full">
