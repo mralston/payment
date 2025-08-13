@@ -62,7 +62,7 @@ const props = defineProps({
                     />
                     <DetailsRow
                         label="Monthly interest rate"
-                        :value="String(Math.round(payment.apr / 12, 7)) + '&percnt;'"
+                        :value="payment.apr ? String(Math.round(payment.apr / 12, 7)) + '&percnt;' : ''"
                     />
                     <DetailsRow
                         v-if="payment.apr"

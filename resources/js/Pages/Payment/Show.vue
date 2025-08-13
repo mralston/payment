@@ -12,6 +12,7 @@ import BankAccount from '../../Components/Details/BankAccount.vue';
 import MarketingConsent from '../../Components/Details/MarketingConsent.vue';
 import DetailsBanner from '../../Components/Details/DetailsBanner.vue';
 import { Icon } from '@iconify/vue';
+import { PaymentProvider } from '../../Enums/PaymentProvider';
 
 const props = defineProps({
     payment: Object,
@@ -43,7 +44,7 @@ const layout = {
 }
 
 const paymentType = computed(() => {
-    if (props.payment.payment_provider.identifier === 'hometree') {
+    if (props.payment.payment_provider.identifier === PaymentProvider.HOMETREE) {
         return 'Lease';
     }
     return 'Loan';
