@@ -6,6 +6,7 @@ use GregoryDuckworth\Encryptable\EncryptableTrait;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mralston\Payment\Events\PaymentUpdated;
@@ -153,6 +154,11 @@ class Payment extends Model
         return $this->belongsTo(PaymentStatus::class);
     }
 
+    public function paymentCancellations(): HasMany
+    {
+        return $this->hasMany(PaymentCancellation::class);
+    }
+
     public function paymentOffer(): BelongsTo
     {
         return $this->belongsTo(PaymentOffer::class);
@@ -193,7 +199,7 @@ class Payment extends Model
         $this->dependants = $customer['dependants'];
         // TODO: bankrupt_or_iva
         $this->email_address = $customer['email'];
-        $this->primary_telephone = $customer['mobile'];
+        $this->primary_telephone = $customer['mobile'] ?? null;
         // TODO: secondary_telephone
         $this->addresses = $survey->addresses;
         $this->employment_status = $customer['employmentStatus'];

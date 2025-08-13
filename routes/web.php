@@ -8,6 +8,7 @@ use Mralston\Payment\Http\Controllers\LeaseController;
 use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
+use Mralston\Payment\Http\Controllers\FinanceSigningLinkController;
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 
@@ -46,8 +47,8 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
             Route::get('address/lookup/{postCode}', [AddressLookupController::class, 'lookup'])
                 ->name('address.lookup');
+
+            Route::get('finance/{payment}/signing-link', [FinanceSigningLinkController::class, 'show'])
+                ->name('finance.signing-link');
     });
-
-
-
 });

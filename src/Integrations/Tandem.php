@@ -23,11 +23,13 @@ use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Interfaces\Signable;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
-class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
+class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Signable
 {
     /**
      * Endpoints to be used based on environment.
@@ -230,28 +232,15 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return 'online';
     }
 
-    /**
-     * Retrieves the URL to the finance application signing page
-     *
-     * @param FinanceApplication $application
-     * @param string|null $return_url
-     * @return mixed
-     * @throws RequestException
-     */
-    public function getSigningUrl(FinanceApplication $application, ?string $return_url = null)
+    public function getSigningUrl(Payment $payment): string
     {
-        $data = [
-            'returnURL' => $return_url
-        ];
-
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
-            ->post($this->endpoint . '/' . $application->lender_application_id . '/getApplicationSigningLink', $data)
+            ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationSigningLink', [])
             ->throw();
 
         $json = $response->json();
-        Log::channel('finance')->debug($json['signingLink']);
         // Work around for dev API bug. Hopefully due to be fixed upstream
         $json['signingLink'] = str_replace('honeycombexternal.com', 'alliummoney.co.uk', $json['signingLink']);
 
@@ -406,7 +395,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         }
     }
 
-    public function cancel(FinanceApplication $application)
+    public function cancel(Payment $payment)
     {
         $data = [
             'cancellationReason' => 'Customer Withdrawn',
@@ -416,7 +405,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             $response = Http::withHeaders([
                 'Ocp-Apim-Subscription-Key' => $this->key
             ])
-                ->post($this->endpoint . '/' . $application->lender_application_id . '/cancelApplication', $data)
+                ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/cancelApplication', $data)
                 ->throw();
 
             // The underwriting team have asked to be e-mailed explicitly
