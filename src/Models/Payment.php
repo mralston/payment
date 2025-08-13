@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Events\PaymentUpdated;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Observers\PaymentObserver;
@@ -162,6 +163,36 @@ class Payment extends Model
     public function paymentOffer(): BelongsTo
     {
         return $this->belongsTo(PaymentOffer::class);
+    }
+
+    public function maritalStatus(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'marital_status', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::MARITAL_STATUS)->id);
+    }
+
+    public function residentialStatus(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'residential_status', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::RESIDENTIAL_STATUS)->id);
+    }
+
+    public function employmentStatus(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'employment_status', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)->id);
+    }
+
+    public function nationalityValue(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'nationality', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::NATIONALITY)->id);
+    }
+
+    public function bankruptOrIva(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'bankrupt_or_iva', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::BANKRUPT_OR_IVA)->id);
     }
 
     public function setParent(PaymentParentModel $parent): static
