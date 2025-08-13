@@ -217,6 +217,7 @@ class Payment extends Model
 
     public function withOffer(PaymentOffer $offer): static
     {
+        $this->reference = $offer->reference;
         $this->amount = $offer->amount;
         $this->payment_provider_id = $offer->payment_provider_id;
         $this->payment_product_id = $offer->payment_product_id;

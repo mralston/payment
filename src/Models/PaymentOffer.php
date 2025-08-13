@@ -12,6 +12,7 @@ class PaymentOffer extends Model
         'payment_survey_id',
         'name',
         'type',
+        'reference',
         'amount',
         'payment_provider_id',
         'payment_product_id',

@@ -325,6 +325,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer
                                 'payment_product_id' => $paymentProduct->id,
                                 'name' => $productName,
                                 'type' => 'lease',
+                                'reference' => $response['reference'],
                                 'amount' => $amount,
                                 'payment_provider_id' => $paymentProvider->id,
                                 'term' => $offer['params']['term'],

@@ -613,9 +613,11 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
                 $products = $this->financeProducts();
 
+                $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
+
                 //Log::channel('finance')->info(print_r($products, true));
 
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount) {
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $amount) {
                     // Fetch payments
                     try {
                         $payments = $this->calculatePayments(
@@ -692,6 +694,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         ->create([
                             'name' => $productName,
                             'type' => 'finance',
+                            'reference' => $reference,
                             'amount' => $amount,
                             'payment_provider_id' => $paymentProvider->id,
                             'payment_product_id' => $paymentProduct->id,

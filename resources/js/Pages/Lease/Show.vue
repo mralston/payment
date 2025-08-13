@@ -3,7 +3,7 @@
 import {Head, router} from "@inertiajs/vue3";
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {useEcho} from "@laravel/echo-vue";
-import {ref} from "vue";
+import {computed, ref} from "vue";
 import { ArrowPathIcon } from '@heroicons/vue/16/solid';
 
 const props = defineProps({
@@ -33,6 +33,12 @@ useEcho(
     }
 );
 
+// const processing = computed(() => payment.value.payment_status.identifier === 'processing' ||
+//     payment.value.payment_status.identifier === 'pending-customer-choice'
+// );
+
+const processing = ref(false);
+
 </script>
 
 <template>
@@ -43,18 +49,23 @@ useEcho(
 
     <div class="p-4">
 
-        <div v-if="payment.payment_provider.logo" class="mb-6">
-            <img :src="payment.payment_provider.logo" class="max-w-1/3 h-14" :alt="payment.payment_provider.name">
-        </div>
+        <img v-if="processing && payment.payment_provider.animated_logo"
+             :src="payment.payment_provider.animated_logo"
+             class="max-w-1/3 h-14 mb-6"
+             :alt="payment.payment_provider.name">
+        <img v-else-if="payment.payment_provider.logo"
+             :src="payment.payment_provider.logo"
+             class="max-w-1/3 h-14 mb-6"
+             :alt="payment.payment_provider.name">
         <h1 v-else class="text-4xl font-bold mb-6">
             {{ payment.payment_provider.name }}
         </h1>
 
 
-        <div v-if="payment.payment_status.identifier === 'processing' || payment.payment_status.identifier === 'pending-customer-choice'">
+        <div v-if="processing">
 
             <p class="mb-4">
-                <ArrowPathIcon class="inline-block h-6 w-6 mr-2 text-black animate-spin"/>
+                <ArrowPathIcon v-if="!payment.payment_provider.animated_logo" class="inline-block h-6 w-6 mr-2 text-black animate-spin"/>
                 Your application is being processed.
             </p>
 

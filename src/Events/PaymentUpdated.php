@@ -8,6 +8,7 @@ use Illuminate\Broadcasting\PrivateChannel;
 use Illuminate\Contracts\Broadcasting\ShouldBroadcast;
 use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
+use Illuminate\Support\Facades\Log;
 use Mralston\Payment\Models\Payment;
 
 class PaymentUpdated extends Event implements ShouldBroadcast
@@ -33,10 +34,25 @@ class PaymentUpdated extends Event implements ShouldBroadcast
      */
     public function broadcastWith(): array
     {
+        // Load the paymentStatus relation
+        $payment = $this
+            ->payment
+            ->load([
+                'paymentStatus',
+                'paymentProvider',
+            ])
+            ->unsetRelation('parentable')
+            ->unsetRelation('paymentOffer');
+
+        // Remove the offers array, if present (it's too big for Pusher)
+        $payment->provider_response_data = $payment->provider_response_data?->except('offers');
+
+        $payload = $payment->toArray();
+
+        Log::debug('broadcasting', ['payment' => $payload]);
+
         return [
-            'payment' => $this
-                ->payment
-                ->load('paymentStatus'),
+            'payment' => $payload,
         ];
     }
 }
