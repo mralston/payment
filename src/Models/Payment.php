@@ -80,6 +80,16 @@ class Payment extends Model
         'signed_at',
         'sat_note_file_id',
         'credit_agreement_file_id',
+        'payment_type_id',
+        'provider_foreign_id',
+        'first_payment',
+        'monthly_payment',
+        'term',
+        'total_payable',
+        'payment_status_id',
+        'payment_provider_id',
+        'created_at',
+        'updated_at',
     ];
 
     protected $casts = [

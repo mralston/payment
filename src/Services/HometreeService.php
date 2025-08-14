@@ -6,54 +6,68 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Str;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
+use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Models\PaymentType;
+use Illuminate\Support\Facades\Log;
 
 class HometreeService
 {
     public function handleWebhook(Collection $records)
     {
         $hometreeLender = PaymentProvider::firstWhere('identifier', 'hometree');
+        $hometreePaymentType = PaymentType::firstWhere('identifier', 'finance');
 
-        Payment::withoutEvents(function() use ($records, $hometreeLender) {
-            Payment::withoutTimestamps(function () use ($hometreeLender, $records) {
-                $records->each(function($record) use ($hometreeLender) {
-                    $payment = Payment::firstOrNew([
+        Payment::withoutEvents(function() use ($records, $hometreeLender, $hometreePaymentType) {
+            Payment::withoutTimestamps(function () use ($hometreeLender, $records, $hometreePaymentType) {
+                $records->each(function($record) use ($hometreeLender, $hometreePaymentType) {
+                    $payment = Payment::updateOrCreate([
                         'payment_provider_id' => $hometreeLender->id,
-                        'provider_foreign_id' => $record['htf_quote_id'],
-                    ])->fill([
+                        'provider_foreign_id' => $record['htf-quote-id'],
+                    ], [
                         'uuid' => Str::uuid(),
-                        'reference' => $record['psuk_quote_reference'],
-                        'parentable_id' => $this->integerOrNull($record['psuk_quote_reference']),
-                        'first_name' => $this->extractFirstNameFromString($record['customer_full_name']),
-                        'middle_name' => $this->extractMiddleNameFromString($record['customer_full_name']),
-                        'last_name' => $this->extractLastNameFromString($record['customer_full_name']),
-                        'addresses.0.address1' => $record['customer_address_line_1'],
-                        'addresses.0.address2' => $record['customer_address_line_2'],
-                        'addresses.0.town' => $record['customer_address_line_3'],
-                        'addresses.0.postcode' => $record['customer_postcode'],
-                        'submitted_at' => $record['application_submitted_timestamp'],
-                        'decision_received_at' => $record['application_complete_timestamp'],
-                        'total_price' => !blank($record['quote_price']) ? Str::of($record['quote_price'])->replace([',', '£'], '')->toFloat() : null,
+                        'reference' => $record['client-application-reference'],
+                        'parentable_id' => $this->integerOrNull($record['client-application-reference']),
+                        'payment_type_id' => $hometreePaymentType->id,
+                        'first_name' => $this->extractFirstNameFromString($record['customer-full-name']),
+                        'middle_name' => $this->extractMiddleNameFromString($record['customer-full-name']),
+                        'last_name' => $this->extractLastNameFromString($record['customer-full-name']),
+                        'addresses.0.address1' => $record['customer-address-line-1'],
+                        'addresses.0.address2' => $record['customer-address-line-2'],
+                        'addresses.0.town' => $record['customer-address-line-3'],
+                        'addresses.0.postcode' => $record['customer-postcode'],
+                        'submitted_at' => $record['application-submitted-timestamp'],
+                        'decision_received_at' => $record['application-complete-timestamp'],
+                        'amount' => !blank($record['application-price']) ? Str::of($record['application-price'])->replace([',', '£'], '')->toFloat() : null,
                         'payment_provider_id' => $hometreeLender->id,
-                        'first_repayment' => !blank($record['upfront_payment_amount']) ? Str::of($record['upfront_payment_amount'])->replace([',', '£'], '')->toFloat() : null,
-                        'monthly_repayment' => !blank($record['monthly_payment_amount']) ? Str::of($record['monthly_payment_amount'])->replace([',', '£'], '')->toFloat() : null,
-                        'term' => !blank($record['account_term']) ? $record['account_term'] * 12 : null,
-                        'total_payable' => !blank($record['total_payable']) ? Str::of($record['total_payable'])->replace([',', '£'], '')->toFloat() : null,
-                        'payment_status_id' => $this->translateStatus($record['account_state']),
-                        'created_at' => $record['quote_created_timestamp'],
+                        'first_payment' => !blank($record['upfront-payment-amount']) ? Str::of($record['upfront-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
+                        'monthly_payment' => !blank($record['monthly-payment-amount']) ? Str::of($record['monthly-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
+                        'term' => !blank($record['account-term']) ? $record['account-term'] * 12 : null,
+                        'total_payable' => !blank($record['total-payable']) ? Str::of($record['total-payable'])->replace([',', '£'], '')->toFloat() : null,
+                        'payment_status_id' => PaymentStatus::firstWhere('identifier', $this->translateStatus($record['application-status']))->id,
+                        'created_at' => $record['application-created-timestamp'],
                         'was_referred' => false,
                     ])->forceFill([
-                        'created_at' => $record['quote_created_timestamp'],
+                        'created_at' => $record['application-created-timestamp'],
                         'updated_at' => now(),
+                        'decision_received_at' => $record['application-complete-timestamp'],
+                        'status' => $this->translateStatus($record['application-status']),
+                        'term' => !blank($record['account-term']) ? $record['account-term'] * 12 : null,
+                        'first_payment' => !blank($record['upfront-payment-amount']) ? Str::of($record['upfront-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
+                        'monthly_payment' => !blank($record['monthly-payment-amount']) ? Str::of($record['monthly-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
+                        'total_payable' => !blank($record['total-payable']) ? Str::of($record['total-payable'])->replace([',', '£'], '')->toFloat() : null,
+                        'payment_status_id' => PaymentStatus::firstWhere('identifier', $this->translateStatus($record['application-status']))->id,
+                        'created_at' => $record['application-created-timestamp'],
+                        'was_referred' => $this->translateStatus($record['application-status']) == 'referred',
                     ]);
 
-                    if ($this->translateStatus($record['account_state']) == 'referred') {
+                    if ($this->translateStatus($record['application-status']) == 'referred') {
                         $payment->was_referred = true;
                     }
 
                     try {
                         $payment->save();
                     } catch (\Exception $e) {
-                        Log::error('Failed to upsert Hometree finance record #' . $record['HTF Quote ID'], [$e->getMessage()]);
+                        Log::error('Failed to upsert Hometree finance record #' . $record['htf-quote-id'], [$e->getMessage()]);
                     }
                 });
             });
@@ -93,6 +107,7 @@ class HometreeService
             'pending-introduction-review' => 'referred',
             'final-abandoned' => 'cancelled',
             'final-review-failed' => 'declined',
+            'final-declined' => 'declined',
             'final-cancelled' => 'cancelled',
             default => $status,
         };
