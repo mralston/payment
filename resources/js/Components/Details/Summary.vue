@@ -32,6 +32,7 @@ const props = defineProps({
                 :stack="true" label="Customer"
                 :value="payment.first_name + ' ' + payment.last_name" />
             <DetailsRow
+                v-if="payment.payment_offer"
                 icon="fa6-solid:hand-holding-dollar"
                 :stack="true"
                 :label="paymentType"
@@ -44,6 +45,7 @@ const props = defineProps({
                 :value="payment.payment_provider.name"
             />
             <DetailsRow
+                :type="payment.payment_status.identifier === 'cancelled' ? 'danger' : 'success'"
                 icon="fa6-solid:circle-check"
                 :stack="true"
                 label="Status"

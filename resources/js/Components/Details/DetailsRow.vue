@@ -5,6 +5,7 @@ const props = defineProps({
     value: String,
     stack: Boolean,
     icon: String,
+    type: String,
 });
 </script>
 
@@ -15,7 +16,7 @@ const props = defineProps({
             {{ label }}
         </div>
         <div class="w-1/3" :class="{ 'w-full': stack }">
-            {{ value }}
+            <span :class="type === 'danger' ? 'bg-red-500 text-white px-2 py-1 rounded-md' : ''">{{ value }}</span>
         </div>
     </div>
 </template>

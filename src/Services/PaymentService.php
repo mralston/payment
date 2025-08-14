@@ -6,6 +6,7 @@ use Mralston\Payment\Data\CancellationData;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentCancellation;
 use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Events\PaymentCancelled;
 
 class PaymentService
 {
@@ -18,10 +19,19 @@ class PaymentService
         ]);
 
         PaymentCancellation::create([
-            'payment_id' => $payment->id,
+            'payment_id' => $dto->paymentId,
             'user_id' => $dto->userId,
             'reason' => $dto->reason,
             'source' => $dto->source,
         ]);
+
+        // if (method_exists($payment->paymentProvider, 'gateway')) {
+        //     $payment
+        //         ->paymentProvider
+        //         ->gateway()
+        //         ->cancel($payment);
+        // }
+
+        event(new PaymentCancelled($payment));
     }
 }

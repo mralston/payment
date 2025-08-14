@@ -113,8 +113,6 @@ class PaymentController
             )
         );
 
-        event(new PaymentCancelled($payment));
-
         return Inertia::location(route('payments.show', $payment));
     }
 
@@ -133,6 +131,7 @@ class PaymentController
                     'parentable',
                     'parentable.user',
                     'paymentCancellations',
+                    'paymentCancellations.user',
                     'paymentOffer',
                     'employmentStatus',
                 ]),

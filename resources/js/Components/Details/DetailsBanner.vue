@@ -1,6 +1,6 @@
 <script setup>
 import Banner from '../Banner.vue';
-import moment from "moment";
+import moment from 'moment';
 import {computed} from "vue";
 
 const props = defineProps({
@@ -24,7 +24,7 @@ const bannerType = computed(() => {
         <div v-if="payment.payment_status.identifier === 'cancelled'">
             Payment cancelled
             <div v-for="cancellation in payment.payment_cancellations" :key="cancellation.id">
-                {{ cancellation.created_at ? moment(cancellation.created_at).format('DD/MM/YYYY') + ' - ' : '' }} {{ cancellation.reason }}
+                <b>{{ moment(cancellation.created_at).format('DD/MM/YYYY HH:mm') }}</b> {{ cancellation.user ? 'by ' + cancellation.user.name : '' }} - {{ cancellation.reason }}
             </div>
         </div>
         <span v-else-if="payment.signed_at">Agreement signed on: <span class="font-bold">{{ moment(payment.signed_at).format('DD/MM/YYYY') }}</span></span>

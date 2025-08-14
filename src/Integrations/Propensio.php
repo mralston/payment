@@ -544,9 +544,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
     public function pollStatus(Payment $payment): array
     {
         // Some applications don't have a lender ID (it was a bug), so they can't be polled.
-        if (empty($application->lender_application_id)) {
+        if (empty($payment->provider_foreign_id)) {
             return [
-                'status' => $application->status,
+                'status' => $payment->paymentStatus->name,
                 'lender_response_data' => null,
                 'offer_expiration_date' => null
             ];
@@ -555,7 +555,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         $data = [
             'AGREEMENT' => [
                 '_attributes' => [
-                    'AGREEMENT_CODE' => $application->lender_application_id
+                    'AGREEMENT_CODE' => $payment->provider_foreign_id
                 ]
             ]
         ];
@@ -596,26 +596,26 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                             'GetDocument', /*method*/
                             [
                                 'documentId' => $document['DOCUMENT_ID'],
-                                'agreementCode' => $application->lender_application_id
+                                'agreementCode' => $payment->provider_foreign_id
                             ], /*form params*/
                             'DOCUMENT' /*response key*/
                         );
 
                         $filename = 'propensio_credit_agreement.pdf';
-                        $full_path = $application->quote->getDir(null, true) . '/' . $filename;
-                        $url = '/' . $application->quote->getDir(null, true, true) . '/' . $filename;
+                        $full_path = $payment->quote->getDir(null, true) . '/' . $filename;
+                        $url = '/' . $payment->quote->getDir(null, true, true) . '/' . $filename;
                         file_put_contents($full_path, $documentResponse['response']);
 
                         // Add record to files table
                         if (file_exists($full_path)) {
-                            $file = $application->quote->file()->updateOrCreate([
+                            $file = $payment->quote->file()->updateOrCreate([
                                 'name' => 'credit_agreement',
                                 'url' => $url,
                                 'dir' => $full_path
                             ]);
 
                             // Store reference in finance application
-                            $application->update([
+                            $payment->update([
                                 'credit_agreement_file_id' => $file->id
                             ]);
                         }
@@ -631,7 +631,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         }
 
         return [
-            'status' => $status ?? $application->status,
+            'status' => $status ?? $payment->paymentStatus->name,
             'lender_response_data' => $response['response'],
             'offer_expiration_date' => null
         ];
@@ -642,7 +642,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         $data = [
             'AGREEMENT' => [
                 '_attributes' => [
-                    'AGREEMENT_CODE' => $application->lender_application_id,
+                    'AGREEMENT_CODE' => $payment->provider_foreign_id,
                     'STATUS_CODE' => 'AG_NOT_TAKEN_UP_CLOSED'
                 ]
             ]
@@ -656,8 +656,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         );
 
         if (is_array($response) && $response['response']['STATUS'] == 0 && preg_match("/Failed to retrieve the Agreement Reference from the funding system based on the Agreement Code/", $response['response']['RETURN_MESSAGE']['MESSAGE_TEXT'])) {
-            $application->status = 'NotFound';
-            $application->save();
+            $payment->status = 'NotFound';
+            $payment->save();
 
             return false;
         }
@@ -666,15 +666,15 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             Log::channel('finance')->info('Cancellation request for ' . $application->reference . ' rejected (403)');
 
             // Poll the status of the application to see where it's genuinely up to
-            $result = $this->pollStatus($application);
+            $result = $this->pollStatus($payment);
 
             Log::channel('finance')->info('Application status: ' . $result['status']);
 
             // If it isn't 'expired' then e-mail them for manual cancellation
             if ($result['status'] != 'expired') {
                 Log::channel('finance')->info('Sending cancellation request e-mail');
-                Mail::to($application->finance_lender->underwriter_email)
-                    ->send(new FinanceApplicationCancelManually($application));
+                Mail::to($payment->finance_lender->underwriter_email)
+                    ->send(new FinanceApplicationCancelManually($payment));
             } else {
                 Log::channel('finance')->info('Application was already cancelled successfully');
             }
