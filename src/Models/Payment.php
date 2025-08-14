@@ -167,6 +167,11 @@ class Payment extends Model
         return $this->belongsTo(PaymentOffer::class);
     }
 
+	public function paymentProduct(): BelongsTo
+	{
+		return $this->belongsTo(PaymentProduct::class);
+	}
+
     public function maritalStatus(): BelongsTo
     {
         return $this->belongsTo(PaymentLookupValue::class, 'marital_status', 'value')
