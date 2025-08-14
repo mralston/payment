@@ -9,6 +9,7 @@ use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
 use Mralston\Payment\Http\Controllers\FinanceSigningLinkController;
+use Mralston\Payment\Http\Controllers\WebhookController;
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 
@@ -50,5 +51,8 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
             Route::get('finance/{payment}/signing-link', [FinanceSigningLinkController::class, 'show'])
                 ->name('finance.signing-link');
+
+            Route::post('webhook/tandem', [WebhookController::class, 'tandem'])
+                ->name('webhook.tandem');
     });
 });

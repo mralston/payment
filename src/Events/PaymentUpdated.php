@@ -49,6 +49,13 @@ class PaymentUpdated extends Event implements ShouldBroadcast
 
         $payload = $payment->toArray();
 
+//        if ($payment->paymentStatus->error) {
+//            $payload['errorData'] = $payment
+//                ->paymentProvider
+//                ->gateway()
+//                ->parseErrors($payment->provider_response_data);
+//        }
+
         Log::debug('broadcasting', ['payment' => $payload]);
 
         return [

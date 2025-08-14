@@ -34,10 +34,6 @@ const props = defineProps({
                     :value="payment.homeowner_status ? 'Yes' : 'No'"
                 />
                 <DetailsRow
-                    label="Is employed, self employed, or..."
-                    :value="payment.employment_status"
-                />
-                <DetailsRow
                     label="Has a UK bank account"
                     :value="payment.bank_account_number ? 'Yes' : 'No'"
                 />

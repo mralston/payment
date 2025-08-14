@@ -97,6 +97,9 @@ class SubmitSurveyRequest extends FormRequest
                     'financeResponses.bankAccount.accountName' => ['required', 'string', 'max:255'],
                     'financeResponses.bankAccount.accountNumber' => ['required', 'numeric', 'digits:8'],
                     'financeResponses.bankAccount.sortCode' => ['required', 'string', 'regex:/^\d{6}$|^\d{2}-\d{2}-\d{2}$/'],
+
+                    'financeResponses.monthlyMortgage' => ['required', 'numeric'],
+                    'financeResponses.monthlyRent' => ['required', 'numeric'],
                 ]
             ];
         }
@@ -157,6 +160,12 @@ class SubmitSurveyRequest extends FormRequest
             'financeResponses.bankAccount.accountNumber.digits' => 'The account number must be 8 digits.',
             'financeResponses.bankAccount.sortCode.required' => 'You must enter the sort code.',
             'financeResponses.bankAccount.sortCode.regex' => 'The sort code must be in the format 123456 or 12-34-56.',
+
+            'financeResponses.monthlyMortgage.required' => 'You must enter a monthly mortgage amount.',
+            'financeResponses.monthlyMortgage.numeric' => 'The monthly mortgage amount must be a number.',
+            'financeResponses.monthlyRent.required' => 'You must enter a monthly rent amount.',
+            'financeResponses.monthlyRent.numeric' => 'The monthly rent amount must be a number.',
+
         ];
     }
 

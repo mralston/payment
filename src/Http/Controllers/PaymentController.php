@@ -2,19 +2,19 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Mralston\Payment\Data\CancellationData;
 use Mralston\Payment\Events\PaymentCancelled;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Services\PaymentService;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Mralston\Payment\Traits\RedirectsOnActivePayment;
-use Illuminate\Http\Request;
-use Mralston\Payment\Services\PaymentService;
-use Mralston\Payment\Dto\CancellationDto;
 
 class PaymentController
 {
@@ -104,7 +104,7 @@ class PaymentController
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $this->paymentService->cancel(
-            new CancellationDto(
+            new CancellationData(
                 paymentId: $payment->id,
                 paymentStatusIdentifier: $request->payment_status_identifier,
                 reason: $request->cancellation_reason,
@@ -122,10 +122,10 @@ class PaymentController
 
         $helper = app(PaymentHelper::class)
             ->setParentModel($payment->parentable);
-        
+
         return Inertia::render('Payment/Show', [
             'payment' => $payment
-                ->load(
+                ->load([
                     'paymentProvider',
                     'paymentStatus',
                     'parentable',
@@ -133,7 +133,8 @@ class PaymentController
                     'paymentCancellations',
                     'paymentCancellations.user',
                     'paymentOffer',
-                ),
+                    'employmentStatus',
+                ]),
             'products' => $helper->getBasketItems(),
         ])->withViewData($this->helper->getViewData());
     }

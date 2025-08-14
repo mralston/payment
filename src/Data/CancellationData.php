@@ -1,8 +1,10 @@
 <?php
 
-namespace Mralston\Payment\Dto;
+namespace Mralston\Payment\Data;
 
-class CancellationDto
+use Spatie\LaravelData\Data;
+
+class CancellationData extends Data
 {
     public function __construct(
         public string $paymentId,
@@ -10,5 +12,7 @@ class CancellationDto
         public string $reason,
         public string $source,
         public string $userId,
-    ) {}
+    ) {
+        //
+    }
 }

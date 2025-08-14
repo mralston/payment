@@ -23,24 +23,20 @@ const props = defineProps({
                 <div class="w-1/2 max-md:w-full">
                     <DetailsRow
                         label="Employment status"
-                        :value="payment.employment_status"
+                        :value="payment.employment_status?.name"
                     />
                     <DetailsRow
                         label="Employer name"
                         :value="payment.employer_name"
                     />
-                    <DetailsRow
-                        label="Occupation"
-                        :value="payment.occupation" />
                 </div>
                 <div class="w-1/2 max-md:w-full">
                     <DetailsRow
-                        label="Time at employer - years"
-                        :value="String(Math.floor(payment.time_with_employer / 12))"
-                    />
+                        label="Occupation"
+                        :value="payment.occupation" />
                     <DetailsRow
-                        label="Time at employer - months"
-                        :value="String(payment.time_with_employer % 12)"
+                        label="Time at employer"
+                        :value="String(Math.floor(payment.time_with_employer / 12)) + ' years, ' + String(payment.time_with_employer % 12) + ' months'"
                     />
                 </div>
             </div>

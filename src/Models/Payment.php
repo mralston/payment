@@ -2,13 +2,16 @@
 
 namespace Mralston\Payment\Models;
 
+use Carbon\Carbon;
 use GregoryDuckworth\Encryptable\EncryptableTrait;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
+use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Events\PaymentUpdated;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Observers\PaymentObserver;
@@ -164,6 +167,36 @@ class Payment extends Model
         return $this->belongsTo(PaymentOffer::class);
     }
 
+    public function maritalStatus(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'marital_status', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::MARITAL_STATUS)->id);
+    }
+
+    public function residentialStatus(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'residential_status', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::RESIDENTIAL_STATUS)->id);
+    }
+
+    public function employmentStatus(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'employment_status', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)->id);
+    }
+
+    public function nationalityValue(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'nationality', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::NATIONALITY)->id);
+    }
+
+    public function bankruptOrIva(): BelongsTo
+    {
+        return $this->belongsTo(PaymentLookupValue::class, 'bankrupt_or_iva', 'value')
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::BANKRUPT_OR_IVA)->id);
+    }
+
     public function setParent(PaymentParentModel $parent): static
     {
         $this->parentable()->associate($parent);
@@ -197,26 +230,25 @@ class Payment extends Model
         $this->residential_status = $customer['residentialStatus'] ?? null;
         $this->date_of_birth = $customer['dateOfBirth'];
         $this->dependants = $customer['dependants'];
-        // TODO: bankrupt_or_iva
+        $this->bankrupt_or_iva = filter_var($customer['bankruptOrIva'] ?? null, FILTER_VALIDATE_BOOLEAN);
         $this->email_address = $customer['email'];
         $this->primary_telephone = $customer['mobile'] ?? null;
-        // TODO: secondary_telephone
+        $this->secondary_telephone = $customer['landline'] ?? null;
         $this->addresses = $survey->addresses;
         $this->employment_status = $customer['employmentStatus'];
-        // TODO: employer_name
-        // TODO: employer_telephone
-        // TODO: employer_address
-        // TODO: employer_company_type
-        // TODO: employer_company_reg_date
-        // TODO: occupation
-        // TODO: time_with_employer
+        $this->employer_name = $survey->finance_responses->employerName;
+        $this->employer_address = $survey->finance_responses->employerAddress;
+        $this->occupation = $survey->finance_responses->occupation;
+        $this->time_with_employer = floor(Carbon::parse($survey->finance_responses->dateStartedEmployment)->diffInMonths());
         $this->gross_income_individual = $customer['grossAnnualIncome'];
-        // TODO: $this->gross_income_household
+        $this->gross_income_household = $survey->customers->sum('grossAnnualIncome');
         $this->net_monthly_income_individual = $customer['netMonthlyIncome'];
-        // TODO: mortgage_monthly
-        // TODO: rent_monthly
-        // TODO: bank_name
-        // TODO: bank_account_holder_name
+        $this->mortgage_monthly = $survey->finance_responses->monthlyMortgage;
+        $this->rent_monthly = $survey->finance_responses->monthlyRent;
+        $this->bank_name = $survey->finance_responses->bankAccount->bankName;
+        $this->bank_account_holder_name = $survey->finance_responses->bankAccount->accountName;
+        $this->bank_account_number = $survey->finance_responses->bankAccount->accountNumber;
+        $this->bank_account_sort_code = $survey->finance_responses->bankAccount->sortCode;
 
         return $this;
     }
@@ -239,5 +271,35 @@ class Payment extends Model
         $this->provider_foreign_id = $offer->provider_application_id;
 
         return $this;
+    }
+
+    public function landline(): Attribute
+    {
+        return Attribute::get(function () {
+            if (preg_match('/0[1-6,8-9][0-9]{8,9}/', $this->primary_telephone)) {
+                return $this->primary_telephone;
+            }
+
+            if (preg_match('/0[1-6,8-9][0-9]{8,9}/', $this->secondary_telephone)) {
+                return $this->secondary_telephone;
+            }
+
+            return null;
+        });
+    }
+
+    public function mobile(): Attribute
+    {
+        return Attribute::get(function () {
+            if (preg_match('/07[0-9]{9}/', $this->primary_telephone)) {
+                return $this->primary_telephone;
+            }
+
+            if (preg_match('/07[0-9]{9}/', $this->secondary_telephone)) {
+                return $this->secondary_telephone;
+            }
+
+            return null;
+        });
     }
 }

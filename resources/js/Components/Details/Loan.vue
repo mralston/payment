@@ -50,7 +50,7 @@ const props = defineProps({
                     />
                     <DetailsRow
                         label="Goods"
-                        :value="products.map(product => product.name).join(', ')"
+                        :value="products.filter(product => product?.name).map(product => product.name).join(', ')"
                     />
                     <DetailsRow
                         label="Subsidy"
@@ -74,7 +74,7 @@ const props = defineProps({
                     />
                     <DetailsRow
                         label="Total amount repayable"
-                        :value="formatCurrency(payment.total_payable)"    
+                        :value="formatCurrency(payment.total_payable)"
                     />
                 </div>
                 <div class="w-1/2 max-md:w-full">

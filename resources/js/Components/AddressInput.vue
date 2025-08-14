@@ -115,6 +115,12 @@ function returnSelectedAddress()
             addressModel.value.address1 = selectedAddress.value.address1;
             addressModel.value.address2 = selectedAddress.value.address2;
         }
+
+        // If the first line is missing, try pulling it from the second line
+        if (!addressModel.value.address1) {
+            addressModel.value.address1 = selectedAddress.value.address2;
+            addressModel.value.address2 = null;
+        }
     }
 
     // The remaining fields are easier to come by

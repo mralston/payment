@@ -2,7 +2,7 @@
 
 namespace Mralston\Payment\Services;
 
-use Mralston\Payment\Dto\CancellationDto;
+use Mralston\Payment\Data\CancellationData;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentCancellation;
 use Mralston\Payment\Models\PaymentStatus;
@@ -10,7 +10,7 @@ use Mralston\Payment\Events\PaymentCancelled;
 
 class PaymentService
 {
-    public function cancel(CancellationDto $dto)
+    public function cancel(CancellationData $dto)
     {
         $payment = Payment::find($dto->paymentId);
 

@@ -56,7 +56,7 @@ class PaymentLookupFieldTableSeeder extends Seeder
                     'tandem' => 'homeowner_no_mortgage',
                     'propensio' => 'OWO',
                 ]],
-                ['name' => 'Owned with Mortgage', 'value' => 'owner', 'payment_provider_values' => [
+                ['name' => 'Owned with Mortgage', 'value' => 'mortgage', 'payment_provider_values' => [
                     'tandem' => 'homeowner_with_mortgage',
                     'propensio' => 'OWN',
                 ]],
