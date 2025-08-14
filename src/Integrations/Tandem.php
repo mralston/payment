@@ -254,13 +254,13 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
      * @return array
      * @throws RequestException
      */
-    public function pollStatus(FinanceApplication $application): array
+    public function pollStatus(Payment $payment): array
     {
         // Poll the Allium API
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
-            ->get($this->endpoint . '/' . $application->lender_application_id . '/getApplicationStatus');
+            ->get($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationStatus');
 
         // Look for 404 response (which means Allium don't have an application matching the specified ID)
         if ($response->status() == 404) {
@@ -409,24 +409,24 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                 ->throw();
 
             // The underwriting team have asked to be e-mailed explicitly
-            Mail::to($application->finance_lender->underwriter_email)
-                ->send(new FinanceApplicationCancelled($application));
+            Mail::to($payment->paymentProvider->underwriter_email)
+                ->send(new FinanceApplicationCancelled($payment));
         } catch (RequestException $ex) {
             // Allium return a 403 if the loan has already been cancelled
             if ($ex->getCode() == 403) {
                 Log::channel('finance')
-                    ->debug('Cancellation request for ' . $application->reference . ' rejected (403)');
+                    ->debug('Cancellation request for ' . $payment->reference . ' rejected (403)');
 
                 // Poll the status of the application to see where it's genuinely up to
-                $result = $this->pollStatus($application);
+                $result = $this->pollStatus($payment);
 
                 Log::channel('finance')->debug('Application status: ' . $result['status']);
 
                 // If it isn't 'expired' then e-mail them for manual cancellation
                 if ($result['status'] != 'expired') {
                     Log::channel('finance')->debug('Sending cancellation request e-mail');
-                    Mail::to($application->finance_lender->underwriter_email)
-                        ->send(new FinanceApplicationCancelManually($application));
+                    Mail::to($payment->paymentProvider->underwriter_email)
+                        ->send(new FinanceApplicationCancelManually($payment));
                 } else {
                     Log::channel('finance')->debug('Application was already cancelled successfully');
                 }

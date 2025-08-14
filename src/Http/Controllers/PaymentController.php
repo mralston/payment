@@ -113,8 +113,6 @@ class PaymentController
             )
         );
 
-        event(new PaymentCancelled($payment));
-
         return Inertia::location(route('payments.show', $payment));
     }
 
@@ -127,7 +125,15 @@ class PaymentController
         
         return Inertia::render('Payment/Show', [
             'payment' => $payment
-                ->load('paymentProvider', 'paymentStatus', 'parentable', 'parentable.user', 'paymentCancellations', 'paymentOffer'),
+                ->load(
+                    'paymentProvider',
+                    'paymentStatus',
+                    'parentable',
+                    'parentable.user',
+                    'paymentCancellations',
+                    'paymentCancellations.user',
+                    'paymentOffer',
+                ),
             'products' => $helper->getBasketItems(),
         ])->withViewData($this->helper->getViewData());
     }
