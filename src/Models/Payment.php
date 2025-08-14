@@ -90,6 +90,7 @@ class Payment extends Model
         'payment_provider_id',
         'created_at',
         'updated_at',
+        'addresses',
     ];
 
     protected $casts = [
