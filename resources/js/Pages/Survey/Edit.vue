@@ -240,7 +240,7 @@ function skip()
                                 <ValidationWrapper :form="form" :field="`customers.${index}.grossAnnualIncome`">
                                     <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
                                         <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
-                                        <input type="number" v-model="customer.grossAnnualIncome" :id="`customers.${index}.grossAnnualIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                        <input type="number" step="0.01" v-model="customer.grossAnnualIncome" :id="`customers.${index}.grossAnnualIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
                                     </div>
                                 </ValidationWrapper>
                             </div>
@@ -250,7 +250,7 @@ function skip()
                                 <ValidationWrapper :form="form" :field="`customers.${index}.netMonthlyIncome`">
                                     <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
                                         <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
-                                        <input type="number" v-model="customer.netMonthlyIncome" :id="`customers.${index}.netMonthlyIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                        <input type="number" step="0.01" v-model="customer.netMonthlyIncome" :id="`customers.${index}.netMonthlyIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
                                     </div>
                                 </ValidationWrapper>
                             </div>
@@ -398,7 +398,7 @@ function skip()
                                 <ValidationWrapper :form="form" :field="`financeResponses.monthlyMortgage`">
                                     <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
                                         <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
-                                        <input type="number" v-model="form.financeResponses.monthlyMortgage" :id="`financeResponses.monthlyMortgage`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                        <input type="number" step="0.01" v-model="form.financeResponses.monthlyMortgage" :id="`financeResponses.monthlyMortgage`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
                                     </div>
                                 </ValidationWrapper>
                             </div>
@@ -408,7 +408,7 @@ function skip()
                                 <ValidationWrapper :form="form" :field="`financeResponses.monthlyRent`">
                                     <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
                                         <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
-                                        <input type="number" v-model="form.financeResponses.monthlyRent" :id="`financeResponses.monthlyRent`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                        <input type="number" step="0.01" v-model="form.financeResponses.monthlyRent" :id="`financeResponses.monthlyRent`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
                                     </div>
                                 </ValidationWrapper>
                             </div>

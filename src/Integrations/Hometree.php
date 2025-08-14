@@ -96,14 +96,14 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                     'immersion_diverter' => false,
                     'bird_blocker' => $helper->hasFeature('bird_blocker'),
                     'scaffold' => $helper->hasFeature('scaffold'),
-                    'generation_month_12_kwh' => $helper->getSem(),
-                    'savings_month_12_solar_gross' => $helper->getSolarSavingsYear1(),
-                    'savings_month_12_ess_gross' => $helper->getBatterySavingsYear1(),
+                    'generation_month_12_kwh' => $this->stringifyDecimal($helper->getSem()),
+                    'savings_month_12_solar_gross' => $this->stringifyDecimal($helper->getSolarSavingsYear1()),
+                    'savings_month_12_ess_gross' => $this->stringifyDecimal($helper->getBatterySavingsYear1()),
                 ],
                 'price' => [
-                    'net_value' => $helper->getNet(),
-                    'vat' => $helper->getVatRate(),
-                    'vat_value' => $helper->getVat(),
+                    'net_value' => $this->stringifyDecimal($helper->getNet()),
+                    'vat' => $this->stringifyDecimal($helper->getVatRate()),
+                    'vat_value' => $this->stringifyDecimal($helper->getVat()),
                 ]
             ],
             ...(
@@ -139,7 +139,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                                     ...(
                                     $survey->basic_questions_completed ? [
                                         'affordability' => [
-                                            'gross_annual_income' => $customer['grossAnnualIncome'],
+                                            'gross_annual_income' => $this->stringifyDecimal($customer['grossAnnualIncome']),
                                             'dependants' => $customer['dependants'],
                                             'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
                                         ]
@@ -154,7 +154,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
 
-//        Log::debug('Hometree prequal request:', $payload);
+        Log::debug('Hometree prequal request:', $payload);
         Log::debug('POST /applications');
 
         $response = Http::baseUrl($this->endpoint)
@@ -559,4 +559,20 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                 })
         );
     }
+
+    /**
+     * Converts decimals to strings but leaves whole numbers as integers, as required by Hometree's API.
+     *
+     * @param int|float $number
+     * @return int|string
+     */
+    private function stringifyDecimal(int|float $number): int|string
+    {
+        if (intval($number) == $number) {
+            return intval($number);
+        }
+
+        return (string)$number;
+    }
+
 }
