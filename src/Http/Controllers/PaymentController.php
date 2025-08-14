@@ -2,14 +2,17 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
+use Illuminate\Http\Request;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Mralston\Payment\Data\CancellationData;
 use Mralston\Payment\Events\PaymentCancelled;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Services\PaymentService;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
@@ -20,6 +23,7 @@ class PaymentController
 
     public function __construct(
         private PaymentHelper $helper,
+        private PaymentService $paymentService,
     ) {
         //
     }
@@ -95,17 +99,43 @@ class PaymentController
         }
     }
 
-    public function cancel(int $parent, Payment $payment)
+    public function cancel(Request $request, int $parent, Payment $payment)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $payment->update([
-            'payment_status_id' => PaymentStatus::byIdentifier('customer_cancelled')?->id,
-        ]);
+        $this->paymentService->cancel(
+            new CancellationData(
+                paymentId: $payment->id,
+                paymentStatusIdentifier: $request->payment_status_identifier,
+                reason: $request->cancellation_reason,
+                source: $request->source,
+                userId: auth()->user()->id,
+            )
+        );
 
-        event(new PaymentCancelled($payment));
+        return Inertia::location(route('payments.show', $payment));
+    }
 
-        return redirect()
-            ->route('payment.options', $parentModel);
+    public function show(Payment $payment)
+    {
+        $survey = $payment->parentable->paymentSurvey;
+
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($payment->parentable);
+
+        return Inertia::render('Payment/Show', [
+            'payment' => $payment
+                ->load([
+                    'paymentProvider',
+                    'paymentStatus',
+                    'parentable',
+                    'parentable.user',
+                    'paymentCancellations',
+                    'paymentCancellations.user',
+                    'paymentOffer',
+                    'employmentStatus',
+                ]),
+            'products' => $helper->getBasketItems(),
+        ])->withViewData($this->helper->getViewData());
     }
 }

@@ -3,11 +3,7 @@
 namespace Mralston\Payment\Integrations;
 
 use App\Address;
-use App\FinanceApplication;
 use App\Mail\FinanceApplicationCancelled;
-use App\Mail\FinanceApplicationCancelManually;
-use App\Quote;
-use App\Settings;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -16,18 +12,27 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Str;
+use Mralston\Payment\Data\AddressData;
+use Mralston\Payment\Data\ErrorCollectionData;
+use Mralston\Payment\Data\ErrorData;
 use Mralston\Payment\Data\PrequalData;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Events\OffersReceived;
 use Mralston\Payment\Interfaces\FinanceGateway;
+use Mralston\Payment\Interfaces\ParsesErrors;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
-use Mralston\Payment\Models\PaymentProduct;
+use Mralston\Payment\Interfaces\Signable;
+use Mralston\Payment\Interfaces\WantsEpvs;
+use Mralston\Payment\Interfaces\WantsSatNote;
+use Mralston\Payment\Mail\CancelManually;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
+use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentSurvey;
 
-class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
+class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Signable, WantsSatNote, WantsEpvs, ParsesErrors
 {
     /**
      * Endpoints to be used based on environment.
@@ -41,24 +46,26 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         'production' => 'https://apim-01-ext.honeycombexternal.com/Retail',
     ];
 
-    /**
-     * API KEY for authentication.
-     *
-     * @var string
-     */
-    private string $key;
-
-    /**
-     * API endpoint to send POST requests to.
-     *
-     * @var string
-     */
     private string $endpoint;
 
-    public function __construct(string $key, string $endpoint)
-    {
-        $this->key = $key;
+    private $requestData = null;
+    private $responseData = null;
+
+    public function __construct(
+        protected string $key,
+        string $endpoint
+    ) {
         $this->endpoint = $this->endpoints[$endpoint];
+    }
+
+    public function getRequestData(): ?array
+    {
+        return $this->requestData;
+    }
+
+    public function getResponseData(): ?array
+    {
+        return $this->responseData;
     }
 
     /**
@@ -66,111 +73,138 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
      *
      * @return bool
      */
-    public function healthCheck()
+    public function healthCheck(): bool
     {
-        return (Http::withHeaders([
-                'Ocp-Apim-Subscription-Key' => $this->key
-            ])
-                ->get($this->endpoint . '/HealthCheck')
-            ['results'][0]['error'] ?? null) == 'Success';
+        $this->requestData = null;
+
+        $response = Http::withHeaders([
+            'Ocp-Apim-Subscription-Key' => $this->key
+        ])
+        ->get($this->endpoint . '/HealthCheck');
+
+        $this->responseData = $response->json();
+
+        $response->throw();
+
+        return ($this->responseData['results'][0]['error'] ?? null) == 'Success';
     }
 
-    public function apply(FinanceApplication $application)
+    public function apply(Payment $payment): Payment
     {
-        // Temporary workaround. Can be removed pretty sharpish
-        if (empty($application->reference)) {
-            $application->update([
-                'reference' => $application->quote_id . '-' . $application->id
-            ]);
-        }
+        $helper = $this->app(PaymentHelper::class)
+            ->setParentModel($payment->parentable);
 
-        $data = [
+        $companyDetails = $helper->getCompanyDetails();
+
+        $currentAddress = AddressData::from($payment->addresses->first());
+
+        $this->requestData = [
             'references' => [
-                'externalUniqueReference' => $application->reference,
+                'externalUniqueReference' => $payment->reference,
             ],
             'finance' => [
-                'financeProductCode' => 'Standard', // to be provided by Allium?
-                'advance' => $application->loan_amount,
-                'termMonths' => $application->loan_term,
-                'apr' => $application->apr,
-                'deposit' => $application->deposit ?? 0,
+                'financeProductCode' => 'Standard', // Should this be populated with the value from /financeProducts ?
+                'advance' => $payment->amount,
+                'termMonths' => $payment->term,
+                'apr' => $payment->apr,
+                'deposit' => $payment->deposit ?? 0,
                 'depositTakenExternally' => true,
                 // API expects the number of deferred payments, not the number of months deferred for.
-                // 4 months deferred = 3 deferred payments. Therefore we subtract 1.
-                'deferredPayments' => !empty($application->deferred_period) ? $application->deferred_period - 1 : 0,
+                // 4 months deferred = 3 deferred payments, therefore we subtract 1.
+                'deferredPayments' => !empty($payment->deferred) ? $payment->deferred - 1 : 0,
             ],
             'applicants' => [
                 'primaryApplicant' => [
-                    'title' => $application->title,
-                    'firstName' => $application->first_name,
-                    'middleNames' => $application->middle_name,
-                    'lastName' => $application->last_name,
-                    'dateOfBirth' => optional($application->date_of_birth)->format('Y-m-d'),
-                    'maritalStatus' => $this->convertMaritalStatus($application->marital_status),
+                    'title' => $payment->title,
+                    'firstName' => $payment->first_name,
+                    'middleNames' => $payment->middle_name,
+                    'lastName' => $payment->last_name,
+                    'dateOfBirth' => optional($payment->date_of_birth)->format('Y-m-d'),
+                    'maritalStatus' => $payment->maritalStatus?->payment_provider_values['tandem'] ?? null,
                     'addresses' => [
-                        'currentAddress' => $this->convertAddress($application->addresses->first()),
-                        'previousAddresses' => $application->addresses
+                        'currentAddress' => [
+                            'buildingName' => null,
+                            'buildingNumber' => $currentAddress->houseNumber,
+                            'address1' => $currentAddress->street,
+                            'address2' => $currentAddress->address1,
+                            'address3' => $currentAddress->address2,
+                            'town' => $currentAddress->town,
+                            'postcode' => $currentAddress->postCode,
+                            'countryCode' => 'UK',
+                            'monthsAtAddress' => floor(Carbon::parse($currentAddress->dateMovedIn . ' 00:00:00')->diffInMonths())
+                        ],
+                        'previousAddresses' => $payment->addresses
                             ->skip(1)
                             ->values()
                             ->map(function ($address) {
-                                return $this->convertAddress($address);
+                                $address = AddressData::from($address);
+                                return [
+                                    'buildingName' => null,
+                                    'buildingNumber' => $address->houseNumber,
+                                    'address1' => $address->street,
+                                    'address2' => $address->address1,
+                                    'address3' => $address->address2,
+                                    'town' => $address->town,
+                                    'postcode' => $address->postCode,
+                                    'countryCode' => 'UK',
+                                    'monthsAtAddress' => floor(Carbon::parse($address->dateMovedIn . ' 00:00:00')->diffInMonths())
+                                ];
                             })
                     ],
-                    'nationality' => $application->british_citizen ? 'british' : 'non-british',
-                    'residentialStatus' => $this->residentialStatus($application->homeowner_status, $application->has_mortgage),
+                    'nationality' => $payment->nationalityValue?->payment_provider_values['tandem'] ?? null,
+                    'residentialStatus' => $payment->residentialStatus?->payment_provider_values['tandem'] ?? null,
                     'contactDetails' => [
-                        'emailAddress' => $application->email_address,
-                        'mobilePhone' => $application->mobile,
-                        'homePhone' => $application->landline,
+                        'emailAddress' => $payment->email_address,
+                        'mobilePhone' => $payment->mobile,
+                        'homePhone' => $payment->landline,
                     ],
                     'employment' => [
-                        'employmentStatus' => $this->convertEmploymentStatus($application->employment_status),
-                        'occupation' => $application->occupation,
+                        'employmentStatus' => $payment->employmentStatus?->payment_provider_values['tandem'] ?? null,
+                        'occupation' => $payment->occupation,
                         'employers' => [
                             'currentEmployer' => [
-                                'employerName' => $application->employer_name ?: $this->convertEmploymentStatus($application->employment_status),
+                                'employerName' => $payment->employer_name ?: $payment->employmentStatus?->payment_provider_values['tandem'] ?? null,
                             ],
                         ]
                     ],
                     'income' => [
-                        'grossAnnualIncome' => $application->gross_income_individual,
+                        'grossAnnualIncome' => $payment->gross_income_individual,
                         'otherIncomes' => [
                             [
                                 'type' => 'Gross household income',
-                                'amount' => $application->gross_income_household,
+                                'amount' => $payment->gross_income_household,
                             ]
                         ]
                     ],
                     //'vulnerableCustomer' => '',
                     'monthlyOutgoings' => [
-                        'Mortgage' => $application->mortgage_monthly,
-                        'Rent' => $application->rent_monthly,
+                        'Mortgage' => $payment->mortgage_monthly,
+                        'Rent' => $payment->rent_monthly,
                     ],
                     'bankAccount' => [
-                        'accountNumber' => $application->bank_account_number,
-                        'sortCode' => (string)Str::of($application->bank_account_sort_code)->replace('-', ''),
-                        'accountHolderName' => $application->bank_account_holder_name
+                        'accountNumber' => $payment->bank_account_number,
+                        'sortCode' => (string)Str::of($payment->bank_account_sort_code)->replace('-', ''),
+                        'accountHolderName' => $payment->bank_account_holder_name
                     ],
-                    'dependents' => $application->dependents_count
+                    'dependents' => $payment->dependants
                 ]
             ],
             'retail' => [
-                'retailerName' => Settings::byName('company_full_name')->value ?? null,
-                'subRetailerName' => Settings::byName('company_name')->value ?? null,
-                'productLegalDescription' => $application->quote->products_description ?? null,
+                'retailerName' => $companyDetails->legalName,
+                'subRetailerName' => $companyDetails->commonName,
+                'productLegalDescription' => $payment->parentable->products_description ?? null, // TODO: Should we let the helper do this?
                 'retailSource' => 'retailPortal',
                 'goods' => [
                     [
-                        'description' => $application->quote->products_description ?? 'Various products',
+                        'description' => $payment->parentable->products_description ?? 'Various products',
                         'typeCode' => 'RESOLP001',
-                        'totalPrice' => $application->quote->gross,
+                        'totalPrice' => $helper->getGross(),
                         'quantity' => 1
                     ],
                 ]
             ],
             'control' => [
-                //'returnUrl' => 'string', // Feature intended for a different Allium client
-                'webhookUri' => route('finance_applications.webhook', $application->uuid),
+                'webhookUri' => route('payment.webhook.tandem', $payment->uuid),
                 'actions' => [
                     'declined',
                     'pending',
@@ -189,7 +223,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             ]
         ];
 
-        Log::channel('finance')->info(json_encode($data, JSON_PRETTY_PRINT));
+        Log::info('tandem request', $this->requestData);
 
         $submitted_at = Carbon::now();
 
@@ -197,32 +231,48 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             $response = Http::withHeaders([
                 'Ocp-Apim-Subscription-Key' => $this->key
             ])
-                ->post($this->endpoint . '/submitRetailApplication', $data)
-                ->throw();
+            ->post(
+                $this->endpoint . '/submitRetailApplication',
+                $this->requestData
+            );
+
+            $this->responseData = $response->json();
+
+            $response->throw();
+
         } catch (\Throwable $ex) {
-            Log::channel('finance')->error($ex);
-            // TODO: Should we deal with the error responses here in order to return a unified response, or just let it bubble up?
-            throw $ex;
+            $this->responseData = json_decode($ex->response->body(), true);
+
+            Log::debug('Tandem response: ' . print_r($this->responseData, true));
+
+            Log::channel('finance')->error($ex->getMessage(), $this->responseData);
+
+            $payment->update([
+                'payment_status_id' => PaymentStatus::byIdentifier('error')?->id,
+                'provider_request_data' => $this->requestData,
+                'provider_response_data' => $this->responseData,
+            ]);
+
+            return $payment;
         }
 
-        $json = $response->json();
+        Log::channel('finance')->info(json_encode($this->responseData, JSON_PRETTY_PRINT));
 
-        Log::channel('finance')->info(json_encode($json, JSON_PRETTY_PRINT));
+        $payment->update([
+            'provider_foreign_id' => $this->responseData['applicationId'],
+            'payment_status_id' => PaymentStatus::byIdentifier($this->responseData['status'])?->id,
+            'offer_expiration_date' => $this->responseData['offerExpirationDate'],
+            'provider_request_data' => $this->requestData,
+            'provider_response_data' => $this->responseData,
+            'submitted_at' => $submitted_at,
+            ...(
+                in_array($this->responseData['status'], ['declined', 'conditional_accept', 'accepted']) ?
+                    ['decision_received_at' => Carbon::now()] :
+                    []
+            )
+        ]);
 
-        $application->lender_application_id = $json['applicationId'];
-        $application->status = $json['status'];
-        $application->offer_expiration_date = $json['offerExpirationDate'];
-        $application->lender_request_data = json_encode($data);
-        $application->lender_response_data = json_encode($json);
-        $application->submitted_at = $submitted_at;
-
-        if (in_array($json['status'], ['declined', 'conditional_accept', 'accepted'])) {
-            $application->decision_received_at = Carbon::now();
-        }
-
-        $application->save();
-
-        return $application;
+        return $payment;
     }
 
     public function signingMethod(): string
@@ -230,28 +280,15 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return 'online';
     }
 
-    /**
-     * Retrieves the URL to the finance application signing page
-     *
-     * @param FinanceApplication $application
-     * @param string|null $return_url
-     * @return mixed
-     * @throws RequestException
-     */
-    public function getSigningUrl(FinanceApplication $application, ?string $return_url = null)
+    public function getSigningUrl(Payment $payment): string
     {
-        $data = [
-            'returnURL' => $return_url
-        ];
-
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
-            ->post($this->endpoint . '/' . $application->lender_application_id . '/getApplicationSigningLink', $data)
+            ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationSigningLink', [])
             ->throw();
 
         $json = $response->json();
-        Log::channel('finance')->debug($json['signingLink']);
         // Work around for dev API bug. Hopefully due to be fixed upstream
         $json['signingLink'] = str_replace('honeycombexternal.com', 'alliummoney.co.uk', $json['signingLink']);
 
@@ -261,7 +298,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
     /**
      * Fetches updated status, loan data and offer expiry from lender.
      *
-     * @param FinanceApplication $application
+     * @param Payment $payment
      * @return array
      * @throws RequestException
      */
@@ -296,117 +333,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         ];
     }
 
-    public function convertAddress($address)
-    {
-        // Split out house number / name
-        if (!empty($address['house_number'])) {
-            if (Address::isHouseName($address['house_number'])) {
-                $address['building_name'] = $address['house_number'];
-            } else {
-                $address['building_number'] = $address['house_number'];
-            }
-
-            $address1 = $address['street'];
-            $address2 = $address['address1'];
-            $address3 = $address['address2'];
-
-            $address['address1'] = $address1;
-            $address['address2'] = $address2;
-            $address['address3'] = $address3;
-        } elseif (preg_match('/^([0-9]+[a-z]?) (.*)/i', trim($address['address1']), $matches)) {
-            $address['building_number'] = $matches[1];
-            $address['address1'] = $matches[2];
-        } elseif (preg_match('/^([0-9]+[a-z]?)$/i', trim($address['address1']), $matches)) {
-            $address['building_number'] = $matches[1];
-            $address['address1'] = $address['address2'];
-            $address['address2'] = $address['address3'];
-            $address['address3'] = null;
-        } else {
-            $address['building_name'] = $address['address1'];
-            $address['address1'] = $address['address2'];
-            $address['address2'] = $address['address3'];
-            $address['address3'] = null;
-        }
-
-        return [
-            'buildingName' => $address['building_name'] ?? null,
-            'buildingNumber' => $address['building_number'] ?? null,
-            'address1' => $address['address1'],
-            'address2' => $address['address2'],
-            'address3' => $address['address3'],
-            'town' => $address['town'],
-            'postcode' => $address['post_code'],
-            'countryCode' => 'UK',
-            'monthsAtAddress' => $address['time_at_address'] ?? 0
-        ];
-    }
-
-    public function convertEmploymentStatus($employment_status)
-    {
-        switch ($employment_status) {
-            case 'employed':
-                return 'full_time_employed';
-                break;
-            case 'self-employed':
-                return 'full_time_self_employed';
-                break;
-            case 'retired':
-                return 'retired';
-                break;
-            case 'unemployed':
-                return 'unemployed';
-                break;
-            default:
-                return 'other';
-                break;
-
-        }
-    }
-
-    public function convertMaritalStatus($marital_status)
-    {
-        switch ($marital_status) {
-            case 'cohabiting':
-                return 'living_together';
-                break;
-            default:
-                return $marital_status;
-                break;
-
-        }
-    }
-
-    private function productsDescription(?Quote $quote = null): ?string
-    {
-        if (empty($quote)) {
-            return null;
-        }
-
-        $items = [];
-
-        if ($quote->has_solar_panels) {
-            $items[] = 'Solar Panels';
-        }
-
-        if ($quote->has_battery_storage) {
-            $items[] = 'Battery Storage';
-        }
-
-        return collect($items)->implode(', ');
-    }
-
-    private function residentialStatus(string $homeowner_status, bool $has_mortgage)
-    {
-        if ($homeowner_status == 1 && $has_mortgage) {
-            return 'homeowner_with_mortgage';
-        } elseif ($homeowner_status == 1 && !$has_mortgage) {
-            return 'homeowner_no_mortgage';
-        } else {
-            return 'tenant';
-        }
-    }
-
-    public function cancel(FinanceApplication $application)
+    public function cancel(Payment $payment): bool
     {
         $data = [
             'cancellationReason' => 'Customer Withdrawn',
@@ -416,28 +343,28 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             $response = Http::withHeaders([
                 'Ocp-Apim-Subscription-Key' => $this->key
             ])
-                ->post($this->endpoint . '/' . $application->lender_application_id . '/cancelApplication', $data)
+                ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/cancelApplication', $data)
                 ->throw();
 
             // The underwriting team have asked to be e-mailed explicitly
-            Mail::to($application->finance_lender->underwriter_email)
-                ->send(new FinanceApplicationCancelled($application));
+            Mail::to($payment->paymentProvider->underwriter_email)
+                ->send(new FinanceApplicationCancelled($payment));
         } catch (RequestException $ex) {
             // Allium return a 403 if the loan has already been cancelled
             if ($ex->getCode() == 403) {
                 Log::channel('finance')
-                    ->debug('Cancellation request for ' . $application->reference . ' rejected (403)');
+                    ->debug('Cancellation request for ' . $payment->reference . ' rejected (403)');
 
                 // Poll the status of the application to see where it's genuinely up to
-                $result = $this->pollStatus($application);
+                $result = $this->pollStatus($payment);
 
                 Log::channel('finance')->debug('Application status: ' . $result['status']);
 
                 // If it isn't 'expired' then e-mail them for manual cancellation
                 if ($result['status'] != 'expired') {
                     Log::channel('finance')->debug('Sending cancellation request e-mail');
-                    Mail::to($application->finance_lender->underwriter_email)
-                        ->send(new FinanceApplicationCancelManually($application));
+                    Mail::to($payment->paymentProvider->underwriter_email)
+                        ->send(new CancelManually($payment));
                 } else {
                     Log::channel('finance')->debug('Application was already cancelled successfully');
                 }
@@ -452,7 +379,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return true;
     }
 
-    public function sendSatNote(FinanceApplication $application)
+    public function sendSatNote(Payment $payment): bool
     {
         $data = [
             'cancellationReason' => 'Customer Withdrawn',
@@ -462,7 +389,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             $response = Http::withHeaders([
                 'Ocp-Apim-Subscription-Key' => $this->key
             ])
-                ->post($this->endpoint . '/' . $application->lender_application_id . '/notifyFulfilment', $data)
+                ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/notifyFulfilment', $data)
                 ->throw();
 
             $json = $response->json();
@@ -471,20 +398,20 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
             return $json['fulfilmentAccepted'];
         } catch (\Throwable $ex) {
-            Log::channel('finance')->debug('Failed to send Sat Note to Allium for finance application #' . $application->id);
+            Log::channel('finance')->debug('Failed to send Sat Note to Tandem for finance application #' . $payment->id);
             Log::channel('finance')->debug('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
             return false;
         }
     }
 
-    public function uploadEpvsCertificate(FinanceApplication $application, string $encodedFile)
+    public function uploadEpvsCertificate(Payment $payment, string $encodedFile): bool
     {
         $data = [
             'file' => base64_encode($encodedFile)
         ];
 
         try {
-            $url = $this->endpoint . '/' . $application->lender_application_id . '/uploadEPVSCertificate';
+            $url = $this->endpoint . '/' . $payment->provider_foreign_id . '/uploadEPVSCertificate';
 
             $response = Http::withHeaders([
                 'Ocp-Apim-Subscription-Key' => $this->key
@@ -494,23 +421,23 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 ->throw();
 
             $json = $response->json();
-            Log::info(print_r($json, true));
+//            Log::channel('finance')->info(print_r($json, true));
 
             return true;
         } catch (\Throwable $ex) {
             if ($ex->getCode() == 404) {
-                Log::warning('Finance application #' . $application->id . ' not waiting for EPVS certificate.');
-                return;
+                Log::channel('finance')->warning('Payment #' . $payment->id . ' not waiting for EPVS certificate.');
+                return true; // Is this the right response?
             }
 
-            Log::error('Failed to upload certificate to Allium for finance application #' . $application->id);
-            Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-            Log::error('URL: ' . $url);
+            Log::channel('finance')->error('Failed to upload certificate to Tandem for finance application #' . $payment->id);
+            Log::channel('finance')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+            Log::channel('finance')->error('URL: ' . $url);
             return false;
         }
     }
 
-    public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null)
+    public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array
     {
         return Cache::remember(
             'calculatePayments-' . $loanAmount . '-' . $apr . '-' . $loanTerm . '-' . $deferredPeriod,
@@ -525,7 +452,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     'deferredPayments' => !empty($deferredPeriod) ? $deferredPeriod - 1 : 0,
                 ];
 
-//                Log::info(print_r($data, true));
+//                Log::channel('finance')->info(print_r($data, true));
 
                 try {
                     $url = $this->endpoint . '/financeCalculation';
@@ -539,28 +466,18 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     $response->throw();
 
                     $json = $response->json();
-                    Log::info(print_r($json, true));
+//                    Log::channel('finance')->info(print_r($json, true));
 
                     return $json;
                 } catch (\Throwable $ex) {
-                    Log::error('Failed to retrieve payments from API.');
-                    Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-                    Log::error('URL: ' . $url);
-                    Log::error('Data: ' . print_r($data, true));
-                    Log::error('Response: ' . $response->body());
+                    Log::channel('finance')->error('Failed to retrieve payments from API.');
+                    Log::channel('finance')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+                    Log::channel('finance')->error('URL: ' . $url);
+                    Log::channel('finance')->error('Data: ' . print_r($data, true));
+                    Log::channel('finance')->error('Response: ' . $response->body());
                     throw $ex;
                 }
             }
-        );
-    }
-
-    public function calculatePaymentsForApplication(FinanceApplication $financeApplication)
-    {
-        return $this->calculatePayments(
-            $financeApplication->loan_amount,
-            $financeApplication->apr,
-            $financeApplication->loan_term,
-            $financeApplication->deferred_period ?? 0
         );
     }
 
@@ -577,13 +494,14 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 ->throw();
 
             $json = $response->json();
+            dump($response->body());
 
             return collect($json['financeProducts'] ?? []);
         } catch (\Throwable $ex) {
-            Log::error('Failed to retrieve payments from API.');
-            Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-            Log::error('URL: ' . $url);
-//            Log::error('Data: ' . print_r($data, true));
+            Log::channel('finance')->error('Failed to retrieve payments from API.');
+            Log::channel('finance')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+            Log::channel('finance')->error('URL: ' . $url);
+//            Log::channel('finance')->error('Data: ' . print_r($data, true));
             throw $ex;
         }
     }
@@ -613,9 +531,11 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
                 $products = $this->financeProducts();
 
-                //Log::info(print_r($products, true));
+                $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
 
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount) {
+                //Log::channel('finance')->info(print_r($products, true));
+
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $amount) {
                     // Fetch payments
                     try {
                         $payments = $this->calculatePayments(
@@ -650,7 +570,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
                     // If there are no payments, skip it
                     if ($payments['RepaymentDetails']['MonthlyRepayment'] <= 0) {
-                        Log::debug('No payment calc for product', $product);
+                        Log::channel('finance')->debug('No payment calc for product', $product);
                         return null;
                     }
 
@@ -658,7 +578,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         ($product['termMonths'] / 12) . ' years' .
                         ($product['deferredPayments'] > 0 ? ' ' . $product['deferredPayments'] . ' months deferred' : '');
 
-//                    Log::debug('Creating Tandem Product', [
+//                    Log::channel('finance')->debug('Creating Tandem Product', [
 //                        'payment_provider_id' => $paymentProvider->id,
 //                        'identifier' => 'tandem_' . $product['apr'] . '_' . $product['termMonths'] . ($product['deferredPayments'] > 0 ? '+' . $product['deferredPayments'] : ''),
 //                        'name' => $productName,
@@ -683,7 +603,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     // If the product has been soft deleted, don't store the offer
                     // This allows us to disable products we don't want to offer to customers
                     if ($paymentProduct->trashed()) {
-                        Log::debug('Tandem product soft deleted', $product);
+                        Log::channel('finance')->debug('Tandem product soft deleted', $product);
                         return null;
                     }
 
@@ -692,6 +612,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         ->create([
                             'name' => $productName,
                             'type' => 'finance',
+                            'reference' => $reference,
                             'amount' => $amount,
                             'payment_provider_id' => $paymentProvider->id,
                             'payment_product_id' => $paymentProduct->id,
@@ -718,6 +639,18 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return new PrequalPromiseData(
             gateway: static::class,
             surveyId: $survey->id,
+        );
+    }
+
+    public function parseErrors(Collection $response): ErrorCollectionData
+    {
+        Log::debug('errors to parse', $response->toArray());
+
+        return new ErrorCollectionData(
+            collect($response['errors'])
+                ->map(function ($value, $key) {
+                    return new ErrorData($key, $value[0]);
+                })
         );
     }
 }

@@ -4,8 +4,6 @@ namespace Mralston\Payment\Integrations;
 
 use App\Address;
 use App\FinanceApplication;
-use App\Mail\FinanceApplicationCancelManually;
-use App\Mail\FinanceApplicationSatNoteUpload;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
@@ -19,12 +17,16 @@ use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Interfaces\Signable;
+use Mralston\Payment\Mail\CancelManually;
+use Mralston\Payment\Mail\SatNoteUpload;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Services\PaymentCalculator;
 use Spatie\ArrayToXml\ArrayToXml;
 
-class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
+class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Signable
 {
     public const UNEXPECTED_ERROR = 0; // Any error that we were not expecting. i.e. an Exception
     public const TARGET_REFERENCE_UNKNOWN = 1; // Target reference not recognised
@@ -73,8 +75,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
     private string $endpoint;
 
     public function __construct(
-        private string $ibcRef,
-        string $endpoint,
+        private string $key,
+        string $endpoint
     ) {
         $this->endpoint = $this->endpoints[$endpoint];
 
@@ -90,7 +92,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
      *
      * @return bool
      */
-    public function healthCheck()
+    public function healthCheck(): bool
     {
         $response = $this->guzzleClient->request('POST', 'Test', []);
 
@@ -102,14 +104,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return false;
     }
 
-    public function apply(FinanceApplication $application)
+    public function apply(Payment $payment): Payment
     {
-        // Temporary workaround. Can be removed pretty sharpish
-        if (empty($application->reference)) {
-            $application->update([
-                'reference' => $application->quote_id . '-' . $application->id
-            ]);
-        }
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($payment->parentable);
 
         $this->addressIncrement = -1;
 
@@ -131,43 +129,39 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             'REF' => $this->getNewRef(),
         ];
 
-        $application->employer_ibc_ref = null;
-        if (
-            $this->convertEmploymentStatus($application->employment_status) != 'Unemployed' &&
-            $application->employment_status != 'retired'
-        ) {
-            $application->employer_ibc_ref = $this->getNewRef();
+        if (!in_array($payment->employment_status->value, ['retired', 'unemployed'])) {
+            $payment->update([
+                'employer_ibc_ref' => $this->getNewRef()
+            ]);
         }
-
-        $application->save();
 
         $expenditure = [];
 
-        if ($application->mortgage_monthly > 0 && $application->rent_monthly > 0) {
+        if ($payment->mortgage_monthly > 0 && $payment->rent_monthly > 0) {
             $expenditure[] =  [
                 '_attributes' => [
                     'CHECKS_MADE_REF' => $expenditureMortgagePK,
-                    'IBC_REF' => $application->ibc_ref,
+                    'IBC_REF' => $payment->ibc_ref, // TODO: does this need to be set at the start?
                     'EXPENDITURE_CHECK_CODE' => 'MORT',
-                    'LOAN_AMOUNT' => round($application->mortgage_monthly + $application->rent_monthly, 2)
+                    'LOAN_AMOUNT' => round($payment->mortgage_monthly + $payment->rent_monthly, 2)
                 ]
             ];
-        } elseif ($application->mortgage_monthly > 0) {
+        } elseif ($payment->mortgage_monthly > 0) {
             $expenditure[] =  [
                 '_attributes' => [
                     'CHECKS_MADE_REF' => $expenditureMortgagePK,
-                    'IBC_REF' => $application->ibc_ref,
+                    'IBC_REF' => $payment->ibc_ref,
                     'EXPENDITURE_CHECK_CODE' => 'MORT',
-                    'LOAN_AMOUNT' => round($application->mortgage_monthly, 2)
+                    'LOAN_AMOUNT' => round($payment->mortgage_monthly, 2)
                 ]
             ];
-        } elseif ($application->rent_monthly > 0) {
+        } elseif ($payment->rent_monthly > 0) {
             $expenditure[] = [
                 '_attributes' => [
                     'CHECKS_MADE_REF' => $expenditureRentPK,
-                    'IBC_REF' => $application->ibc_ref,
+                    'IBC_REF' => $payment->ibc_ref,
                     'EXPENDITURE_CHECK_CODE' => 'MORT',
-                    'LOAN_AMOUNT' =>  round($application->rent_monthly, 2)
+                    'LOAN_AMOUNT' =>  round($payment->rent_monthly, 2)
                 ]
             ];
         }
@@ -176,14 +170,14 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         $employer = [
             'ASSOCIATION_ID' => $employerPK,
             'ASSOCIATION_TYPE' => 'EMP',
-            'IBC_REF_FROM' => $application->ibc_ref,
-            'YEARS_AT' => floor($application->time_with_employer / 12),
+            'IBC_REF_FROM' => $payment->ibc_ref,
+            'YEARS_AT' => floor($payment->time_with_employer / 12),
             'MONTHS_AT' => 0,
-            'DESIGNATION_NAME_AT_BANK' => $application->occupation,
-            'ACTIVE_FULLTIME' => $this->convertFulltime($application->employment_status),
+            'DESIGNATION_NAME_AT_BANK' => $payment->occupation,
+            'ACTIVE_FULLTIME' => $this->convertFulltime($payment->employment_status),
             'EMPLOYER_CATEGORY' => 'CUR',
-            'GROSS_SALARY' => $application->gross_income_household,
-            'JOB_CATEGORY' => $this->convertEmploymentStatus($application->employment_status),
+            'GROSS_SALARY' => $payment->gross_income_household,
+            'JOB_CATEGORY' => $this->convertEmploymentStatus($payment->employment_status),
         ];
 
         // Add employer IBC ref ONLY if it is non-empty
@@ -193,32 +187,32 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
         $ibcApplicant = [
             '_attributes' => [
-                'IBC_REF' => $application->ibc_ref,
+                'IBC_REF' => $payment->ibc_ref,
                 'IBC_TYPE' => 'I',
-                'TELEPHONE_1' => $application->landline ?? 0,
-                'MOBILE_PHONE' => $application->mobile ?? 0,
-                'E_MAIL' => $application->email_address ?? '',
-                'TITLE' => $application->title,
-                'SURNAME_REGISTERED_NAME' => $application->last_name,
-                'FORENAMES' => implode(" ", array_filter([$application->first_name, $application->middle_name])),
+                'TELEPHONE_1' => $payment->landline ?? 0,
+                'MOBILE_PHONE' => $payment->mobile ?? 0,
+                'E_MAIL' => $payment->email_address ?? '',
+                'TITLE' => $payment->title,
+                'SURNAME_REGISTERED_NAME' => $payment->last_name,
+                'FORENAMES' => implode(" ", array_filter([$payment->first_name, $payment->middle_name])),
                 'SHORT_NAME' => implode(
                     " ",
                     array_filter([
-                        $application->title,
-                        $application->first_name,
-                        $application->middle_name,
-                        $application->last_name
+                        $payment->title,
+                        $payment->first_name,
+                        $payment->middle_name,
+                        $payment->last_name
                     ])
                 ),
-                'DOB_REG_DATE' => $application->date_of_birth->toDateTimeLocalString(),
+                'DOB_REG_DATE' => $payment->date_of_birth->toDateTimeLocalString(),
                 'SEX' => 'X',
-                'MARITAL_STATUS' => $this->convertMaritalStatus($application->marital_status),
-                'BANKRUPT_OR_IN_IVA' => empty($application->bankrupt_or_iva) ? 0 : 1
+                'MARITAL_STATUS' => $this->convertMaritalStatus($payment->marital_status),
+                'BANKRUPT_OR_IN_IVA' => empty($payment->bankrupt_or_iva) ? 0 : 1
             ],
-            'ADDRESS' => $application->addresses
+            'ADDRESS' => $payment->addresses
                 ->values()
-                ->map(function ($address) use ($application) {
-                    return $this->convertAddress($address, $application);
+                ->map(function ($address) use ($payment) {
+                    return $this->convertAddress($address, $payment);
                 })
                 ->toArray(),
             'ASSOCIATION' => [
@@ -227,10 +221,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     '_attributes' => [
                         'ASSOCIATION_ID' => $bankAccountPK,
                         'ASSOCIATION_TYPE' => 'BNK',
-                        'IBC_REF_FROM' => $application->ibc_ref,
-                        'IBC_REF_TO' => str_replace("-", "", $application->bank_account_sort_code),
-                        'ACCOUNT_NUMBER_JOB_CODE' => $application->bank_account_number,
-                        'ACCOUNT_NAME' => $application->bank_account_holder_name
+                        'IBC_REF_FROM' => $payment->ibc_ref,
+                        'IBC_REF_TO' => str_replace("-", "", $payment->bank_account_sort_code),
+                        'ACCOUNT_NUMBER_JOB_CODE' => $payment->bank_account_number,
+                        'ACCOUNT_NAME' => $payment->bank_account_holder_name
                     ]
                 ],
                 [
@@ -242,9 +236,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 [
                     '_attributes' => [
                         'CHECKS_MADE_REF' => $incomeHouseholdPK,
-                        'IBC_REF' => $application->ibc_ref,
+                        'IBC_REF' => $payment->ibc_ref,
                         'INCOME_CHECK_CODE' => 'WA',
-                        'PERIOD1AMOUNT' => $application->net_monthly_income_individual,
+                        'PERIOD1AMOUNT' => $payment->net_monthly_income_individual,
                     ],
                 ]
             ],
@@ -257,25 +251,25 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
         $ibcEmployer = [
             '_attributes' => [
-                'IBC_REF' => $application->employer_ibc_ref,
+                'IBC_REF' => $payment->employer_ibc_ref,
                 'IBC_TYPE' => 'C',
-                'TELEPHONE_1' => $application->employer_telephone ?? 0,
-                'SURNAME_REGISTERED_NAME' => $application->employer_name ?? ($application->employment_status == 'self-employed' ? $application->first_name . ' ' . $application->last_name : null),
-                'DOB_REG_DATE' => ($application->employer_company_reg_date ?? Carbon::parse('1970-01-01 00:00:00'))->toDateTimeLocalString(),
-                'COMPANY_TYPE' => $this->convertCompanyType($application->employer_company_type),
-                'SHORT_NAME' => $application->employer_name,
+                'TELEPHONE_1' => $payment->employer_telephone ?? 0,
+                'SURNAME_REGISTERED_NAME' => $payment->employer_name ?? ($payment->employment_status == 'self-employed' ? $payment->first_name . ' ' . $payment->last_name : null),
+                'DOB_REG_DATE' => ($payment->employer_company_reg_date ?? Carbon::parse('1970-01-01 00:00:00'))->toDateTimeLocalString(),
+                'COMPANY_TYPE' => $this->convertCompanyType($payment->employer_company_type),
+                'SHORT_NAME' => $payment->employer_name,
                 'BANKRUPT_OR_IN_IVA' => 0,
             ],
-            'ADDRESS' => $application->employer_address
+            'ADDRESS' => $payment->employer_address
                 ->values()
-                ->map(function ($address) use ($application) {
-                    return $this->convertEmployerAddress($address, $application);
+                ->map(function ($address) use ($payment) {
+                    return $this->convertEmployerAddress($address, $payment);
                 })
                 ->toArray()
         ];
 
         $data = [
-            'IBC' => array_merge([$ibcApplicant], (!empty($application->employer_ibc_ref)) ? [$ibcEmployer] : []),
+            'IBC' => array_merge([$ibcApplicant], (!empty($payment->employer_ibc_ref)) ? [$ibcEmployer] : []),
             'AGREEMENT' => [
                 '_attributes' => [
                     'AGREEMENT_REF' => $agreement['REF'],
@@ -300,28 +294,28 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 'CONTACT_LINK_AGREEMENT' => [
                     [
                         '_attributes' => [
-                            'IBC_REF' => $application->ibc_ref, //our ibc
+                            'IBC_REF' => $payment->ibc_ref, //our ibc
                             'RELATIONSHIP' => 'MAIN',
                             'AGREEMENT_REF' => $agreement['REF'],
                         ]
                     ],
                     [
                         '_attributes' => [
-                            'IBC_REF' => $this->ibcRef, //our ibc
+                            'IBC_REF' => $this->key, //our ibc
                             'RELATIONSHIP' => 'DEAL',
                             'AGREEMENT_REF' => $agreement['REF'],
                         ]
                     ],
                     [
                         '_attributes' => [
-                            'IBC_REF' => $this->ibcRef, //our ibc
+                            'IBC_REF' => $this->key, //our ibc
                             'RELATIONSHIP' => 'SUP',
                             'AGREEMENT_REF' => $agreement['REF'],
                         ]
                     ],
                     [
                         '_attributes' => [
-                            'IBC_REF' => $this->ibcRef, //our ibc
+                            'IBC_REF' => $this->key, //our ibc
                             'RELATIONSHIP' => 'INTRO',
                             'AGREEMENT_REF' => $agreement['REF'],
                         ]
@@ -333,10 +327,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     'ASSET_REF' => $assetPK,
                     'AGREEMENT_REF' => $agreement['REF'],
                     'ASSET_TYPE' => 'NO ASSET',
-                    'COST' => round($application->loan_amount - $application->deposit, 2), #loan advance
-                    'DESCRIPTION' => substr($application->quote->products_description, 0, 100) ?? 'Various products',
-                    'VEHICLE_COST' => round($application->quote->gross, 2),
-                    'CASH_DEPOSIT' => round($application->deposit, 2),
+                    'COST' => round($payment->loan_amount - $payment->deposit, 2), #loan advance
+                    'DESCRIPTION' => substr($payment->quote->products_description, 0, 100) ?? 'Various products',
+                    'VEHICLE_COST' => round($payment->quote->gross, 2),
+                    'CASH_DEPOSIT' => round($payment->deposit, 2),
                 ]
             ],
             'QUOTATION' => [
@@ -344,23 +338,23 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                     'QUOTATION_REF' => $quotation['REF'],
                     'AGREEMENT_REF' => $agreement['REF'],
                     'CHARGES' => 0,
-                    'DEFERMENT_PERIOD' => $application->deferred_period ?? 1,
+                    'DEFERMENT_PERIOD' => $payment->deferred_period ?? 1,
                     'DOCUMENTATION_FEE' => 0,
                     'DOCUMENT_TYPE' => $agreement['DOCUMENT_TYPE'],
-                    'NUMBER_REGULAR_RENTALS' => $application->loan_term,
-                    'PAYMENT' => $application->monthly_payment,
+                    'NUMBER_REGULAR_RENTALS' => $payment->loan_term,
+                    'PAYMENT' => $payment->monthly_payment,
                     'PAYMENT_FREQUENCY' => 1, #monthly
-                    'RATE' => $application->apr,
-                    'APR' => $application->apr,
-                    'DEPOSIT' => $application->deposit ?? 0,
-                    'TERM' => $application->loan_term,
-                    'TOTAL_CASH_PRICE' => round($application->quote->gross, 2),
-                    'TOTAL_PAYABLE' => round($application->total_payable, 2),
+                    'RATE' => $payment->apr,
+                    'APR' => $payment->apr,
+                    'DEPOSIT' => $payment->deposit ?? 0,
+                    'TERM' => $payment->loan_term,
+                    'TOTAL_CASH_PRICE' => round($payment->quote->gross, 2),
+                    'TOTAL_PAYABLE' => round($payment->total_payable, 2),
                     'QUOTATION_TARGET' => 'PAYMENT',
                     'DOC_FEE_COMPONENT' => 'ARRANGEMENT_FEE',
                     'SUBSIDY' => 0,
-                    'QUOTATION_CAMPAIGN_REF' => $application->lender_product_code,
-                    'AMOUNT_FINANCED' => round($application->quote->gross - $application->deposit, 2),
+                    'QUOTATION_CAMPAIGN_REF' => $payment->lender_product_code,
+                    'AMOUNT_FINANCED' => round($payment->quote->gross - $payment->deposit, 2),
                 ]
             ],
             'IMPORT_CONTROL' => [
@@ -369,6 +363,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 ],
             ],
         ];
+
+        $payment->update([
+            'provider_request_data' => $data
+        ]);
 
         #Log::channel('finance')->info($data);
 
@@ -382,8 +380,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         #Log::channel('finance')->info($response);
 
         if (is_array($response) && isset($response['xml'])) {
-            $application->lender_request_data = $response['xml'];
-            $application->save();
+            $payment->update([
+                'provider_request_data' => $response['xml']
+            ]);
         }
 
         // See if we got a response from Propensio
@@ -391,32 +390,32 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             // Yes, check it was okay
             if ($this->isStatusOk($response['response']['STATUS'] ?? null)) {
                 // Application submitted successfully
-                $application->lender_application_id = $response['response']['RETURN_MESSAGE']['AGREEMENT_CODE'];
-                $application->status = 'pending';
+                $payment->lender_application_id = $response['response']['RETURN_MESSAGE']['AGREEMENT_CODE'];
+                $payment->status = 'pending';
                 //$application->offer_expiration_date = $json['offerExpirationDate'];
-                $application->lender_response_data = json_encode($response['response']['RETURN_MESSAGE']);
-                $application->submitted_at = Carbon::now();
+                $payment->lender_response_data = json_encode($response['response']['RETURN_MESSAGE']);
+                $payment->submitted_at = Carbon::now();
 
-                $application->save();
+                $payment->save();
             } elseif (isset($response['response']['STATUS'])) {
                 // Known error
-                $application->status = 'error';
-                $application->lender_response_data = 'Error #' . $response['response']['STATUS'] . ': ' .
+                $payment->status = 'error';
+                $payment->lender_response_data = 'Error #' . $response['response']['STATUS'] . ': ' .
                     $response['response']['RETURN_MESSAGE']['MESSAGE_TEXT'];
-                $application->save();
+                $payment->save();
             } else {
                 // Unknown error (from Propensio)
-                $application->status = 'error';
-                $application->lender_response_data = json_encode($response);
-                $application->save();
+                $payment->status = 'error';
+                $payment->lender_response_data = json_encode($response);
+                $payment->save();
             }
         } else {
             // Unexpected error (probably not a Propensio response)
-            $application->status = 'error';
-            $application->lender_response_data = json_encode($response);
-            $application->save();
+            $payment->status = 'error';
+            $payment->lender_response_data = json_encode($response);
+            $payment->save();
         }
-        return $application;
+        return $payment;
     }
 
     public function validateAndSend(
@@ -534,17 +533,20 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return 'online_non_interactive';
     }
 
-    public function getSigningUrl(FinanceApplication $application, ?string $return_url = null)
+    public function getSigningUrl(Payment $payment): string
     {
         return false;
     }
 
     public function pollStatus(Payment $payment): array
     {
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($survey->parentable);
+
         // Some applications don't have a lender ID (it was a bug), so they can't be polled.
         if (empty($payment->provider_foreign_id)) {
             return [
-                'status' => $payment->paymentStatus->name,
+                'status' => $payment->paymentStatus->value,
                 'lender_response_data' => null,
                 'offer_expiration_date' => null
             ];
@@ -591,26 +593,19 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                                 'documentId' => $document['DOCUMENT_ID'],
                                 'agreementCode' => $payment->provider_foreign_id
                             ],
-                            'DOCUMENT'
+                            'DOCUMENT' /*response key*/
                         );
 
-                        $filename = 'propensio_credit_agreement.pdf';
-                        $full_path = $payment->parentable->getDir(null, true) . '/' . $filename;
-                        $url = '/' . $payment->parentable->getDir(null, true, true) . '/' . $filename;
-                        file_put_contents($full_path, $documentResponse['response']);
-
-                        // Add record to files table
-                        if (file_exists($full_path)) {
-                            $file = $payment->parentable->file()->updateOrCreate([
-                                'name' => 'credit_agreement',
-                                'url' => $url,
-                                'dir' => $full_path
-                            ]);
+                        // Save credit agreement
+                        try {
+                            $file = $helper->storeFile('propensio_credit_agreement.pdf', $documentResponse['response']);
 
                             // Store reference in finance application
                             $payment->update([
                                 'credit_agreement_file_id' => $file->id
                             ]);
+                        } catch (\Exception $e) {
+                            Log::channel('finance')->error($e->getMessage());
                         }
                     }
                 }
@@ -624,18 +619,18 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         }
 
         return [
-            'status' => $status ?? $payment->paymentStatus->name,
+            'status' => $status ?? $payment->paymentStatus->value,
             'lender_response_data' => $response['response'],
             'offer_expiration_date' => null
         ];
     }
 
-    public function cancel(FinanceApplication $application)
+    public function cancel(Payment $payment): bool
     {
         $data = [
             'AGREEMENT' => [
                 '_attributes' => [
-                    'AGREEMENT_CODE' => $application->lender_application_id,
+                    'AGREEMENT_CODE' => $payment->provider_foreign_id,
                     'STATUS_CODE' => 'AG_NOT_TAKEN_UP_CLOSED'
                 ]
             ]
@@ -649,25 +644,26 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         );
 
         if (is_array($response) && $response['response']['STATUS'] == 0 && preg_match("/Failed to retrieve the Agreement Reference from the funding system based on the Agreement Code/", $response['response']['RETURN_MESSAGE']['MESSAGE_TEXT'])) {
-            $application->status = 'NotFound';
-            $application->save();
+            $payment->update([
+                'status' => 'NotFound'
+            ]);
 
             return false;
         }
 
         if (is_array($response) && $response['response']['RETURN_MESSAGE']['MESSAGE_REF'] == 1) {
-            Log::channel('finance')->info('Cancellation request for ' . $application->reference . ' rejected (403)');
+            Log::channel('finance')->info('Cancellation request for ' . $payment->reference . ' rejected (403)');
 
             // Poll the status of the application to see where it's genuinely up to
-            $result = $this->pollStatus($application);
+            $result = $this->pollStatus($payment);
 
             Log::channel('finance')->info('Application status: ' . $result['status']);
 
             // If it isn't 'expired' then e-mail them for manual cancellation
             if ($result['status'] != 'expired') {
                 Log::channel('finance')->info('Sending cancellation request e-mail');
-                Mail::to($application->finance_lender->underwriter_email)
-                    ->send(new FinanceApplicationCancelManually($application));
+                Mail::to($payment->paymentProvider->underwriter_email)
+                    ->send(new CancelManually($payment));
             } else {
                 Log::channel('finance')->info('Application was already cancelled successfully');
             }
@@ -678,12 +674,12 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         return true;
     }
 
-    public function sendSatNote(FinanceApplication $application)
+    public function sendSatNote(Payment $payment)
     {
         Log::channel('finance')->info('Sending sat note by e-mail');
 
-        Mail::to($application->finance_lender->sat_note_email)
-            ->send(new FinanceApplicationSatNoteUpload($application));
+        Mail::to($payment->paymentProvider->sat_note_email)
+            ->send(new SatNoteUpload($payment));
     }
 
     public function convertStatusCode($statusCode)
@@ -791,26 +787,28 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         }
     }
 
-    private function convertAddress($address, $application)
+    private function convertAddress($address, Payment $payment)
     {
         $this->addressIncrement++;
+
+        $timeAtAddress = Carbon::now()->diff(Carbon::parse($address['dateMovedIn'] ?? 'now'));
 
         return [
             '_attributes' => array_merge(
                 [
                     'ADDRESS_ID' => $this->getNewRef(),
-                    'IBC_REF' => $application->ibc_ref,
+                    'IBC_REF' => $payment->ibc_ref,
                     'STREET1' => $address['street'] ?? '',
                     'STREET2' => $address['address2'] ?? '',
                     'DISTRICT' => $address['address3'] ?? '',
                     'POSTTOWN' => $address['town'] ?? '',
                     'COUNTY' => $address['county'] ?? '',
                     'POSTCODE' => $address['post_code'] ?? '',
-                    'YEARS_AT' => floor(($address['time_at_address'] ?? 0) / 12),
-                    'MONTHS_AT' => ($address['time_at_address'] ?? 0) % 12,
+                    'YEARS_AT' => $timeAtAddress->y,
+                    'MONTHS_AT' => $timeAtAddress->m,
                     'OCCUPANCY_STATUS' => $this->convertResidentialStatus(
-                        $application->homeowner_status,
-                        $application->has_mortgage
+                        $payment->homeowner_status,
+                        $payment->has_mortgage
                     ),
                     'ADDRESS_CATEGORY' => $this->addressIncrement == 0 ? 'CUR' : 'PRE',
                 ],
@@ -827,6 +825,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
     private function convertEmployerAddress($address, $application)
     {
+        $timeAtAddress = Carbon::now()->diff(Carbon::parse($address['dateMovedIn'] ?? 'now'));
+
         return [
             '_attributes' => /*array_merge(*/[
                 'ADDRESS_ID' => $this->getNewRef(),
@@ -985,10 +985,12 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                 // Fetch products available from lender
                 $products = $paymentProvider->paymentProducts;
 
+                $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
+
                 $calculator = app(PaymentCalculator::class);
 
                 // Store products to offers
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $amount, $calculator) {
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $amount, $calculator) {
 
                     $payments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
 
@@ -996,6 +998,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                         ->create([
                             'name' => $product->name,
                             'type' => 'finance',
+                            'reference' => $reference,
                             'amount' => $amount,
                             'payment_provider_id' => $paymentProvider->id,
                             'payment_product_id' => $product->id,
@@ -1022,5 +1025,25 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
             gateway: static::class,
             surveyId: $survey->id,
         );
+    }
+
+    public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array
+    {
+        // TODO: Implement calculatePayments() method.
+    }
+
+    public function financeProducts(): Collection
+    {
+        // TODO: Implement financeProducts() method.
+    }
+
+    public function getRequestData(): ?array
+    {
+        // TODO: Implement getRequestData() method.
+    }
+
+    public function getResponseData(): ?array
+    {
+        // TODO: Implement getResponseData() method.
     }
 }
