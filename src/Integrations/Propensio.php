@@ -546,7 +546,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         // Some applications don't have a lender ID (it was a bug), so they can't be polled.
         if (empty($payment->provider_foreign_id)) {
             return [
-                'status' => $payment->status,
+                'status' => $payment->paymentStatus->value,
                 'lender_response_data' => null,
                 'offer_expiration_date' => null
             ];
@@ -563,12 +563,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         $response = $this->validateAndSend(
             $data,
             null,
-            'RequestStatus', /*method*/
-            'statusRequestXML', /*request key*/
+            'RequestStatus',
+            'statusRequestXML'
         );
-
-        #Log::channel('finance')->info($response);
-
 
         if (!is_array($response) || !isset($response['response']['RETURN_MESSAGE']['STATUS_CODE'])) {
             $status = 'error';
@@ -580,8 +577,6 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             if (!empty($response['response']['AVAILABLE_DOCUMENTS'])) {
                 $i = 0;
 
-                // Sometimes ['AVAILABLE_DOCUMENTS']['DOCUMENT'] is an array of documents,
-                // sometimes it's a single document. Normalise it to an array
                 if (isset($response['response']['AVAILABLE_DOCUMENTS']['DOCUMENT']['DOCUMENT_ID'])) {
                     $response['response']['AVAILABLE_DOCUMENTS']['DOCUMENT'] = [
                         $response['response']['AVAILABLE_DOCUMENTS']['DOCUMENT']
@@ -597,7 +592,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                             [
                                 'documentId' => $document['DOCUMENT_ID'],
                                 'agreementCode' => $payment->provider_foreign_id
-                            ], /*form params*/
+                            ],
                             'DOCUMENT' /*response key*/
                         );
 
@@ -624,7 +619,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         }
 
         return [
-            'status' => $status ?? $payment->status,
+            'status' => $status ?? $payment->paymentStatus->value,
             'lender_response_data' => $response['response'],
             'offer_expiration_date' => null
         ];
