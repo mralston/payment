@@ -461,7 +461,7 @@ function financeVsLease()
                             </div>
 
                             <button @click="proceed('cash')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                Proceed
+                                Select
                             </button>
 
                             <button @click="cashMoreInfoModal.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
@@ -571,7 +571,7 @@ function financeVsLease()
                             <button @click="proceed('finance')"
                                     :disabled="selectedFinanceOffer === null"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                Proceed
+                                Select
                             </button>
 
                             <button @click="financeMoreInfoModal.show"
@@ -632,7 +632,7 @@ function financeVsLease()
                             <button @click="proceed('lease')"
                                     :disabled="selectedFinanceOffer === null"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                Proceed
+                                Select
                             </button>
 
                             <button @click="leaseMoreInfoModal.show"

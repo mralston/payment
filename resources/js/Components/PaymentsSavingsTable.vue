@@ -14,7 +14,8 @@ const props = defineProps({
     showTitle: {
         type: Boolean,
         default: true,
-    }
+    },
+    year1Disclaimer: String,
 });
 
 const paymentsBreakdown = computed(() => {
@@ -81,8 +82,11 @@ const termInYears = computed(() => props.term / 12);
             </tr>
             </thead>
             <tbody>
-            <tr v-for="row in paymentsBreakdown" :key="row.year">
-                <td>{{ row.year }}</td>
+            <tr v-for="(row, index) in paymentsBreakdown" :key="row.year">
+                <td>
+                    {{ row.year }}
+                    <span v-if="upfrontPayment > 0 && index === 0">*</span>
+                </td>
                 <td>{{ toPounds(row.savings) }}</td>
                 <td>{{ toPounds(row.monthly) }}</td>
                 <td :class="row.diff < 0 ? 'alert-danger' : 'alert-success'">
@@ -91,6 +95,9 @@ const termInYears = computed(() => props.term / 12);
             </tr>
             </tbody>
         </table>
+        <p v-if="upfrontPayment > 0" class="mt-2">
+            * Does not include up front payment.
+        </p>
     </div>
 
 </template>

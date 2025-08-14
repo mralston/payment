@@ -77,13 +77,23 @@ class PaymentOffer extends Model
                 $monthlyPayments = [];
 
                 // Scenario 1: Use the detailed minimum_payments array if available
+                // Remove the upfront cost as this expressed separately
                 if ($this->minimum_payments && $this->minimum_payments->isNotEmpty()) {
                     $monthlyPayments = $this
                         ->minimum_payments
-                        ->map(fn ($payment) => (float) $payment)
+                        ->map(function ($payment, $index) {
+                            $payment = round((float) $payment, 2);
+
+                            if ($index === 0 && $this->upfront_payment > 0) {
+                                $payment = $payment - $this->upfront_payment;
+                            }
+
+                            return $payment;
+                        })
                         ->values()
                         ->all();
                 }
+
                 // Scenario 2: Build the payment schedule from first/monthly/final payments
                 else {
                     for ($month = 1; $month <= $term; $month++) {
