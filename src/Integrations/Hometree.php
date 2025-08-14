@@ -40,7 +40,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         'local' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
         'dev' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
         'testing' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
-        'production' => '',
+        'production' => 'https://api.hometreefinance.co.uk/partner/v1.0',
     ];
 
     /**
@@ -55,7 +55,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
     public function __construct(
         protected string $key,
-        string $endpoint,
+        string $endpoint
     ) {
         $this->endpoint = $this->endpoints[$endpoint];
     }
@@ -69,7 +69,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
     public function createApplication(
         PaymentSurvey $survey,
     ): array {
-        $helper = app(PaymentHelper::class)
+        $helper = $this->app(PaymentHelper::class)
             ->setParentModel($survey->parentable);
 
         $firstCustomer = $survey->customers->first();
@@ -267,7 +267,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
     {
         try {
             $response = Http::baseUrl($this->endpoint)
-                ->withToken($this->key)
+                ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+                ->withToken($this->key, 'Token')
                 ->get('/products')
                 ->throw()
                 ->json();
@@ -575,4 +576,14 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         return (string)$number;
     }
 
+    public function healthCheck(): bool
+    {
+        try {
+            $this->getProducts();
+        } catch (Throwable $ex) {
+            return false;
+        }
+
+        return true;
+    }
 }

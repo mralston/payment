@@ -59,7 +59,6 @@ class PaymentServiceProvider extends ServiceProvider
             return new Tandem(
                 config('payment.tandem.api_key'),
                 config('payment.tandem.endpoint'),
-                app(PaymentHelper::class),
             );
         });
 

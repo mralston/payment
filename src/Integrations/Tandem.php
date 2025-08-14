@@ -4,7 +4,6 @@ namespace Mralston\Payment\Integrations;
 
 use App\Address;
 use App\Mail\FinanceApplicationCancelled;
-use App\Mail\FinanceApplicationCancelManually;
 use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Collection;
@@ -27,6 +26,7 @@ use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Interfaces\Signable;
 use Mralston\Payment\Interfaces\WantsEpvs;
 use Mralston\Payment\Interfaces\WantsSatNote;
+use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
@@ -53,10 +53,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
     public function __construct(
         protected string $key,
-        string $endpoint,
-        protected PaymentHelper $paymentHelper
+        string $endpoint
     ) {
-        $this->key = $key;
         $this->endpoint = $this->endpoints[$endpoint];
     }
 
@@ -75,7 +73,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
      *
      * @return bool
      */
-    public function healthCheck()
+    public function healthCheck(): bool
     {
         $this->requestData = null;
 
@@ -93,9 +91,10 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
     public function apply(Payment $payment): Payment
     {
-        $parent = $this->paymentHelper->setParentModel($payment->parentable);
+        $helper = $this->app(PaymentHelper::class)
+            ->setParentModel($payment->parentable);
 
-        $companyDetails = $this->paymentHelper->getCompanyDetails();
+        $companyDetails = $helper->getCompanyDetails();
 
         $currentAddress = AddressData::from($payment->addresses->first());
 
@@ -199,7 +198,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     [
                         'description' => $payment->parentable->products_description ?? 'Various products',
                         'typeCode' => 'RESOLP001',
-                        'totalPrice' => $this->paymentHelper->getGross(),
+                        'totalPrice' => $helper->getGross(),
                         'quantity' => 1
                     ],
                 ]
@@ -365,7 +364,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                 if ($result['status'] != 'expired') {
                     Log::channel('finance')->debug('Sending cancellation request e-mail');
                     Mail::to($payment->paymentProvider->underwriter_email)
-                        ->send(new FinanceApplicationCancelManually($payment));
+                        ->send(new CancelManually($payment));
                 } else {
                     Log::channel('finance')->debug('Application was already cancelled successfully');
                 }
