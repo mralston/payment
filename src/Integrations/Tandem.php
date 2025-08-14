@@ -265,13 +265,13 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
      * @return array
      * @throws RequestException
      */
-    public function pollStatus(FinanceApplication $application): array
+    public function pollStatus(Payment $payment): array
     {
         // Poll the Allium API
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
-            ->get($this->endpoint . '/' . $application->lender_application_id . '/getApplicationStatus');
+            ->get($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationStatus');
 
         // Look for 404 response (which means Allium don't have an application matching the specified ID)
         if ($response->status() == 404) {
