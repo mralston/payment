@@ -324,16 +324,28 @@ const parseGatewayErrors = computed(() => (gatewayType) => {
     }
 
     try {
-        const errors = JSON.parse(errorData);
-        let messages = [];
+        const parsedResponse = JSON.parse(errorData);
 
-        for (const key in errors) {
-            if (Object.hasOwnProperty.call(errors, key)) {
-                messages = messages.concat(errors[key]);
+        // Check if the new `errors` object format exists.
+        if (parsedResponse.errors && typeof parsedResponse.errors === 'object') {
+            // Get all arrays of error objects (e.g., from 'savings', 'credit', etc.)
+            const errorGroups = Object.values(parsedResponse.errors);
+
+            // Flatten the groups and map each error object to its description.
+            const messages = errorGroups.flatMap(group =>
+                Array.isArray(group) ? group.map(error => error.description) : []
+            ).filter(Boolean); // Filter out any null or undefined descriptions.
+
+            if (messages.length > 0) {
+                return messages;
             }
         }
-        return messages;
+
+        // Fallback for unexpected structures or if parsing yields no messages.
+        return [errorData];
+
     } catch (e) {
+        // If the response is not valid JSON, return the raw string.
         return [
             errorData,
         ];

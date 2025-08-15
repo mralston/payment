@@ -240,19 +240,19 @@ class Payment extends Model
         $this->secondary_telephone = $customer['landline'] ?? null;
         $this->addresses = $survey->addresses;
         $this->employment_status = $customer['employmentStatus'];
-        $this->employer_name = $survey->finance_responses->employerName;
-        $this->employer_address = $survey->finance_responses->employerAddress;
-        $this->occupation = $survey->finance_responses->occupation;
-        $this->time_with_employer = floor(Carbon::parse($survey->finance_responses->dateStartedEmployment)->diffInMonths());
+        $this->employer_name = $survey->finance_responses?->employerName;
+        $this->employer_address = $survey->finance_responses?->employerAddress;
+        $this->occupation = $survey->finance_responses?->occupation;
+        $this->time_with_employer = floor(Carbon::parse($survey->finance_responses?->dateStartedEmployment)->diffInMonths());
         $this->gross_income_individual = $customer['grossAnnualIncome'];
         $this->gross_income_household = $survey->customers->sum('grossAnnualIncome');
         $this->net_monthly_income_individual = $customer['netMonthlyIncome'];
-        $this->mortgage_monthly = $survey->finance_responses->monthlyMortgage;
-        $this->rent_monthly = $survey->finance_responses->monthlyRent;
-        $this->bank_name = $survey->finance_responses->bankAccount->bankName;
-        $this->bank_account_holder_name = $survey->finance_responses->bankAccount->accountName;
-        $this->bank_account_number = $survey->finance_responses->bankAccount->accountNumber;
-        $this->bank_account_sort_code = $survey->finance_responses->bankAccount->sortCode;
+        $this->mortgage_monthly = $survey->finance_responses?->monthlyMortgage;
+        $this->rent_monthly = $survey->finance_responses?->monthlyRent;
+        $this->bank_name = $survey->finance_responses?->bankAccount->bankName;
+        $this->bank_account_holder_name = $survey->finance_responses?->bankAccount->accountName;
+        $this->bank_account_number = $survey->finance_responses?->bankAccount->accountNumber;
+        $this->bank_account_sort_code = $survey->finance_responses?->bankAccount->sortCode;
 
         return $this;
     }
