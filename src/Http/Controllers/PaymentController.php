@@ -113,7 +113,11 @@ class PaymentController
             )
         );
 
-        return Inertia::location(route('payments.show', $payment));
+        if ($request->input('redirect')) {
+            return redirect($request->input('redirect'));
+        }
+
+        return redirect(route('payments.show', $payment));
     }
 
     public function show(Payment $payment)

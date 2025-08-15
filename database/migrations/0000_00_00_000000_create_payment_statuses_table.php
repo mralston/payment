@@ -22,6 +22,7 @@ return new class extends Migration
             $table->boolean('referred')->default(false);
             $table->boolean('decided')->default(false);
             $table->boolean('error')->default(false);
+            $table->boolean('cancelled')->default(false);
             $table->timestamps();
         });
     }

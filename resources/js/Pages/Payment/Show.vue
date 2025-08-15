@@ -19,16 +19,14 @@ const props = defineProps({
     products: Array,
 });
 
-const payment = ref(props.payment);
-
 const crumbs = ref([
     {
         name: 'Payments',
         href: route('payments.index'),
     },
     {
-        name: payment.value?.reference,
-        href: payment.value?.id ? route('payments.show', payment.value.id) : '#',
+        name: props.payment.reference,
+        href: props.payment.id ? route('payments.show', props.payment.id) : '#',
     },
 ]);
 

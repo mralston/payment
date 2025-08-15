@@ -1,15 +1,12 @@
 <script setup>
 
 import {Head, router} from "@inertiajs/vue3";
-import {cleanUrl} from "../../Helpers/Strings.js";
-import {formatDate, fromNow} from "../../Helpers/Date.js";
-import {makeNumeric} from "../../Helpers/Number.js";
-import RepresentativeExample from "../../Components/RepresentativeExample.vue";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import {useEcho} from "@laravel/echo-vue";
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {ArrowPathIcon} from "@heroicons/vue/16/solid/index.js";
 import Card from "../../Components/Card.vue";
+import Modal from "../../Components/Modal.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -20,13 +17,36 @@ const props = defineProps({
 
 const payment = ref(props.payment);
 
+const cancelModal = ref(null);
+const cancellationReason = ref();
+
+onMounted(() => {
+    payment.value = props.payment;
+});
+
 function cancel()
 {
-    if (!confirm('Are you sure you want to cancel this application?')) {
+    if (!cancellationReason.value) {
+        alert('You must provide a reason for cancelling this payment.');
         return;
     }
 
-    router.post(route('payment.cancel', {parent: props.parentModel, payment: props.payment}));
+    router.post(route('payment.cancel', {
+        parent: props.parentModel.id,
+        payment: props.payment.id
+    }), {
+        payment_status_identifier: 'customer_cancelled',
+        cancellation_reason: cancellationReason.value,
+        source: 'rep',
+        redirect: route('payment.start', {parent: props.parentModel.id}),
+    }, {
+        onSuccess: () => {
+            console.log('Payment cancelled');
+        },
+        onError: (errors) => {
+            console.error('Failed to cancel payment:', errors);
+        }
+    });
 }
 
 function restart()
@@ -50,6 +70,24 @@ useEcho(
     <Head>
         <title>Finance</title>
     </Head>
+
+    <Modal title="Cancel Application" :buttons="['yes', 'no']" ref="cancelModal" @yes="cancel">
+        <p class="text-sm text-gray-500">
+            Are you sure you want to cancel this payment?
+        </p>
+        <div class="mt-4">
+            <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
+                Reason
+            </label>
+            <textarea
+                id="reason"
+                v-model="cancellationReason"
+                placeholder="Please provide a reason for cancelling this payment..."
+                rows="3"
+                class="block w-full rounded-md border-gray-300 shadow-sm focus:border-sky-500 focus:ring-sky-500 sm:text-sm"
+            ></textarea>
+        </div>
+    </Modal>
 
     <div class="p-4">
 
@@ -79,7 +117,7 @@ useEcho(
             <button v-if="payment.payment_status.active"
                     type="button"
                     class="float-right rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                    @click="cancel">
+                    @click="cancelModal.show">
                 Cancel &amp; Restart Journey
             </button>
             <button v-else
@@ -135,7 +173,7 @@ useEcho(
 
             <button type="button"
                     class="float-right rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                    @click="cancel">
+                    @click="cancelModal.show">
                 Cancel Application
             </button>
 

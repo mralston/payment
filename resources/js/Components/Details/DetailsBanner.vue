@@ -8,7 +8,7 @@ const props = defineProps({
 });
 
 const bannerType = computed(() => {
-    if (props.payment.payment_status.identifier === 'cancelled') {
+    if (props.payment.payment_status.cancelled) {
         return 'error';
     } else if (!props.payment.signed_at) {
         return 'warning';
@@ -21,7 +21,7 @@ const bannerType = computed(() => {
 
 <template>
     <Banner :type="bannerType">
-        <div v-if="payment.payment_status.identifier === 'cancelled'">
+        <div v-if="payment.payment_status.cancelled">
             Payment cancelled
             <div v-for="cancellation in payment.payment_cancellations" :key="cancellation.id">
                 <b>{{ moment(cancellation.created_at).format('DD/MM/YYYY HH:mm') }}</b> {{ cancellation.user ? 'by ' + cancellation.user.name : '' }} - {{ cancellation.reason }}

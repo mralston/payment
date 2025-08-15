@@ -74,25 +74,25 @@ const termInYears = computed(() => props.term / 12);
         </p>
         <table class="table table-bordered table-striped mb-0">
             <thead>
-            <tr>
-                <th>Yr</th>
-                <th>Yearly Savings</th>
-                <th>Avg. Monthly Savings</th>
-                <th>Monthly Net Position</th>
-            </tr>
+                <tr>
+                    <th>Yr</th>
+                    <th>Yearly Savings</th>
+                    <th>Avg. Monthly Savings</th>
+                    <th>Monthly Net Position</th>
+                </tr>
             </thead>
             <tbody>
-            <tr v-for="(row, index) in paymentsBreakdown" :key="row.year">
-                <td>
-                    {{ row.year }}
-                    <span v-if="upfrontPayment > 0 && index === 0">*</span>
-                </td>
-                <td>{{ toPounds(row.savings) }}</td>
-                <td>{{ toPounds(row.monthly) }}</td>
-                <td :class="row.diff < 0 ? 'alert-danger' : 'alert-success'">
-                    {{ toPounds(row.diff) }}
-                </td>
-            </tr>
+                <tr v-for="(row, index) in paymentsBreakdown" :key="row.year">
+                    <td>
+                        {{ row.year }}
+                        <span v-if="upfrontPayment > 0 && index === 0">*</span>
+                    </td>
+                    <td>{{ toPounds(row.savings) }}</td>
+                    <td>{{ toPounds(row.monthly) }}</td>
+                    <td :class="row.diff < 0 ? 'alert-danger' : 'alert-success'">
+                        {{ toPounds(row.diff) }}
+                    </td>
+                </tr>
             </tbody>
         </table>
         <p v-if="upfrontPayment > 0" class="mt-2">
