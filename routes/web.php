@@ -10,8 +10,10 @@ use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
 use Mralston\Payment\Http\Controllers\WebhookController;
 
-Route::post('webhook/hometree', [WebhookController::class, 'hometree'])
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('webhook/hometree', [WebhookController::class, 'hometree'])
         ->name('webhook.hometree');
+});
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 

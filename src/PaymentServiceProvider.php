@@ -4,12 +4,14 @@ namespace Mralston\Payment;
 
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
+use Laravel\Sanctum\Sanctum;
 use Mralston\Payment\Integrations\Hometree;
 use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
 use Mralston\Payment\Interfaces\PaymentAddressLookup;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
+use Mralston\Payment\Models\PersonalAccessToken;
 use Mralston\Payment\Providers\EventServiceProvider;
 use Mralston\Payment\Services\MugService;
 
@@ -23,6 +25,9 @@ class PaymentServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../routes/channels.php');
 
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+
+        // Conditionally configure Sanctum if not already configured
+        $this->configureSanctum();
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
@@ -83,5 +88,34 @@ class PaymentServiceProvider extends ServiceProvider
         $this->app->bind(PaymentAddressLookup::class, function ($app) {
             return app(MugService::class);
         });
+    }
+
+    /**
+     * Configure Sanctum if it hasn't been configured already
+     */
+    protected function configureSanctum()
+    {
+        // Check if Sanctum is already configured by looking for the config
+        if (!config('sanctum.stateful')) {
+            // Set default Sanctum configuration
+            config([
+                'sanctum.stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
+                    '%s%s',
+                    'localhost,localhost:3000,127.0.0.1,127.0.0.1:8000,::1',
+                    env('APP_URL') ? ','.parse_url(env('APP_URL'), PHP_URL_HOST) : ''
+                ))),
+                'sanctum.guard' => ['web'],
+                'sanctum.expiration' => null,
+                'sanctum.middleware' => [
+                    'verify_csrf_token' => App\Http\Middleware\VerifyCsrfToken::class,
+                    'encrypt_cookies' => App\Http\Middleware\EncryptCookies::class,
+                ],
+            ]);
+        }
+
+        // Only set the PersonalAccessToken model if it hasn't been set already
+        if (!class_exists(Sanctum::$personalAccessTokenModel)) {
+            Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
+        }
     }
 }
