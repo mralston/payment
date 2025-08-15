@@ -13,10 +13,11 @@ return new class extends Migration
     {
         Schema::create('payment_offers', function (Blueprint $table) {
             $table->id();
+            $table->nullableMorphs('parentable');
+            $table->integer('payment_survey_id')->index();
             $table->string('name')->nullable();
             $table->string('type');
             $table->string('reference')->nullable();
-            $table->integer('payment_survey_id')->index();
             $table->decimal('amount', 8, 2);
             $table->integer('payment_provider_id')->index();
             $table->integer('payment_product_id')->index();

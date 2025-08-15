@@ -2,10 +2,10 @@
 
 namespace Mralston\Payment\Traits;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentSurvey;
 
 trait HasPayments
@@ -13,6 +13,11 @@ trait HasPayments
     public function paymentSurvey(): MorphOne
     {
         return $this->morphOne(PaymentSurvey::class, 'parentable');
+    }
+
+    public function paymentOffers(): MorphMany
+    {
+        return $this->morphMany(PaymentOffer::class, 'parentable');
     }
 
     public function payments(): MorphMany

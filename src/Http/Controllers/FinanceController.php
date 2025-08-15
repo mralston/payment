@@ -181,11 +181,11 @@ class FinanceController
             'selected' => true,
         ]);
 
-        // Delete other offers
-        $survey->paymentOffers()
-            ->where('id', '!=', $offer->id)
-            ->where('selected', false)
-            ->delete();
+//        // Delete other offers
+//        $survey->paymentOffers()
+//            ->where('id', '!=', $offer->id)
+//            ->where('selected', false)
+//            ->delete();
 
         return true;
     }

@@ -29,7 +29,6 @@ class Payment extends Model
     protected $fillable = [
         'uuid',
         'reference',
-        'quote_id',
         'total_price',
         'loan_amount',
         'deposit',

@@ -328,9 +328,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                     'AGREEMENT_REF' => $agreement['REF'],
                     'ASSET_TYPE' => 'NO ASSET',
                     'COST' => round($payment->loan_amount - $payment->deposit, 2), #loan advance
-                    'DESCRIPTION' => substr($payment->quote->products_description, 0, 100) ?? 'Various products',
-                    'VEHICLE_COST' => round($payment->quote->gross, 2),
-                    'CASH_DEPOSIT' => round($payment->deposit, 2),
+                    'DESCRIPTION' => substr($payment->parentable->products_description ?? null, 0, 100) ?? 'Various products',
+                    'VEHICLE_COST' => round($helper->getGross(), 2),
+                    'CASH_DEPOSIT' => round($helper->getDeposit(), 2),
                 ]
             ],
             'QUOTATION' => [
@@ -348,13 +348,13 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                     'APR' => $payment->apr,
                     'DEPOSIT' => $payment->deposit ?? 0,
                     'TERM' => $payment->loan_term,
-                    'TOTAL_CASH_PRICE' => round($payment->quote->gross, 2),
+                    'TOTAL_CASH_PRICE' => round($helper->getGross(), 2),
                     'TOTAL_PAYABLE' => round($payment->total_payable, 2),
                     'QUOTATION_TARGET' => 'PAYMENT',
                     'DOC_FEE_COMPONENT' => 'ARRANGEMENT_FEE',
                     'SUBSIDY' => 0,
                     'QUOTATION_CAMPAIGN_REF' => $payment->lender_product_code,
-                    'AMOUNT_FINANCED' => round($payment->quote->gross - $payment->deposit, 2),
+                    'AMOUNT_FINANCED' => round($helper->getTotalCost() - $helper->getDeposit(), 2),
                 ]
             ],
             'IMPORT_CONTROL' => [
@@ -541,7 +541,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
     public function pollStatus(Payment $payment): array
     {
         $helper = app(PaymentHelper::class)
-            ->setParentModel($survey->parentable);
+            ->setParentModel($payment->parentable);
 
         // Some applications don't have a lender ID (it was a bug), so they can't be polled.
         if (empty($payment->provider_foreign_id)) {
@@ -994,14 +994,16 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
                     $payments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
 
-                    return $survey->paymentOffers()
+                    return $survey->parentable
+                        ->paymentOffers()
                         ->create([
+                            'payment_survey_id' => $survey->id,
+                            'payment_provider_id' => $paymentProvider->id,
+                            'payment_product_id' => $product->id,
                             'name' => $product->name,
                             'type' => 'finance',
                             'reference' => $reference,
                             'amount' => $amount,
-                            'payment_provider_id' => $paymentProvider->id,
-                            'payment_product_id' => $product->id,
                             'apr' => $product->apr,
                             'term' => $product->term,
                             'deferred' => $product->deferred,

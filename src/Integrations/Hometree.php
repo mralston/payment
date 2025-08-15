@@ -20,6 +20,7 @@ use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\ParsesErrors;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupValue;
@@ -324,14 +325,14 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                                 'term' => $offer['params']['term'],
                             ]);
 
-                            return $this->upsertPaymentOffer([
+                            return $this->upsertPaymentOffer($survey->parentable, [
                                 'payment_survey_id' => $survey->id,
                                 'payment_product_id' => $paymentProduct->id,
+                                'payment_provider_id' => $paymentProvider->id,
                                 'name' => $productName,
                                 'type' => 'lease',
                                 'reference' => $response['reference'],
                                 'amount' => $amount,
-                                'payment_provider_id' => $paymentProvider->id,
                                 'term' => $offer['params']['term'],
                                 'priority' => $offer['rank'],
                                 'upfront_payment' => $offer['params']['upfront_payment_gross'] ?? 0,
@@ -413,18 +414,21 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         dispatch(function () use ($surveyId, $applicationId, $amount, $paymentProviderId, $every, $for) {
             $startTime = now();
 
+            $survey = PaymentSurvey::find($surveyId);
+            $parent = $survey->parentable;
+
             while (now()->diffInSeconds($startTime) < $for) {
                 $response = $this->getApplication($applicationId);
 
                 $offers = collect($response['offers'])
-                    ->map(function ($offer) use ($response, $amount, $paymentProviderId, $surveyId) {
-                        return $this->upsertPaymentOffer([
+                    ->map(function ($offer) use ($response, $amount, $paymentProviderId, $surveyId, $parent) {
+                        return $this->upsertPaymentOffer($parent, [
                             'payment_survey_id' => $surveyId,
+                            'payment_provider_id' => $paymentProviderId,
                             'name' => $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years'
                                 . ($offer['params']['upfront_payment_gross'] > 0 ? ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' : ''),
                             'type' => 'lease',
                             'amount' => $amount,
-                            'payment_provider_id' => $paymentProviderId,
                             'term' => $offer['params']['term'],
                             'priority' => $offer['rank'],
                             'upfront_payment' => $offer['params']['upfront_payment_gross'] ?? 0,
@@ -458,7 +462,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         })->delay(now()->addSeconds($delay ?? 0));
     }
 
-    protected function upsertPaymentOffer(array $data): PaymentOffer
+    protected function upsertPaymentOffer(PaymentParentModel $parent, array $data): PaymentOffer
     {
         // TODO: Should be able to use updateOrCreate now the odder IDs are fixed in the API
         $paymentOffer = PaymentOffer::firstWhere('provider_offer_id', $data['provider_offer_id']);
@@ -468,7 +472,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             return $paymentOffer;
         }
 
-        return PaymentOffer::create($data);
+        return $parent
+            ->paymentOffers()
+            ->create($data);
     }
 
     public function apply(Payment $payment): array // TODO: Update Payment object with result & change return type to Payment

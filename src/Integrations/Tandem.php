@@ -562,8 +562,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     try {
                         $payments = $this->calculatePayments(
                             loanAmount: $amount,
-                            // Fake APR in local development as the testing API doesn't have the right rates
-                            apr: /*app()->environment('local') ? 11.9 :*/ $product['apr'],
+                            apr: $product['apr'],
                             loanTerm: $product['termMonths'],
                             deferredPeriod: $product['deferredPayments']
                         );
@@ -630,14 +629,34 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     }
 
                     // Create the offer
-                    return $survey->paymentOffers()
+                    Log::debug('data', [
+                        'payment_survey_id' => $survey->id,
+                        'payment_product_id' => $paymentProduct->id,
+                        'payment_provider_id' => $paymentProvider->id,
+                        'name' => $productName,
+                        'type' => 'finance',
+                        'reference' => $reference,
+                        'amount' => $amount,
+                        'apr' => $product['apr'],
+                        'term' => $product['termMonths'],
+                        'deferred' => $product['deferredPayments'],
+                        'first_payment' => $payments['RepaymentDetails']['FirstRepaymentAmount'],
+                        'monthly_payment' => $payments['RepaymentDetails']['MonthlyRepayment'],
+                        'final_payment' => $payments['RepaymentDetails']['FinalRepaymentAmount'],
+                        'total_payable' => $payments['FinancialDetails']['TotalPayable'],
+                        'status' => 'final',
+                    ]);
+
+                    return $survey->parentable
+                        ->paymentOffers()
                         ->create([
+                            'payment_survey_id' => $survey->id,
+                            'payment_product_id' => $paymentProduct->id,
+                            'payment_provider_id' => $paymentProvider->id,
                             'name' => $productName,
                             'type' => 'finance',
                             'reference' => $reference,
                             'amount' => $amount,
-                            'payment_provider_id' => $paymentProvider->id,
-                            'payment_product_id' => $paymentProduct->id,
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'],
