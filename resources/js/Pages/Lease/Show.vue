@@ -1,10 +1,13 @@
 <script setup>
 
 import {Head, router} from "@inertiajs/vue3";
-import {formatCurrency} from "../../Helpers/Currency.js";
+import {formatCurrency, toPounds} from "../../Helpers/Currency.js";
 import {useEcho} from "@laravel/echo-vue";
 import {computed, ref} from "vue";
 import { ArrowPathIcon } from '@heroicons/vue/16/solid';
+import {makeNumeric} from "../../Helpers/Number.js";
+import PaymentsSavingsTable from "../../Components/PaymentsSavingsTable.vue";
+import Card from "../../Components/Card.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -110,13 +113,18 @@ useEcho(
                 </tbody>
             </table>
 
-            <ul v-for="field in payment.provider_response_data?.errors" class="list-disc list-inside text-red-500">
+            <ul v-if="payment.provider_response_data?.errors" v-for="field in payment.provider_response_data?.errors" class="list-disc list-inside text-red-500">
                 <li v-for="error in field">
                     {{ error.description }}
                 </li>
             </ul>
 
-            <div v-if="!payment.provider_response_data?.errors" class="text-red-500">
+            <Card v-else-if="payment.provider_response_data" class="mb-8 w-1/2" header-class="bg-gray-100" :collapsed="true">
+                <template v-slot:header><b>More Info</b></template>
+                <pre class="max-h-96 overflow-auto">{{ payment.provider_response_data }}</pre>
+            </Card>
+
+            <div v-else class="text-red-500">
                 We don't have any further details about what went wrong. Please try again later.
             </div>
 
@@ -149,12 +157,12 @@ useEcho(
                         <td class="p-1">
                             {{ offer.name }}
                         </td>
-                        <tr>
-                            <th class="bg-gray-100 p-1 mr-2">Status</th>
-                            <td class="bg-gray-100 p-1">
-                                {{ payment.payment_status.name }}
-                            </td>
-                        </tr>
+                    </tr>
+                    <tr>
+                        <th class="bg-gray-100 p-1 mr-2">Status</th>
+                        <td class="bg-gray-100 p-1">
+                            {{ payment.payment_status.name }}
+                        </td>
                     </tr>
                     <tr>
                         <th class="p-1 mr-2">First Payment</th>
