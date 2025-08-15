@@ -5,6 +5,7 @@ namespace Mralston\Payment\Models;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class PaymentOffer extends Model
 {
@@ -58,6 +59,11 @@ class PaymentOffer extends Model
     public function paymentSurvey(): BelongsTo
     {
         return $this->belongsTo(PaymentSurvey::class);
+    }
+
+    public function payment(): HasOne
+    {
+        return $this->hasOne(Payment::class);
     }
 
     /**
