@@ -91,7 +91,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
     public function apply(Payment $payment): Payment
     {
-        $helper = $this->app(PaymentHelper::class)
+        $helper = app(PaymentHelper::class)
             ->setParentModel($payment->parentable);
 
         $companyDetails = $helper->getCompanyDetails();
@@ -247,8 +247,9 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
             Log::channel('finance')->error($ex->getMessage(), $this->responseData);
 
+            $paymentStatus = PaymentStatus::byIdentifier('error');
             $payment->update([
-                'payment_status_id' => PaymentStatus::byIdentifier('error')?->id,
+                'payment_status_id' => $paymentStatus?->id,
                 'provider_request_data' => $this->requestData,
                 'provider_response_data' => $this->responseData,
             ]);
@@ -256,20 +257,26 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             return $payment;
         }
 
-        Log::channel('finance')->info(json_encode($this->responseData, JSON_PRETTY_PRINT));
+        Log::channel('finance')->info('tandem response', $this->responseData);
 
+        $paymentStatus = PaymentStatus::byIdentifier($this->responseData['status']);
         $payment->update([
             'provider_foreign_id' => $this->responseData['applicationId'],
-            'payment_status_id' => PaymentStatus::byIdentifier($this->responseData['status'])?->id,
+            'payment_status_id' => $paymentStatus?->id,
             'offer_expiration_date' => $this->responseData['offerExpirationDate'],
             'provider_request_data' => $this->requestData,
             'provider_response_data' => $this->responseData,
             'submitted_at' => $submitted_at,
             ...(
-                in_array($this->responseData['status'], ['declined', 'conditional_accept', 'accepted']) ?
+                $paymentStatus->decided ?
                     ['decision_received_at' => Carbon::now()] :
                     []
-            )
+            ),
+            ...(
+            $paymentStatus->referred ?
+                ['was_referred' => true] :
+                []
+            ),
         ]);
 
         return $payment;
@@ -310,8 +317,17 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         ])
             ->get($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationStatus');
 
+        dump($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationStatus');
+
         // Look for 404 response (which means Allium don't have an application matching the specified ID)
         if ($response->status() == 404) {
+
+            dump($response->body());
+
+            $payment->update([
+                'payment_status_id' => PaymentStatus::byIdentifier('NotFound')?->id,
+            ]);
+
             return [
                 'status' => 'NotFound',
                 'lender_response_data' => null,
@@ -322,8 +338,14 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             $response->throw();
         }
 
+        dump($response->body());
+
         // Decode the response
         $json = $response->json();
+
+        $payment->update([
+            'payment_status_id' => PaymentStatus::byIdentifier($json['status'])?->id,
+        ]);
 
         // Return the data
         return [

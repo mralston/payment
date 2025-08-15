@@ -28,6 +28,11 @@ function cancel()
     router.post(route('payment.cancel', {parent: props.parentModel, payment: props.payment}));
 }
 
+function restart()
+{
+    router.get(route('payment.start', {parent: props.parentModel.id}));
+}
+
 useEcho(
     `payments.${props.payment.id}`,
     'PaymentUpdated',
@@ -70,7 +75,43 @@ useEcho(
 
         <div v-else-if="payment.payment_status.error">
 
+            <button v-if="payment.payment_status.active"
+                    type="button"
+                    class="float-right rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    @click="cancel">
+                Cancel &amp; Restart Journey
+            </button>
+            <button v-else
+                    type="button"
+                    class="float-right rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    @click="restart">
+                Restart Journey
+            </button>
+
             <p class="mb-4">Looks like something went wrong with this application.</p>
+
+            <table class="mb-4 w-full md:w-1/2">
+                <tbody>
+                    <tr>
+                        <th class="bg-gray-100 p-1 mr-2">Reference</th>
+                        <td class="bg-gray-100 p-1">
+                            {{ payment.reference }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="p-1 mr-2">Plan</th>
+                        <td class="p-1">
+                            {{ offer.name }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="bg-gray-100 p-1 mr-2">Status</th>
+                        <td class="bg-gray-100 p-1">
+                            {{ payment.payment_status.name }}
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
 
             <ul v-for="field in payment.provider_response_data?.errors" class="list-disc list-inside text-red-500">
                 <li v-for="error in field">
@@ -79,7 +120,7 @@ useEcho(
             </ul>
 
             <div v-if="!payment.provider_response_data?.errors" class="text-red-500">
-                We don't have any details about this error. Please try again later.
+                We don't have any further details about what went wrong. Please try again later.
             </div>
 
         </div>
@@ -92,40 +133,50 @@ useEcho(
                 Cancel Application
             </button>
 
-            <p class="mb-4">Great news! {{ payment.payment_provider.name }} have accepted your application. They'll get in touch with you soon.</p>
+            <p class="mb-4">
+                Great news! {{ payment.payment_provider.name }} have received your application.
+                <span v-if="payment.payment_status.referred">They will be in touch soon.</span>
+                <span v-else>Look out for further communications.</span>
+            </p>
 
             <table class="mb-4 w-full md:w-1/2">
                 <tbody>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Reference</th>
-                    <td class="bg-gray-100 p-1">
-                        {{ payment.reference }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Plan</th>
-                    <td class="p-1">
-                        {{ offer.name }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">First Payment</th>
-                    <td class="bg-gray-100 p-1">
-                        {{ formatCurrency(offer.first_payment) }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Monthly Payment</th>
-                    <td class="p-1">
-                        {{ formatCurrency(offer.monthly_payment) }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Final Payment</th>
-                    <td class="bg-gray-100 p-1">
-                        {{ formatCurrency(offer.final_payment) }}
-                    </td>
-                </tr>
+                    <tr>
+                        <th class="bg-gray-100 p-1 mr-2">Reference</th>
+                        <td class="bg-gray-100 p-1">
+                            {{ payment.reference }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="p-1 mr-2">Plan</th>
+                        <td class="p-1">
+                            {{ offer.name }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="bg-gray-100 p-1 mr-2">Status</th>
+                        <td class="bg-gray-100 p-1">
+                            {{ payment.payment_status.name }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="p-1 mr-2">First Payment</th>
+                        <td class="p-1">
+                            {{ formatCurrency(offer.first_payment) }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="bg-gray-100 p-1 mr-2">Monthly Payment</th>
+                        <td class="bg-gray-100 p-1">
+                            {{ formatCurrency(offer.monthly_payment) }}
+                        </td>
+                    </tr>
+                    <tr>
+                        <th class="p-1 mr-2">Final Payment</th>
+                        <td class="p-1">
+                            {{ formatCurrency(offer.final_payment) }}
+                        </td>
+                    </tr>
                 </tbody>
             </table>
 

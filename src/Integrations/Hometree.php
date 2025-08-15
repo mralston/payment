@@ -69,7 +69,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
     public function createApplication(
         PaymentSurvey $survey,
     ): array {
-        $helper = $this->app(PaymentHelper::class)
+        $helper = app(PaymentHelper::class)
             ->setParentModel($survey->parentable);
 
         $firstCustomer = $survey->customers->first();

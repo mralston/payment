@@ -80,7 +80,7 @@ class Payment extends Model
         'read_terms_conditions',
         'was_referred',
         'payment_status_id',
-        'lender_application_id',
+        'provider_foreign_id',
         'provider_request_data',
         'provider_response_data',
         'offer_expiration_date',
