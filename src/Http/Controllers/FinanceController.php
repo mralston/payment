@@ -56,8 +56,9 @@ class FinanceController
             'companyDetails' => $this->helper->getCompanyDetails(),
             'paymentProviders' => PaymentProvider::query()
                 ->whereHas('paymentType', function ($query) {
-                    $query->whereIdentifier(PaymentTypeEnum::FINANCE);
-                }),
+                    $query->whereIdentifier(PaymentTypeEnum::FINANCE->value);
+                })
+            ->get(),
             'maritalStatuses' => PaymentLookupField::byIdentifier(LookupField::MARITAL_STATUS)
                 ->paymentLookupValues,
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)

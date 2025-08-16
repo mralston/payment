@@ -55,8 +55,9 @@ class LeaseController
             'companyDetails' => $this->helper->getCompanyDetails(),
             'paymentProviders' => PaymentProvider::query()
                 ->whereHas('paymentType', function ($query) {
-                    $query->whereIdentifier(PaymentTypeEnum::FINANCE);
-                }),
+                    $query->whereIdentifier(PaymentTypeEnum::LEASE->value);
+                })
+                ->get(),
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
         ])

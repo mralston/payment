@@ -79,7 +79,7 @@ function unselectOffer() {
                     is a broker and works with a number of lenders to help customers apply for finance to assist their purchase.
                     Credit is provided from selection of lenders:
                     <span v-for="(paymentProvider, index) in paymentProviders" :key="paymentProvider.id">
-                        {{ paymentProvider.name }}<span v-if="index < paymentProvider.length - 2">, </span><span v-else-if="index < paymentProvider.length - 1"> and </span>
+                        {{ paymentProvider.name }}<span v-if="index < paymentProviders.length - 2">, </span><span v-else-if="index < paymentProviders.length - 1"> and </span>
                     </span>.
                 </p>
                 <h2 class="text-2xl mb-4">Eligibility</h2>
