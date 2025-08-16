@@ -25,6 +25,7 @@ class CashController
         $this->redirectToActivePayment($parentModel);
 
         return Inertia::render('Cash/Create', [
+            'parentModel' => $parentModel,
             'totalCost' => $this->helper->getTotalCost(),
             'deposit' => $this->helper->getDeposit(),
         ])

@@ -8,5 +8,5 @@ use Mralston\Payment\Models\PaymentSurvey;
 
 interface PrequalifiesCustomer
 {
-    public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData;
+    public function prequal(PaymentSurvey $survey, float $totalCost, float $amount, float $deposit): PrequalPromiseData|PrequalData;
 }

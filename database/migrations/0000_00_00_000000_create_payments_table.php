@@ -17,6 +17,7 @@ return new class extends Migration
             $table->nullableMorphs('parentable');
             $table->string('uuid', 36)->index();
             $table->string('reference', 50)->nullable()->index();
+            $table->decimal('total_cost', 8, 2)->nullable();
             $table->decimal('amount', 8, 2)->nullable();
             $table->decimal('deposit', 8, 2)->nullable();
             $table->decimal('subsidy', 8, 2)->nullable();

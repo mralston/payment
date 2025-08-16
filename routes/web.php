@@ -24,10 +24,7 @@ Route::group(['middleware' => ['web', 'auth']], function () {
              * Entrypoint to the payment journey. Serves as a standard jumping in point for the parent
              * application, which won't necessarily understand the inner workings of the payment journey's routes.
              */
-            Route::get('{parent}', function () {
-                return redirect()
-                    ->route('payment.surveys.create', ['parent' => request()->route('parent')]);
-            })
+            Route::get('{parent}', [PaymentController::class, 'start'])
                 ->name('start');
 
             Route::get('{parent}/surveys/{survey}/lease', [SurveyController::class, 'lease'])
@@ -41,6 +38,12 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
             Route::get('{parent}/options', [PaymentController::class, 'options'])
                 ->name('options');
+
+            Route::post('{parent}/select', [PaymentController::class, 'select'])
+                ->name('select');
+
+            Route::post('{parent}/unselect', [PaymentController::class, 'unselect'])
+                ->name('unselect');
 
             Route::post('{parent}/cancel/{payment}', [PaymentController::class, 'cancel'])
                 ->name('cancel');

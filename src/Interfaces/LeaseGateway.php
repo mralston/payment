@@ -14,6 +14,4 @@ interface LeaseGateway
     public function cancel(Payment $payment): bool;
 
     public function pollStatus(Payment $payment): array;
-
-    public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData;
 }

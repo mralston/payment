@@ -53,7 +53,10 @@ class LeaseController
             'totalCost' => $this->helper->getTotalCost(),
             'deposit' => $this->helper->getDeposit(),
             'companyDetails' => $this->helper->getCompanyDetails(),
-            'lenders' => PaymentProvider::all(),
+            'paymentProviders' => PaymentProvider::query()
+                ->whereHas('paymentType', function ($query) {
+                    $query->whereIdentifier(PaymentTypeEnum::FINANCE);
+                }),
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
         ])

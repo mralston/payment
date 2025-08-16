@@ -528,13 +528,11 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         }
     }
 
-    public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData
+    public function prequal(PaymentSurvey $survey, float $totalCost, float $amount, float $deposit): PrequalPromiseData|PrequalData
     {
-        dispatch(function () use ($survey) {
+        dispatch(function () use ($survey, $totalCost, $amount, $deposit) {
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
-
-            $amount = $helper->getTotalCost() - $helper->getDeposit();
 
             $paymentProvider = PaymentProvider::byIdentifier('tandem');
 
@@ -542,7 +540,9 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             $offers = $survey
                 ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
+                ->where('total_cost', $totalCost)
                 ->where('amount', $amount)
+                ->where('deposit', $deposit)
                 ->where('monthly_payment', '>', 0)
                 ->where('selected', false);
 
@@ -557,7 +557,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
                 //Log::channel('finance')->info(print_r($products, true));
 
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $amount) {
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $totalCost, $amount, $deposit) {
                     // Fetch payments
                     try {
                         $payments = $this->calculatePayments(
@@ -629,24 +629,6 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     }
 
                     // Create the offer
-                    Log::debug('data', [
-                        'payment_survey_id' => $survey->id,
-                        'payment_product_id' => $paymentProduct->id,
-                        'payment_provider_id' => $paymentProvider->id,
-                        'name' => $productName,
-                        'type' => 'finance',
-                        'reference' => $reference,
-                        'amount' => $amount,
-                        'apr' => $product['apr'],
-                        'term' => $product['termMonths'],
-                        'deferred' => $product['deferredPayments'],
-                        'first_payment' => $payments['RepaymentDetails']['FirstRepaymentAmount'],
-                        'monthly_payment' => $payments['RepaymentDetails']['MonthlyRepayment'],
-                        'final_payment' => $payments['RepaymentDetails']['FinalRepaymentAmount'],
-                        'total_payable' => $payments['FinancialDetails']['TotalPayable'],
-                        'status' => 'final',
-                    ]);
-
                     return $survey->parentable
                         ->paymentOffers()
                         ->create([
@@ -656,7 +638,9 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                             'name' => $productName,
                             'type' => 'finance',
                             'reference' => $reference,
+                            'total_cost' => $totalCost,
                             'amount' => $amount,
+                            'deposit' => $deposit,
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'],

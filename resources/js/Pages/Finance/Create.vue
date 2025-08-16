@@ -17,7 +17,7 @@ const props = defineProps({
     totalCost: Number,
     deposit: Number,
     companyDetails: Object,
-    lenders: Array,
+    paymentProviders: Array,
     maritalStatuses: Array,
     employmentStatuses: Array,
     residentialStatuses: Array,
@@ -43,6 +43,12 @@ function submit()
     }));
 }
 
+function unselectOffer() {
+    router.post(route('payment.unselect', {
+        parent: props.parentModel,
+    }));
+}
+
 </script>
 
 <template>
@@ -55,6 +61,12 @@ function submit()
 
         <ValidationBanner :form="form"/>
 
+        <button type="button"
+                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                @click="unselectOffer">
+            Change Payment Option
+        </button>
+
         <h1 class="text-4xl font-bold mb-6">
             Finance
         </h1>
@@ -66,8 +78,8 @@ function submit()
                     {{ companyDetails.legalName }}
                     is a broker and works with a number of lenders to help customers apply for finance to assist their purchase.
                     Credit is provided from selection of lenders:
-                    <span v-for="(lender, index) in lenders">
-                        {{ lender.name }}<span v-if="index < lenders.length - 2">, </span><span v-else-if="index < lenders.length - 1"> and </span>
+                    <span v-for="(paymentProvider, index) in paymentProviders" :key="paymentProvider.id">
+                        {{ paymentProvider.name }}<span v-if="index < paymentProvider.length - 2">, </span><span v-else-if="index < paymentProvider.length - 1"> and </span>
                     </span>.
                 </p>
                 <h2 class="text-2xl mb-4">Eligibility</h2>
@@ -121,9 +133,9 @@ function submit()
                     <th class="bg-gray-100 p-1 mr-2">{{ companyDetails.commonName }}</th>
                     <td class="bg-gray-100 p-1"><a :href="companyDetails.privacyPolicy" target="_blank">{{ cleanUrl(companyDetails.privacyPolicy) }}</a></td>
                 </tr>
-                <tr v-for="(lender, index) in lenders">
-                    <th class="p-1 mr-2" :class="{ 'bg-gray-100': index % 2 === 1 }">{{ lender.name }}</th>
-                    <td class="p-1" :class="{ 'bg-gray-100': index % 2 === 1 }"><a :href="lender.privacy_policy" target="_blank">{{ cleanUrl(lender.privacy_policy) }}</a></td>
+                <tr>
+                    <th class="p-1 mr-2">{{ offer.payment_provider.name }}</th>
+                    <td class="p-1"><a :href="offer.payment_provider.privacy_policy" target="_blank">{{ cleanUrl(offer.payment_provider.privacy_policy) }}</a></td>
                 </tr>
             </tbody>
         </table>
@@ -136,70 +148,76 @@ function submit()
 
         <h2 class="text-2xl mb-4">Your Loan Application</h2>
 
-        <p class="mb-4">Please take a moment to review your application details and fill in the missing information.</p>
+        <p class="mb-4">Please take a moment to review your application details.</p>
 
 
         <table class="mb-4 w-1/2">
             <tbody>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Your name</th>
+                    <th class="bg-gray-100 p-1 mr-2">Finance Product</th>
                     <td class="bg-gray-100 p-1">
+                        {{ offer.name }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="p-1 mr-2">Your name</th>
+                    <td class="p-1">
                         {{ survey.customers[0].title }}
                         {{ survey.customers[0].firstName }}
                         {{ survey.customers[0].lastName }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Marital status</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Marital status</th>
+                    <td class="bg-gray-100 p-1">
                         {{ maritalStatuses.filter((item) => item.value === survey.customers[0].maritalStatus)[0]?.name }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Homeowner</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Homeowner</th>
+                    <td class="p-1">
                         {{ residentialStatuses.filter((item) => item.value === survey.customers[0].residentialStatus)[0]?.name }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Nationality</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Nationality</th>
+                    <td class="bg-gray-100 p-1">
                         {{ nationalities.filter((item) => item.value === survey.customers[0].nationality)[0]?.name }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Date of birth</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Date of birth</th>
+                    <td class="p-1">
                         {{ formatDate(survey.customers[0].dateOfBirth, 'DD/MM/YYYY') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Dependants</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Dependants</th>
+                    <td class="bg-gray-100 p-1">
                         {{ survey.customers[0].dependants }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Mobile</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Mobile</th>
+                    <td class="p-1">
                         {{ survey.customers[0].mobile }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Land line</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Land line</th>
+                    <td class="bg-gray-100 p-1">
                         {{ survey.customers[0].landline }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">E-mail</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">E-mail</th>
+                    <td class="p-1">
                         {{ survey.customers[0].email }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2 align-top">Address</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2 align-top">Address</th>
+                    <td class="bg-gray-100 p-1">
                         <div v-if="survey.addresses[0].houseNumber || survey.addresses[0].street">
                             {{ survey.addresses[0].houseNumber }} {{ survey.addresses[0].street }}
                         </div>
@@ -211,26 +229,26 @@ function submit()
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Time at address</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Time at address</th>
+                    <td class="p-1">
                         {{ fromNow(survey.addresses[0].dateMovedIn, true) }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Employment status</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Employment status</th>
+                    <td class="bg-gray-100 p-1">
                         {{ employmentStatuses.find(status => status.value === survey.customers[0].employmentStatus)?.name }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Account number</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Account number</th>
+                    <td class="p-1">
                         {{ survey.finance_responses.bankAccount.accountNumber }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Sort code</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Sort code</th>
+                    <td class="bg-gray-100 p-1">
                         {{ survey.finance_responses.bankAccount.sortCode }}
                     </td>
                 </tr>
@@ -247,7 +265,7 @@ function submit()
             <li>You have considered any potential changes to your personal circumstances when considering the affordability of the loan e.g. redundancy, retirement, starting a family, etc.</li>
             <li>The application details which you have entered above are correct.</li>
             <li>The minimum payment must be made every month. If you miss payments you may incur additional charges and your ability to obtain credit in the future could be negatively impacted.</li>
-            <li>When you click to submit your loan application, your credit file will be searched by {{ lenders[0].name }} and a record left of the search.</li>
+            <li>When you click to submit your loan application, your credit file will be searched by {{ offer.payment_provider.name }} and a record left of the search.</li>
         </ul>
 
         <ValidationWrapper :form="form" field="readTermsConditions" class="mb-4">

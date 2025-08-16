@@ -29,8 +29,8 @@ class Payment extends Model
     protected $fillable = [
         'uuid',
         'reference',
-        'total_price',
-        'loan_amount',
+        'total_cost',
+        'amount',
         'deposit',
         'subsidy',
         'finance_lender_id',
@@ -136,6 +136,10 @@ class Payment extends Model
         'snagged',
     ];
 
+    protected $attributes = [
+        'payment_status_id' => 1
+    ];
+
     public function parentable(): MorphTo
     {
         return $this->morphTo();
@@ -193,12 +197,6 @@ class Payment extends Model
     {
         return $this->belongsTo(PaymentLookupValue::class, 'nationality', 'value')
             ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::NATIONALITY)->id);
-    }
-
-    public function bankruptOrIva(): BelongsTo
-    {
-        return $this->belongsTo(PaymentLookupValue::class, 'bankrupt_or_iva', 'value')
-            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::BANKRUPT_OR_IVA)->id);
     }
 
     public function setParent(PaymentParentModel $parent): static

@@ -25,6 +25,13 @@ trait HasPayments
         return $this->morphMany(Payment::class, 'parentable');
     }
 
+    public function selectedPaymentOffer(): MorphOne
+    {
+        return $this->morphOne(PaymentOffer::class, 'parentable')
+            ->where('selected', true)
+            ->latest();
+    }
+
     public function activePayment(): MorphOne
     {
         return $this->morphOne(Payment::class, 'parentable')

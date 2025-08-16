@@ -19,6 +19,4 @@ interface FinanceGateway
     public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array;
 
     public function financeProducts(): Collection;
-
-    public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData;
 }

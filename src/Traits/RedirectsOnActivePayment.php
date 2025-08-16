@@ -24,4 +24,23 @@ trait RedirectsOnActivePayment
             app()->terminate();
         }
     }
+
+    protected function redirectToSelectedOffer(PaymentParentModel $parentModel)
+    {
+        // Check to see whether the parent has an active payment
+        if (!empty($parentModel->selectedPaymentOffer)) {
+
+            // Construct a URL to the payment show page
+            $url = route('payment.' . $parentModel->selectedPaymentOffer->type . '.create', [
+                'parent' => $parentModel,
+                'offerId' => $parentModel->selectedPaymentOffer->id,
+            ]);
+
+            // Set the redirect header
+            header("Location: " . $url);
+
+            // Return redirect response to the browser
+            app()->terminate();
+        }
+    }
 }

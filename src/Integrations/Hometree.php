@@ -69,6 +69,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
      */
     public function createApplication(
         PaymentSurvey $survey,
+        float $totalCost,
+        float $amount,
+        float $deposit,
     ): array {
         $helper = app(PaymentHelper::class)
             ->setParentModel($survey->parentable);
@@ -102,7 +105,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                     'savings_month_12_ess_gross' => $this->stringifyDecimal($helper->getBatterySavingsYear1()),
                 ],
                 'price' => [
-                    'net_value' => $this->stringifyDecimal($helper->getNet()),
+//                    'net_value' => $this->stringifyDecimal($helper->getNet()),
+                    'net_value' => $this->stringifyDecimal($amount),
                     'vat' => $this->stringifyDecimal($helper->getVatRate()),
                     'vat_value' => $this->stringifyDecimal($helper->getVat()),
                 ]
@@ -283,9 +287,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         return $response;
     }
 
-    public function prequal(PaymentSurvey $survey): PrequalPromiseData
+    public function prequal(PaymentSurvey $survey, float $totalCost, float $amount, float $deposit): PrequalPromiseData
     {
-        dispatch(function () use ($survey) {
+        dispatch(function () use ($survey, $totalCost, $amount, $deposit) {
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 
@@ -297,17 +301,19 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             $offers = $survey
                 ->paymentOffers()
                 ->where('payment_provider_id', $paymentProvider->id)
+                ->where('total_cost', $totalCost)
                 ->where('amount', $amount)
+                ->where('deposit', $deposit)
                 ->where('selected', false)
                 ->get();
 
             // If there aren't any offers...
             if ($offers->isEmpty()) {
                 try {
-                    $response = $this->createApplication($survey);
+                    $response = $this->createApplication($survey, $totalCost, $amount, $deposit);
 
                     $offers = collect($response['offers'])
-                        ->map(function ($offer) use ($survey, $paymentProvider, $amount, $response) {
+                        ->map(function ($offer) use ($survey, $paymentProvider, $response, $totalCost, $amount, $deposit) {
                             $productName = $paymentProvider->name . ' ' . $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years' .
                                 (
                                     $offer['params']['upfront_payment_gross'] > 0 ?
@@ -332,7 +338,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                                 'name' => $productName,
                                 'type' => 'lease',
                                 'reference' => $response['reference'],
+                                'total_cost' => $totalCost,
                                 'amount' => $amount,
+                                'deposit' => $deposit,
                                 'term' => $offer['params']['term'],
                                 'priority' => $offer['rank'],
                                 'upfront_payment' => $offer['params']['upfront_payment_gross'] ?? 0,

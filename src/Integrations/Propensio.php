@@ -74,6 +74,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
      */
     private string $endpoint;
 
+    private $requestData = null;
+    private $responseData = null;
+
     public function __construct(
         private string $key,
         string $endpoint
@@ -85,6 +88,16 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'http_errors' => false,
             'timeout' => 60
         ]);
+    }
+
+    public function getRequestData(): ?array
+    {
+        return $this->requestData;
+    }
+
+    public function getResponseData(): ?array
+    {
+        return $this->responseData;
     }
 
     /**
@@ -119,6 +132,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         $employerPK = $this->getNewRef();
         $assetPK = $this->getNewRef();
 
+        $payment->update([
+            'ibc_ref' => $this->getNewRef(),
+        ]);
+
         $agreement = [
             'REF' => $this->getNewRef(),
             'CODE' => $this->getNewRef(),
@@ -129,7 +146,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'REF' => $this->getNewRef(),
         ];
 
-        if (!in_array($payment->employment_status->value, ['retired', 'unemployed'])) {
+        if (!in_array($payment->employmentStatus->value, ['retired', 'unemployed'])) {
             $payment->update([
                 'employer_ibc_ref' => $this->getNewRef()
             ]);
@@ -137,7 +154,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
         $expenditure = [];
 
-        if ($payment->mortgage_monthly > 0 && $payment->rent_monthly > 0) {
+        if ($payment->monthly_mortgage > 0 && $payment->rent_monthly > 0) {
             $expenditure[] =  [
                 '_attributes' => [
                     'CHECKS_MADE_REF' => $expenditureMortgagePK,
@@ -174,15 +191,15 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'YEARS_AT' => floor($payment->time_with_employer / 12),
             'MONTHS_AT' => 0,
             'DESIGNATION_NAME_AT_BANK' => $payment->occupation,
-            'ACTIVE_FULLTIME' => $this->convertFulltime($payment->employment_status),
+            'ACTIVE_FULLTIME' => $payment->employmentStatus->value === 'full_time_employed' ? 1 : 0,
             'EMPLOYER_CATEGORY' => 'CUR',
-            'GROSS_SALARY' => $payment->gross_income_household,
-            'JOB_CATEGORY' => $this->convertEmploymentStatus($payment->employment_status),
+            'GROSS_SALARY' => $payment->gross_income_individual,
+            'JOB_CATEGORY' => $payment->employmentStatus->payment_provider_values['propensio'],
         ];
 
         // Add employer IBC ref ONLY if it is non-empty
-        if (!empty($application->employer_ibc_ref)) {
-            $employer['IBC_REF_TO'] = $application->employer_ibc_ref;
+        if (!empty($payment->employer_ibc_ref)) {
+            $employer['IBC_REF_TO'] = $payment->employer_ibc_ref;
         }
 
         $ibcApplicant = [
@@ -327,7 +344,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                     'ASSET_REF' => $assetPK,
                     'AGREEMENT_REF' => $agreement['REF'],
                     'ASSET_TYPE' => 'NO ASSET',
-                    'COST' => round($payment->loan_amount - $payment->deposit, 2), #loan advance
+                    'COST' => round($payment->amount - $payment->deposit, 2), #loan advance
                     'DESCRIPTION' => substr($payment->parentable->products_description ?? null, 0, 100) ?? 'Various products',
                     'VEHICLE_COST' => round($helper->getGross(), 2),
                     'CASH_DEPOSIT' => round($helper->getDeposit(), 2),
@@ -364,9 +381,15 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             ],
         ];
 
+        dd($data);
+
+        $this->requestData = ['xml' => $data];
+
         $payment->update([
-            'provider_request_data' => $data
+            'provider_request_data' => $this->requestData
         ]);
+
+        Log::debug('propensio request: ', $data);
 
         #Log::channel('finance')->info($data);
 
@@ -874,40 +897,6 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         }
     }
 
-    public function convertFulltime($employment_status)
-    {
-        switch ($employment_status) {
-            case 'employed':
-                return 1; #full time;
-                break;
-            default:
-                return 0;
-                break;
-        }
-    }
-
-    public function convertEmploymentStatus($employment_status)
-    {
-        switch ($employment_status) {
-            case 'employed':
-                return 'Employed';
-                break;
-            case 'self-employed':
-                return 'Self-Employed';
-                break;
-            case 'retired':
-                return 'Retired';
-                break;
-            case 'unemployed':
-                return 'Unemployed';
-                break;
-            default:
-                return 'Unemployed';
-                break;
-
-        }
-    }
-
     public function convertCompanyType($company_type)
     {
         switch ($company_type) {
@@ -962,9 +951,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         return false;
     }
 
-    public function prequal(PaymentSurvey $survey): PrequalPromiseData|PrequalData
+    public function prequal(PaymentSurvey $survey, float $totalCost, float $amount, float $deposit): PrequalPromiseData|PrequalData
     {
-        dispatch(function () use ($survey) {
+        dispatch(function () use ($survey, $totalCost, $amount, $deposit) {
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 
@@ -990,7 +979,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 $calculator = app(PaymentCalculator::class);
 
                 // Store products to offers
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $amount, $calculator) {
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $calculator, $totalCost, $amount, $deposit) {
 
                     $payments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
 
@@ -1003,7 +992,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                             'name' => $product->name,
                             'type' => 'finance',
                             'reference' => $reference,
+                            'total_cost' => $totalCost,
                             'amount' => $amount,
+                            'deposit' => $deposit,
                             'apr' => $product->apr,
                             'term' => $product->term,
                             'deferred' => $product->deferred,
@@ -1037,15 +1028,5 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
     public function financeProducts(): Collection
     {
         // TODO: Implement financeProducts() method.
-    }
-
-    public function getRequestData(): ?array
-    {
-        // TODO: Implement getRequestData() method.
-    }
-
-    public function getResponseData(): ?array
-    {
-        // TODO: Implement getResponseData() method.
     }
 }

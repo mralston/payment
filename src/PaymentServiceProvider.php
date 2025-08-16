@@ -9,7 +9,6 @@ use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
 use Mralston\Payment\Interfaces\PaymentAddressLookup;
 use Mralston\Payment\Interfaces\PaymentHelper;
-use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Providers\EventServiceProvider;
 use Mralston\Payment\Services\MugService;
 

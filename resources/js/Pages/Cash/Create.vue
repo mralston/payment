@@ -1,15 +1,22 @@
 <script setup>
 
-import {Head} from "@inertiajs/vue3";
+import {Head, router} from "@inertiajs/vue3";
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {ArrowPathIcon} from "@heroicons/vue/24/outline/index.js";
 import {CheckCircleIcon} from "@heroicons/vue/20/solid/index.js";
 
 const props = defineProps({
+    parentModel: Object,
     totalCost: Number,
     deposit: Number,
     minimal: Boolean,
-})
+});
+
+function unselectOffer() {
+    router.post(route('payment.unselect', {
+        parent: props.parentModel,
+    }));
+}
 
 </script>
 
@@ -20,6 +27,12 @@ const props = defineProps({
     </Head>
 
     <div class="p-4">
+
+        <button type="button"
+                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                @click="unselectOffer">
+            Change Payment Option
+        </button>
 
         <h1 v-if="!minimal" class="text-4xl font-bold">
             Cash

@@ -6,6 +6,7 @@ import {formatDate, fromNow} from "../../Helpers/Date.js";
 import {makeNumeric} from "../../Helpers/Number.js";
 import RepresentativeExample from "../../Components/RepresentativeExample.vue";
 import {ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+import ValidationBanner from "../../Components/ValidationBanner.vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -14,7 +15,7 @@ const props = defineProps({
     totalCost: Number,
     deposit: Number,
     companyDetails: Object,
-    lenders: Array,
+    paymentProviders: Array,
     employmentStatuses: Array,
 });
 
@@ -32,6 +33,12 @@ function submit()
     }));
 }
 
+function unselectOffer() {
+    router.post(route('payment.unselect', {
+        parent: props.parentModel,
+    }));
+}
+
 </script>
 
 <template>
@@ -42,10 +49,13 @@ function submit()
 
     <div class="p-4">
 
-        <div v-if="form.hasErrors" class="border-red-500 bg-red-100 border-2 rounded-lg p-2 mb-4">
-            <ExclamationTriangleIcon class="h-6 w-6 inline-block mr-2 text-red-500"/>
-            The form cannot be submitted. Please correct the errors below.
-        </div>
+        <ValidationBanner :form="form"/>
+
+        <button type="button"
+                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                @click="unselectOffer">
+            Change Payment Option
+        </button>
 
         <h1 class="text-4xl font-bold mb-6">
             {{ offer.payment_provider.name }}
@@ -57,8 +67,8 @@ function submit()
             {{ companyDetails.legalName }}
             is a broker and works with a number of lenders to help customers apply for finance to assist their purchase.
             Credit is provided from selection of lenders:
-            <span v-for="(lender, index) in lenders">
-                        {{ lender.name }}<span v-if="index < lenders.length - 2">, </span><span v-else-if="index < lenders.length - 1"> and </span>
+            <span v-for="(paymentProvider, index) in paymentProviders" :key="paymentProvider.id">
+                        {{ paymentProvider.name }}<span v-if="index < paymentProviders.length - 2">, </span><span v-else-if="index < paymentProviders.length - 1"> and </span>
                     </span>.
         </p>
 
@@ -124,40 +134,46 @@ function submit()
         <table class="mb-4 w-full md:w-1/2">
             <tbody>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Your name</th>
+                    <th class="bg-gray-100 p-1 mr-2">Finance Product</th>
                     <td class="bg-gray-100 p-1">
+                        {{ offer.name }}
+                    </td>
+                </tr>
+                <tr>
+                    <th class="p-1 mr-2">Your name</th>
+                    <td class="p-1">
                         {{ survey.customers[0].title }}
                         {{ survey.customers[0].firstName }}
                         {{ survey.customers[0].lastName }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Date of birth</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Date of birth</th>
+                    <td class="bg-gray-100 p-1">
                         {{ formatDate(survey.customers[0].dateOfBirth, 'DD/MM/YYYY') }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Dependants</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Dependants</th>
+                    <td class="p-1">
                         {{ survey.customers[0].dependants }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Mobile</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Mobile</th>
+                    <td class="bg-gray-100 p-1">
                         {{ survey.customers[0].mobile }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">E-mail</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">E-mail</th>
+                    <td class="p-1">
                         {{ survey.customers[0].email }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2 align-top">Address</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2 align-top">Address</th>
+                    <td class="bg-gray-100 p-1">
                         <div v-if="survey.addresses[0].houseNumber || survey.addresses[0].street">
                             {{ survey.addresses[0].houseNumber }} {{ survey.addresses[0].street }}
                         </div>
@@ -169,14 +185,14 @@ function submit()
                     </td>
                 </tr>
                 <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Time at address</th>
-                    <td class="bg-gray-100 p-1">
+                    <th class="p-1 mr-2">Time at address</th>
+                    <td class="p-1">
                         {{ fromNow(survey.addresses[0].dateMovedIn, true) }}
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2">Employment status</th>
-                    <td class="p-1">
+                    <th class="bg-gray-100 p-1 mr-2">Employment status</th>
+                    <td class="bg-gray-100 p-1">
                         {{ employmentStatuses.find(status => status.value === survey.customers[0].employmentStatus)?.name }}
                     </td>
                 </tr>

@@ -50,11 +50,14 @@ class FinanceController
         return Inertia::render('Finance/Create', [
             'parentModel' => $parentModel,
             'survey' => $parentModel->paymentSurvey,
-            'offer' => $offer,
+            'offer' => $offer->load('paymentProvider'),
             'totalCost' => $this->helper->getTotalCost(),
             'deposit' => $this->helper->getDeposit(),
             'companyDetails' => $this->helper->getCompanyDetails(),
-            'lenders' => PaymentProvider::all(),
+            'paymentProviders' => PaymentProvider::query()
+                ->whereHas('paymentType', function ($query) {
+                    $query->whereIdentifier(PaymentTypeEnum::FINANCE);
+                }),
             'maritalStatuses' => PaymentLookupField::byIdentifier(LookupField::MARITAL_STATUS)
                 ->paymentLookupValues,
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
@@ -85,7 +88,6 @@ class FinanceController
             ->save();
 
         // Create payment
-        // TODO: fill other finance-specific properties
         $payment = Payment::make()
             ->withPaymentType(PaymentType::byIdentifier(PaymentTypeEnum::FINANCE))
             ->withPaymentProduct(PaymentProduct::find($offer->payment_product_id))

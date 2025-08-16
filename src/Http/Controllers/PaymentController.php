@@ -10,6 +10,7 @@ use Mralston\Payment\Events\PaymentCancelled;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Services\PaymentService;
@@ -47,11 +48,33 @@ class PaymentController
             ->withViewData($this->helper->getViewData());
     }
 
+    public function start(int $parent)
+    {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+
+        // If there's an active payment, go straight there
+        $this->redirectToActivePayment($parentModel);
+
+        // If an offer has been selected go there
+        $this->redirectToSelectedOffer($parentModel);
+
+        // If the survey has been filled in, go to the options page
+        if ($parentModel->paymentSurvey?->basic_questions_completed) {
+            return redirect()
+                ->route('payment.options', ['parent' => $parent]);
+        }
+
+        // Go to the survey
+        return redirect()
+            ->route('payment.surveys.create', ['parent' => request()->route('parent')]);
+    }
+
     public function options(int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectToSelectedOffer($parentModel);
 
         $this->setDefaultDeposit($parentModel);
 
@@ -77,6 +100,71 @@ class PaymentController
             'paymentProviders' => PaymentProvider::all(),
             'systemSavings' => $this->helper->getSystemSavings(),
         ])->withViewData($this->helper->getViewData());
+    }
+
+    public function select(Request $request, int $parent)
+    {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $this->redirectToActivePayment($parentModel);
+
+        if ($request->input('paymentType') == 'cash' && $request->input('offerId') == 0) {
+            // Create cash offer and select it
+            $offer = $parentModel
+                ->paymentOffers()
+                ->create([
+                    'payment_provider_id' => PaymentProvider::byIdentifier('manual')?->id,
+                    'payment_survey_id' => $parentModel->paymentSurvey->id,
+                    'name' => 'Cash',
+                    'type' => 'cash',
+                    'reference' => $this->helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
+                    'total_cost' => $this->helper->getTotalCost(),
+                    'amount' => $this->helper->getTotalCost() - $this->helper->getDeposit(),
+                    'deposit' => $this->helper->getDeposit(),
+                    'first_payment' => $this->helper->getDeposit(),
+                    'final_payment' => $this->helper->getTotalCost() - $this->helper->getDeposit(),
+                    'total_payable' => $this->helper->getTotalCost(),
+                    'status' => 'final',
+                    'selected' => true,
+                ]);
+        } else {
+            // Select the specified finance/lease offer
+            $offer = PaymentOffer::findOrFail($request->get('offerId'));
+            $offer->update([
+                'selected' => true,
+            ]);
+        }
+
+        // Unselect other offers
+        $parentModel
+            ->paymentOffers()
+            ->where('id', '!=', $offer->id)
+            ->update([
+                'selected' => false,
+            ]);
+
+        return redirect()
+            ->route('payment.' . $request->input('paymentType') . '.create', [
+                'parent' => $parent,
+                'offerId' => $offer->id,
+            ]);
+    }
+
+    public function unselect(Request $request, int $parent)
+    {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $this->redirectToActivePayment($parentModel);
+
+        // Unselect all offers
+        $parentModel
+            ->paymentOffers()
+            ->update([
+                'selected' => false,
+            ]);
+
+        return redirect()
+            ->route('payment.options', ['parent' => $parent]);
     }
 
     private function setDefaultDeposit(PaymentParentModel $parentModel)

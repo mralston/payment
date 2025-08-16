@@ -220,7 +220,11 @@ function initiatePrequal()
     gatewayErrors.finance = null;
     gatewayErrors.lease = null;
 
-    axios.post(route('payment.prequal', {parent: props.parentModel}))
+    axios.post(route('payment.prequal', {parent: props.parentModel}), {
+        totalCost: props.totalCost,
+        amount: props.totalCost - props.deposit,
+        deposit: props.deposit,
+    })
         .then(response => {
             // Populate pendingGateway array with those that have promised offers
             for (const offerPromise of response.data) {
@@ -291,7 +295,7 @@ function updateOffers(e) {
     pendingGateways.value = pendingGateways.value.filter((gateway) => gateway !== e.gateway);
 }
 
-function proceed(paymentType) {
+function selectOffer(paymentType) {
     let selectedOffer = null;
 
     if (paymentType === 'finance') {
@@ -300,9 +304,10 @@ function proceed(paymentType) {
         selectedOffer = selectedLeaseOffer.value;
     }
 
-    router.get(route('payment.' + paymentType + '.create', {
+    router.post(route('payment.select', {
         parent: props.parentModel,
-        offerId: selectedOffer?.id
+        offerId: selectedOffer?.id ?? 0, // 0 = cash
+        paymentType: paymentType,
     }));
 }
 
@@ -432,6 +437,12 @@ function financeVsLease()
 
     <div class="p-4">
 
+        <button type="button"
+                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                @click="survey">
+            Back to Survey
+        </button>
+
         <div v-if="!prequalOnLoad" class="mb-4 float-right">
             <div class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
                 <ExclamationTriangleIcon class="text-red-500 h-6 w-6 inline mr-2" aria-hidden="true"/>
@@ -472,7 +483,7 @@ function financeVsLease()
                                 <!-- Placeholder for dropdown -->
                             </div>
 
-                            <button @click="proceed('cash')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="selectOffer('cash')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Select
                             </button>
 
@@ -580,7 +591,7 @@ function financeVsLease()
                                 </div>
                             </div>
 
-                            <button @click="proceed('finance')"
+                            <button @click="selectOffer('finance')"
                                     :disabled="selectedFinanceOffer === null"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Select
@@ -641,7 +652,7 @@ function financeVsLease()
                                 </div>
                             </div>
 
-                            <button @click="proceed('lease')"
+                            <button @click="selectOffer('lease')"
                                     :disabled="selectedFinanceOffer === null"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Select
@@ -676,16 +687,6 @@ function financeVsLease()
                     </div>
                 </div>
             </div>
-        </div>
-
-
-
-        <div class="my-4">
-            <button type="button"
-                    class="rounded-md bg-gray-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                    @click="survey">
-                Back to Survey
-            </button>
         </div>
 
     </div>
