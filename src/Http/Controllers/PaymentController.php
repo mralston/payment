@@ -13,6 +13,7 @@ use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Services\PaymentService;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Mralston\Payment\Traits\RedirectsOnActivePayment;
@@ -76,16 +77,12 @@ class PaymentController
         $this->redirectToActivePayment($parentModel);
         $this->redirectToSelectedOffer($parentModel);
 
-        $this->setDefaultDeposit($parentModel);
+        $survey = $parentModel->paymentSurvey ?? $parentModel->paymentSurvey()->create([
+            'customers' => $this->helper->getCustomers(),
+            'addresses' => [$this->helper->getAddress()],
+        ]);
 
-        $survey = $parentModel->paymentSurvey;
-
-        if (empty($survey)) {
-            $survey = $parentModel->paymentSurvey()->create([
-                'customers' => $this->helper->getCustomers(),
-                'addresses' => [$this->helper->getAddress()],
-            ]);
-        }
+        $survey = $this->setDefaultDeposits($survey, $parentModel);
 
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
@@ -95,11 +92,27 @@ class PaymentController
             ]),
             'customers' => $this->helper->getCustomers(),
             'totalCost' => $this->helper->getTotalCost(),
-            'deposit' => $this->helper->getDeposit(),
             'leaseMoreInfoContent' => $this->helper->getLeaseContent(),
             'paymentProviders' => PaymentProvider::all(),
             'systemSavings' => $this->helper->getSystemSavings(),
         ])->withViewData($this->helper->getViewData());
+    }
+
+    public function changeDeposit(Request $request, int $parent, string $paymentType)
+    {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $survey = $parentModel->paymentSurvey;
+
+        $survey->{$paymentType . '_deposit'} = $request->input('deposit');
+        $survey->save();
+
+        // Nobble existing offers to force a full re-qual. Not very elegant, but it works.
+        // TODO: Only re-qual affected payment method
+        $parentModel->paymentOffers()->delete();
+
+        return redirect()
+            ->route('payment.options', ['parent' => $parent]);
     }
 
     public function select(Request $request, int $parent)
@@ -108,19 +121,22 @@ class PaymentController
 
         $this->redirectToActivePayment($parentModel);
 
+        $survey = $parentModel->paymentSurvey;
+
         if ($request->input('paymentType') == 'cash' && $request->input('offerId') == 0) {
             // Create cash offer and select it
             $offer = $parentModel
                 ->paymentOffers()
-                ->create([
-                    'payment_provider_id' => PaymentProvider::byIdentifier('manual')?->id,
+                ->updateOrCreate([
+                    'payment_provider_id' => PaymentProvider::byIdentifier('cash')?->id,
                     'payment_survey_id' => $parentModel->paymentSurvey->id,
+                ],[
                     'name' => 'Cash',
                     'type' => 'cash',
                     'reference' => $this->helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
                     'total_cost' => $this->helper->getTotalCost(),
                     'amount' => $this->helper->getTotalCost() - $this->helper->getDeposit(),
-                    'deposit' => $this->helper->getDeposit(),
+                    'deposit' => $survey->cash_deposit,
                     'first_payment' => $this->helper->getDeposit(),
                     'final_payment' => $this->helper->getTotalCost() - $this->helper->getDeposit(),
                     'total_payable' => $this->helper->getTotalCost(),
@@ -167,24 +183,30 @@ class PaymentController
             ->route('payment.options', ['parent' => $parent]);
     }
 
-    private function setDefaultDeposit(PaymentParentModel $parentModel)
+    private function setDefaultDeposits(PaymentSurvey $survey, PaymentParentModel $parentModel): PaymentSurvey
     {
-        if (empty($this->helper->getDeposit()) && !empty(config('payment.deposit'))) {
+        collect(['cash', 'finance', 'lease'])
+            ->each(function ($paymentType) use ($survey, $parentModel) {
+                if (is_null($survey->{$paymentType . '_deposit'})) {
 
-            if (Str::of(config('payment.deposit'))->endsWith('%')) {
-                // Calculate deposit as percentage of total
-                $percentage = Str::of(config('payment.deposit'))->beforeLast('%')->__toString();
-                $deposit = floatval($percentage) / 100 * $this->helper->getTotalCost();
+                    $defaultDeposit = config('payment.default_' . $paymentType . '_deposit');
 
+                    if (Str::of($defaultDeposit)->endsWith('%')) {
+                        // Calculate deposit as percentage of total
+                        $percentage = Str::of($defaultDeposit)->beforeLast('%')->__toString();
+                        $deposit = floatval($percentage) / 100 * $this->helper->getTotalCost();
+                    } else {
+                        // Standard numeric deposit values
+                        $deposit = $defaultDeposit;
+                    }
 
-            } else {
-                // Standard numeric deposit values
-                $deposit = config('payment.deposit');
-            }
+                    $survey->{$paymentType . '_deposit'} = $deposit;
+                }
+            });
 
-            // Set the deposit
-            return $this->helper->setDeposit($deposit);
-        }
+        $survey->save();
+
+        return $survey;
     }
 
     public function cancel(Request $request, int $parent, Payment $payment)

@@ -21,6 +21,9 @@ class PaymentSurvey extends Model
         'finance_questions_completed',
         'finance_responses',
         'lease_responses',
+        'cash_deposit',
+        'finance_deposit',
+        'lease_deposit',
     ];
 
     protected $casts = [

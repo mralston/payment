@@ -39,6 +39,9 @@ Route::group(['middleware' => ['web', 'auth']], function () {
             Route::get('{parent}/options', [PaymentController::class, 'options'])
                 ->name('options');
 
+            Route::post('{parent}/change-desposit/{paymentType}', [PaymentController::class, 'changeDeposit'])
+                ->name('change-deposit');
+
             Route::post('{parent}/select', [PaymentController::class, 'select'])
                 ->name('select');
 

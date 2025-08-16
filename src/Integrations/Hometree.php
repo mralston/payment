@@ -105,7 +105,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                     'savings_month_12_ess_gross' => $this->stringifyDecimal($helper->getBatterySavingsYear1()),
                 ],
                 'price' => [
-//                    'net_value' => $this->stringifyDecimal($helper->getNet()),
+                    // TODO: If they ever levy VAT on solar panels again, we'll need to check this code is right
                     'net_value' => $this->stringifyDecimal($amount),
                     'vat' => $this->stringifyDecimal($helper->getVatRate()),
                     'vat_value' => $this->stringifyDecimal($helper->getVat()),
@@ -287,15 +287,16 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         return $response;
     }
 
-    public function prequal(PaymentSurvey $survey, float $totalCost, float $amount, float $deposit): PrequalPromiseData
+    public function prequal(PaymentSurvey $survey, float $totalCost): PrequalPromiseData
     {
-        dispatch(function () use ($survey, $totalCost, $amount, $deposit) {
+        dispatch(function () use ($survey, $totalCost) {
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 
-            $amount = $helper->getTotalCost() - $helper->getDeposit();
-
             $paymentProvider = PaymentProvider::byIdentifier('hometree');
+
+            $deposit = $survey->lease_deposit;
+            $amount = $totalCost - $deposit;
 
             // See if there are already offers
             $offers = $survey

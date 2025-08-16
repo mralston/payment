@@ -19,13 +19,13 @@ class PrequalService
      *
      * @return Collection<PaymentOffer|PrequalPromiseData>
      */
-    public function run(PaymentSurvey $survey, float $totalCost, float $amount, float $deposit): Collection
+    public function run(PaymentSurvey $survey, float $totalCost): Collection
     {
         // Loop through payment providers with a gateway
         return PaymentProvider::query()
             ->whereNotNull('gateway')
             ->get()
-            ->map(function (PaymentProvider $provider) use ($survey, $totalCost, $amount, $deposit) {
+            ->map(function (PaymentProvider $provider) use ($survey, $totalCost) {
                 // Grab the gateway
                 $gateway = $provider->gateway();
 
@@ -35,7 +35,7 @@ class PrequalService
                 }
 
                 // Run the prequalification and return the result or promise
-                return $gateway->prequal($survey, $totalCost, $amount, $deposit);
+                return $gateway->prequal($survey, $totalCost);
             })
             ->reject(fn ($result) => $result === null);
     }

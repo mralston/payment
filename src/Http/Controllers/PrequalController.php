@@ -29,10 +29,8 @@ class PrequalController extends Controller
         $survey = $parentModel->paymentSurvey;
 
         $totalCost = $request->float('totalCost');
-        $amount = $request->float('amount');
-        $deposit = $request->float('deposit');
 
-        $results = $this->prequalService->run($survey, $totalCost, $amount, $deposit);
+        $results = $this->prequalService->run($survey, $totalCost);
 
         return response()
             ->json($results);

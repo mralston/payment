@@ -528,13 +528,16 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         }
     }
 
-    public function prequal(PaymentSurvey $survey, float $totalCost, float $amount, float $deposit): PrequalPromiseData|PrequalData
+    public function prequal(PaymentSurvey $survey, float $totalCost): PrequalPromiseData|PrequalData
     {
-        dispatch(function () use ($survey, $totalCost, $amount, $deposit) {
+        dispatch(function () use ($survey, $totalCost) {
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 
             $paymentProvider = PaymentProvider::byIdentifier('tandem');
+
+            $deposit = $survey->finance_deposit;
+            $amount = $totalCost - $deposit;
 
             // See if there are already offers
             $offers = $survey

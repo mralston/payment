@@ -5,6 +5,7 @@ import axios from "axios";
 import { useEcho } from '@laravel/echo-vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+import {PencilIcon} from "@heroicons/vue/24/outline/index.js";
 import MoreInfoModal from "../../Components/MoreInfoModal.vue";
 
 import LeaseMoreInfo from "../../Components/MoreInfo/Lease.vue";
@@ -19,13 +20,13 @@ import BulletPointsSkeleton from "../../Components/BulletPointsSkeleton.vue";
 import SkeletonItem from "../../Components/SkeletonItem.vue";
 import {makeNumeric} from "../../Helpers/Number.js";
 import {decompress} from "../../Helpers/Compression.js";
+import Modal from "../../Components/Modal.vue";
 
 const props = defineProps({
     parentModel: Object,
     survey: Object,
     customers: Array,
     totalCost: Number,
-    deposit: Number,
     leaseMoreInfoContent: String,
     paymentProviders: Array,
     systemSavings: Object,
@@ -41,6 +42,7 @@ const leaseMoreInfoModal = ref(null);
 const prequalErrorsModal = ref(null);
 const cashVsFinanceModal = ref(null);
 const financeVsLeaseModal = ref(null);
+const depositModal = ref(null);
 
 const prequalRunning = ref(false);
 
@@ -53,7 +55,14 @@ const gatewayErrors = reactive({
 
 const currentErrorsToDisplay = ref([]);
 
+const cashPaymentProvider = computed(() => {
+    return props.paymentProviders.find(paymentProvider => paymentProvider.identifier === 'cash');
+});
+
 const offers = ref([]);
+
+const newDeposit = ref(null);
+const newDepositType = ref(null);
 
 const financeOffers = computed (() => {
     return offers.value
@@ -222,8 +231,6 @@ function initiatePrequal()
 
     axios.post(route('payment.prequal', {parent: props.parentModel}), {
         totalCost: props.totalCost,
-        amount: props.totalCost - props.deposit,
-        deposit: props.deposit,
     })
         .then(response => {
             // Populate pendingGateway array with those that have promised offers
@@ -311,7 +318,7 @@ function selectOffer(paymentType) {
     }));
 }
 
-function survey()
+function backToSurvey()
 {
     router.get(route('payment.surveys.create', {parent: props.parentModel}));
 }
@@ -388,6 +395,28 @@ function financeVsLease()
     financeVsLeaseModal.value.show();
 }
 
+function changeDeposit(paymentType)
+{
+    newDepositType.value = paymentType;
+    newDeposit.value = props.survey[paymentType + '_deposit'];
+
+    depositModal.value.show();
+}
+
+function submitDepositChange()
+{
+    if (newDeposit.value === '') {
+        newDeposit.value = 0;
+    }
+
+    router.post(route('payment.change-deposit', {parent: props.parentModel, paymentType: newDepositType.value}), {
+        deposit: newDeposit.value,
+    }, {
+        onSuccess: () => {
+            initiatePrequal();
+        }
+    });
+}
 
 </script>
 
@@ -398,12 +427,12 @@ function financeVsLease()
     </Head>
 
     <MoreInfoModal ref="cashMoreInfoModal" title="More Info - Cash">
-        <CashMoreInfo :totalCost="totalCost" :deposit="deposit"/>
+        <CashMoreInfo :totalCost="totalCost" :deposit="makeNumeric(survey.cash_deposit)"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="financeMoreInfoModal" title="More Info - Finance">
         <FinanceMoreInfo :totalCost="makeNumeric(totalCost)"
-                         :deposit="makeNumeric(deposit)"
+                         :deposit="makeNumeric(survey.finance_deposit)"
                          :selected-offer="selectedFinanceOffer"
                          :other-offers="financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id && offer.payment_provider_id === selectedFinanceOffer.payment_provider_id)"
                          :system-savings="systemSavings"/>
@@ -412,7 +441,7 @@ function financeVsLease()
     <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
         <LeaseMoreInfo :content="leaseMoreInfoContent"
                        :totalCost="makeNumeric(totalCost)"
-                       :deposit="makeNumeric(deposit)"
+                       :deposit="makeNumeric(survey.lease_deposit)"
                        :selected-offer="selectedLeaseOffer"
                        :other-offers="leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id)"
                        :system-savings="systemSavings"
@@ -435,11 +464,19 @@ function financeVsLease()
         </ul>
     </MoreInfoModal>
 
+    <Modal ref="depositModal" :title="`Change ${newDepositType} deposit`" :buttons="['ok', 'cancel']" type="question" @ok="submitDepositChange">
+        <p class="mb-4">What deposit will the customer be paying for {{ newDepositType }}?</p>
+        <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
+            <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
+            <input type="number" step="0.01" v-model="newDeposit" :id="newDeposit" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+        </div>
+    </Modal>
+
     <div class="p-4">
 
         <button type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                @click="survey">
+                @click="backToSurvey">
             Back to Survey
         </button>
 
@@ -483,6 +520,13 @@ function financeVsLease()
                                 <!-- Placeholder for dropdown -->
                             </div>
 
+                            <div class="mt-8">
+                                <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.cash_deposit)) }}
+                                <button type="button" class="float-right" @click="changeDeposit('cash')">
+                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                </button>
+                            </div>
+
                             <button @click="selectOffer('cash')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Select
                             </button>
@@ -491,66 +535,19 @@ function financeVsLease()
                                 More Info
                             </button>
 
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Cash Purchase Option
-                            </p>
-
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Deposit: 25% upfront (paid upon booking)
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Balance: 75% on satisfactory completion
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Ownership: Immediate
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Interest: None
-                                </li>
-                            </ul>
-
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Why cash?
-                            </p>
-
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Lowest overall cost — no interest or fees
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Full system ownership from day one
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    No finance agreements or credit checks
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Straightforward and clean transaction
-                                </li>
-                            </ul>
-
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Best for
-                            </p>
-
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Customers with available savings
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Those focused on long-term value and maximum ROC
-                                </li>
-                            </ul>
+                            <div v-if="cashPaymentProvider?.selling_points"
+                                 v-for="sellingPoint in cashPaymentProvider.selling_points"
+                                 :key="sellingPoint.title">
+                                <p class="mt-10 text-sm/6 font-semibold text-gray-900">
+                                    {{ sellingPoint.title }}
+                                </p>
+                                <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
+                                    <li class="flex gap-x-3" v-for="bullet in sellingPoint.bullets" :key="bullet">
+                                        <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                        {{ bullet }}
+                                    </li>
+                                </ul>
+                            </div>
 
                         </div>
 
@@ -589,6 +586,13 @@ function financeVsLease()
                                 <div v-if="gatewayErrors.finance" class="text-center">
                                     <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showPrequalErrorsModal('finance')"/>
                                 </div>
+                            </div>
+
+                            <div class="mt-8">
+                                <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.finance_deposit)) }}
+                                <button type="button" class="float-right" @click="changeDeposit('finance')">
+                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                </button>
                             </div>
 
                             <button @click="selectOffer('finance')"
@@ -650,6 +654,13 @@ function financeVsLease()
                                 <div v-if="gatewayErrors.lease" class="text-center">
                                     <ExclamationTriangleIcon class="h-10 w-10 text-red-500 inline cursor-pointer" @click="showPrequalErrorsModal('lease')"/>
                                 </div>
+                            </div>
+
+                            <div class="mt-8">
+                                <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.lease_deposit)) }}
+                                <button type="button" class="float-right" @click="changeDeposit('lease')">
+                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                </button>
                             </div>
 
                             <button @click="selectOffer('lease')"
