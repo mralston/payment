@@ -27,7 +27,7 @@ class CashController
         return Inertia::render('Cash/Create', [
             'parentModel' => $parentModel,
             'totalCost' => $this->helper->getTotalCost(),
-            'deposit' => $this->helper->getDeposit(),
+            'deposit' => $parentModel->paymentSurvey->cash_deposit,
         ])
             ->withViewData($this->helper->getViewData());
     }

@@ -416,7 +416,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         $helper = app(PaymentHelper::class)
             ->setParentModel($survey->parentable);
 
-        $amount = $helper->getTotalCost() - $helper->getDeposit();
+        $amount = $helper->getTotalCost() - $survey->lease_deposit;
 
         $paymentProviderId = PaymentProvider::byIdentifier('hometree')->id;
 

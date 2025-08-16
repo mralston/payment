@@ -23,12 +23,6 @@ interface PaymentHelper
 
     public function getTotalCost(): float;
 
-    public function getDeposit(): ?float;
-
-    public function setDeposit(float $deposit): float;
-
-    public function setPaymentMethod();
-
     public function getBasketItems(): array;
 
     public function hasFeature(string $feature): bool;

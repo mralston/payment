@@ -347,7 +347,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                     'COST' => round($payment->amount - $payment->deposit, 2), #loan advance
                     'DESCRIPTION' => substr($payment->parentable->products_description ?? null, 0, 100) ?? 'Various products',
                     'VEHICLE_COST' => round($helper->getGross(), 2),
-                    'CASH_DEPOSIT' => round($helper->getDeposit(), 2),
+                    'CASH_DEPOSIT' => round($payment->deposit, 2),
                 ]
             ],
             'QUOTATION' => [
@@ -371,7 +371,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                     'DOC_FEE_COMPONENT' => 'ARRANGEMENT_FEE',
                     'SUBSIDY' => 0,
                     'QUOTATION_CAMPAIGN_REF' => $payment->lender_product_code,
-                    'AMOUNT_FINANCED' => round($helper->getTotalCost() - $helper->getDeposit(), 2),
+                    'AMOUNT_FINANCED' => round($helper->getTotalCost() - $payment->deposit, 2),
                 ]
             ],
             'IMPORT_CONTROL' => [
@@ -957,7 +957,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 
-            $amount = $helper->getTotalCost() - $helper->getDeposit();
+            $amount = $helper->getTotalCost() - $survey->finance_deposit;
 
             $paymentProvider = PaymentProvider::byIdentifier('propensio');
 

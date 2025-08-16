@@ -48,10 +48,10 @@ class LeaseController
 
         return Inertia::render('Lease/Create', [
             'parentModel' => $parentModel,
-            'survey' => $parentModel->paymentSurvey,
+            'survey' => $survey,
             'offer' => $offer->load('paymentProvider'),
             'totalCost' => $this->helper->getTotalCost(),
-            'deposit' => $this->helper->getDeposit(),
+            'deposit' => $survey->lease_deposit,
             'companyDetails' => $this->helper->getCompanyDetails(),
             'paymentProviders' => PaymentProvider::query()
                 ->whereHas('paymentType', function ($query) {
@@ -81,7 +81,7 @@ class LeaseController
             ->withOffer($offer)
             ->setParent($parentModel)
             ->fill([
-                'deposit' => $this->helper->getDeposit(),
+                'deposit' => $survey->lease_deposit,
                 'eligible' => $request->get('eligible'),
                 'gdpr_opt_in' => $request->get('gdprOptIn'),
                 'read_terms_conditions' => $request->get('readTermsConditions'),
