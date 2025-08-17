@@ -13,6 +13,8 @@ createInertiaApp({
         return pages[`./Pages/${name}.vue`];
     },
     setup({ el, App, props, plugin }) {
+        const echoConfig = props.initialPage.props.echo;
+
         configureEcho({
             ...echoConfig,
             namespace: "Mralston.Payment.Events",
