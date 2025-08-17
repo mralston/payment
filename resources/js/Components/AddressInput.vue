@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import { MagnifyingGlassIcon } from '@heroicons/vue/16/solid';
 import Modal from "./Modal.vue";
+import axios from 'axios';
 
 defineOptions({
     inheritAttrs: false
