@@ -33,7 +33,7 @@ class PaymentServiceProvider extends ServiceProvider
             ], 'payment-seeders');
 
             $this->publishes([
-                __DIR__.'/../public/vendor/mralston/payment/build' => public_path('vendor/mralston/payment/build'),
+                __DIR__.'/../public/public/vendor/mralston/payment/build' => public_path('vendor/mralston/payment/build'),
             ], 'payment-assets');
         }
 
