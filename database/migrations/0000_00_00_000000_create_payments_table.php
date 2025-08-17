@@ -40,7 +40,6 @@ return new class extends Migration
             $table->string('middle_name')->nullable();
             $table->string('last_name')->nullable();
             $table->string('marital_status')->nullable();
-            $table->tinyInteger('homeowner_status')->nullable();
             $table->string('residential_status')->nullable();
             $table->string('nationality')->nullable();
             $table->date('date_of_birth')->nullable();

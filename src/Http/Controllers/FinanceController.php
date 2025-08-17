@@ -9,7 +9,6 @@ use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Enums\PaymentType as PaymentTypeEnum;
 use Mralston\Payment\Http\Requests\SubmitFinanceApplicationRequest;
 use Mralston\Payment\Interfaces\FinanceGateway;
-use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupField;
@@ -109,35 +108,36 @@ class FinanceController
         $result = $this->submitApplication($gateway, $payment, $offer, $survey, $parent);
 
         // Watch the status in the background for a little while and see if it updates
-        dispatch(function () use ($payment, $gateway, $offer, $survey, $parent) {
-            Log::debug('watching status');
-            do {
-                // Wait for 3 seconds before each status check.
-                sleep(3);
+        if ($result) {
+            dispatch(function () use ($payment, $gateway, $offer, $survey, $parent) {
+                Log::debug('watching status');
+                do {
+                    // Wait for 3 seconds before each status check.
+                    sleep(3);
 
-                // Fetch the latest application status.
-                $response = $gateway->pollStatus($payment);
+                    // Fetch the latest application status.
+                    $response = $gateway->pollStatus($payment);
 
-                Log::debug('status currently: ', [$response['status']]);
+                    Log::debug('status currently: ', [$response['status']]);
+                } while ($response['status'] == 'processing'); // Repeat if still processing.
 
-            } while ($response['status'] == 'processing'); // Repeat if still processing.
+                Log::debug('status now: ', [$response['status']]);
 
-            Log::debug('status now: ', [$response['status']]);
-
-            // Once the status is no longer 'processing', update the payment record
-            Log::debug('updating payment');
-            $result = $payment->update([
-                'provider_request_data' => $gateway->getRequestData(),
-                'provider_response_data' => $gateway->getResponseData(),
-                'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
-            ]);
-            Log::debug('payment updated: ' . $result ? 'success' : 'failure');
-        });
+                // Once the status is no longer 'processing', update the payment record
+                Log::debug('updating payment');
+                $result = $payment->update([
+                    'provider_request_data' => $gateway->getRequestData(),
+                    'provider_response_data' => $gateway->getResponseData(),
+                    'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
+                ]);
+                Log::debug('payment updated: ' . $result ? 'success' : 'failure');
+            });
+        }
 
         return redirect()
             ->route('payment.finance.show', [
                 'parent' => $parent,
-                'finance' => $payment
+                'finance' => $payment->id
             ]);
     }
 
@@ -161,8 +161,8 @@ class FinanceController
     private function submitApplication(FinanceGateway $gateway, Payment $payment, PaymentOffer $offer, PaymentSurvey $survey, int $parent): bool
     {
         try {
-            $response = $gateway->apply($payment);
-            Log::debug('Apply Response: ', [$response]);
+            $payment = $gateway->apply($payment);
+            Log::debug('Apply Response: ', [$payment]);
         } catch (\Exception $e) {
             Log::error('Error submitting application: ' . $e->getMessage());
             $payment->update([
@@ -175,7 +175,7 @@ class FinanceController
             return false;
         }
 
-        if (!$payment->paymentStatus->error) {
+        if ($payment->paymentStatus->error) {
             return false;
         }
 

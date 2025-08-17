@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Str;
 use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Events\PaymentUpdated;
 use Mralston\Payment\Interfaces\PaymentParentModel;
@@ -197,6 +198,11 @@ class Payment extends Model
     {
         return $this->belongsTo(PaymentLookupValue::class, 'nationality', 'value')
             ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::NATIONALITY)->id);
+    }
+
+    public function ibcRef(): Attribute
+    {
+        return Attribute::get(fn() => Str::of($this->uuid)->replace('-', '')->__toString());
     }
 
     public function setParent(PaymentParentModel $parent): static
