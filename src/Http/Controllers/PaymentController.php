@@ -53,6 +53,20 @@ class PaymentController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
+        // If the payment process is disabled, throw them out
+        if ($result = $this->helper->disablePaymentProcess()) {
+
+            if (is_string($result)) {
+                $reason = $result;
+            } else {
+                $reason = 'Payment process is disabled';
+            }
+
+            return Inertia::render('Payment/Disabled', [
+                'reason' => $reason,
+            ])->withViewData($this->helper->getViewData());
+        }
+
         // If there's an active payment, go straight there
         $this->redirectToActivePayment($parentModel);
 

@@ -50,4 +50,7 @@ interface PaymentHelper
     public function getCompanyDetails(): CompanyData;
 
     public function storeFile(string $filename, string $contents): Object;
+
+    public function disablePaymentProcess(): bool|string;
+
 }
