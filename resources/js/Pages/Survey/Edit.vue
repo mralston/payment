@@ -317,7 +317,7 @@ function skip()
                         </ValidationWrapper>
 
                         <div class="mb-4">
-                            <label :for="`addresses.${index}.dateMovedIn`" class="block text-sm/6 font-medium text-gray-900">Date moved in</label>
+                            <label :for="`addresses.${index}.dateMovedIn`" class="block text-sm/6 font-medium text-gray-900">Approximate Move in Date</label>
                             <ValidationWrapper :form="form" :field="`addresses.${index}.dateMovedIn`">
                                 <input type="date" v-model="address.dateMovedIn" :id="`addresses.${index}.dateMovedIn`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>
@@ -458,7 +458,7 @@ function skip()
                         </div>
 
                         <div class="mb-4">
-                            <label for="dateStartedEmployment" class="block text-sm/6 font-medium text-gray-900">Date started</label>
+                            <label for="dateStartedEmployment" class="block text-sm/6 font-medium text-gray-900">Approximate Start Date</label>
                             <ValidationWrapper :form="form" field="financeResponses.dateStartedEmployment">
                                 <input type="date" v-model="form.financeResponses.dateStartedEmployment" id="dateStartedEmployment" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>

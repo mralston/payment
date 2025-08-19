@@ -10,6 +10,7 @@ use Mralston\Payment\Enums\PaymentType as PaymentTypeEnum;
 use Mralston\Payment\Http\Requests\SubmitFinanceApplicationRequest;
 use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Jobs\WatchForPaymentUpdates;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentOffer;
@@ -107,31 +108,15 @@ class FinanceController
         // Submit the application
         $result = $this->submitApplication($gateway, $payment, $offer, $survey, $parent);
 
+        Log::debug('Submit Application Result: ', [$result ? 'success' : 'failure']);
+
         // Watch the status in the background for a little while and see if it updates
         if ($result) {
-            dispatch(function () use ($payment, $gateway, $offer, $survey, $parent) {
-                Log::debug('watching status');
-                do {
-                    // Wait for 3 seconds before each status check.
-                    sleep(3);
-
-                    // Fetch the latest application status.
-                    $response = $gateway->pollStatus($payment);
-
-                    Log::debug('status currently: ', [$response['status']]);
-                } while ($response['status'] == 'processing'); // Repeat if still processing.
-
-                Log::debug('status now: ', [$response['status']]);
-
-                // Once the status is no longer 'processing', update the payment record
-                Log::debug('updating payment');
-                $result = $payment->update([
-                    'provider_request_data' => $gateway->getRequestData(),
-                    'provider_response_data' => $gateway->getResponseData(),
-                    'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
-                ]);
-                Log::debug('payment updated: ' . $result ? 'success' : 'failure');
-            });
+            Log::debug('starting background watch for payment updates');
+            WatchForPaymentUpdates::dispatch($payment);
+            Log::debug('dispatched wait job');
+        } else {
+            Log::debug('not starting watch for payment updates');
         }
 
         return redirect()

@@ -6,6 +6,7 @@ use Mralston\Payment\Http\Controllers\CashController;
 use Mralston\Payment\Http\Controllers\FinanceController;
 use Mralston\Payment\Http\Controllers\LeaseController;
 use Mralston\Payment\Http\Controllers\PaymentController;
+use Mralston\Payment\Http\Controllers\PaymentOptionsController;
 use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
 use Mralston\Payment\Http\Controllers\FinanceSigningLinkController;
@@ -36,16 +37,16 @@ Route::group(['middleware' => ['web', 'auth']], function () {
             Route::resource('{parent}/surveys', SurveyController::class)
                 ->names('surveys');
 
-            Route::get('{parent}/options', [PaymentController::class, 'options'])
+            Route::get('{parent}/options', [PaymentOptionsController::class, 'options'])
                 ->name('options');
 
-            Route::post('{parent}/change-desposit/{paymentType}', [PaymentController::class, 'changeDeposit'])
+            Route::post('{parent}/change-desposit/{paymentType}', [PaymentOptionsController::class, 'changeDeposit'])
                 ->name('change-deposit');
 
-            Route::post('{parent}/select', [PaymentController::class, 'select'])
+            Route::post('{parent}/select', [PaymentOptionsController::class, 'select'])
                 ->name('select');
 
-            Route::post('{parent}/unselect', [PaymentController::class, 'unselect'])
+            Route::post('{parent}/unselect', [PaymentOptionsController::class, 'unselect'])
                 ->name('unselect');
 
             Route::post('{parent}/cancel/{payment}', [PaymentController::class, 'cancel'])

@@ -290,6 +290,20 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
     public function prequal(PaymentSurvey $survey, float $totalCost): PrequalPromiseData
     {
         dispatch(function () use ($survey, $totalCost) {
+
+            if (empty($survey->addresses[0]['uprn'])) {
+                event(new PrequalError(
+                    gateway: static::class,
+                    type: 'lease',
+                    surveyId: $survey->id,
+                    errorCode: 255,
+                    errorMessage: 'Hometree is not available without an address selected from the post code lookup list.',
+                    response: 'Hometree is not available without an address selected from the post code lookup list.',
+                ));
+
+                return;
+            }
+
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 
@@ -563,7 +577,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
     public function pollStatus(Payment $payment): array
     {
-        return $this->getApplication($payment->provider_foreign_id);
+        return $this->getApplication($payment->paymentOffer->provider_application_id);
     }
 
     public function parseErrors(Collection $response): ErrorCollectionData

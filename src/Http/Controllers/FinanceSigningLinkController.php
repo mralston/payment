@@ -9,12 +9,12 @@ class FinanceSigningLinkController
 {
     public function show(Payment $payment)
     {
-        //test
-        return [
-            'success' => true,
-            'error' => null,
-            'url' => 'https://www.google.com'
-        ];
+//        //test
+//        return [
+//            'success' => true,
+//            'error' => null,
+//            'url' => 'https://www.google.com'
+//        ];
         try {
             return [
                 'success' => true,

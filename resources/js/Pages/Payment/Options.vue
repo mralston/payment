@@ -4,7 +4,7 @@ import {computed, onMounted, reactive, ref, watch} from "vue";
 import axios from "axios";
 import { useEcho } from '@laravel/echo-vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
-import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+import {CheckCircleIcon, ExclamationTriangleIcon, ArrowPathIcon} from "@heroicons/vue/20/solid/index.js";
 import {PencilIcon} from "@heroicons/vue/24/outline/index.js";
 import MoreInfoModal from "../../Components/MoreInfoModal.vue";
 
@@ -221,7 +221,7 @@ useEcho(
     }
 );
 
-function initiatePrequal()
+function initiatePrequal(reset = false)
 {
     offers.value = [];
     selectedFinanceOffer.value = null;
@@ -231,6 +231,7 @@ function initiatePrequal()
 
     axios.post(route('payment.prequal', {parent: props.parentModel}), {
         totalCost: props.totalCost,
+        reset: reset,
     })
         .then(response => {
             // Populate pendingGateway array with those that have promised offers
@@ -418,6 +419,11 @@ function submitDepositChange()
     });
 }
 
+function resetPrequal()
+{
+    initiatePrequal(true);
+}
+
 </script>
 
 <template>
@@ -474,11 +480,22 @@ function submitDepositChange()
 
     <div class="p-4">
 
-        <button type="button"
-                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                @click="backToSurvey">
-            Back to Survey
-        </button>
+        <div class="float-end">
+            <button type="button"
+                    class="rounded bg-gray-600 px-2 py-1 mr-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    title="Refresh Offers"
+                    @click="resetPrequal">
+                <ArrowPathIcon :disabled="pendingGateways.length > 0"
+                               class="text-white h-4 w-4 inline"
+                               :class="{'animate-spin' : pendingGateways.length > 0}" aria-hidden="true"/>
+            </button>
+
+            <button type="button"
+                    class="rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    @click="backToSurvey">
+                Back to Survey
+            </button>
+        </div>
 
         <div v-if="!prequalOnLoad" class="mb-4 float-right">
             <div class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
@@ -561,7 +578,7 @@ function submitDepositChange()
                                 <SkeletonItem v-else class="h-7 w-5/6"/>
                             </div>
 
-                            <button class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
+                            <button v-if="survey.addresses[0].uprn || survey.addresses[0].ufprn" class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
                                     @click="financeVsLease"
                                     title="Compare Finance &amp; Lease">
                                 VS
@@ -627,7 +644,7 @@ function submitDepositChange()
                         </div>
 
                         <!-- Lease -->
-                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
+                        <div v-if="survey.addresses[0].uprn || survey.addresses[0].ufprn" class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
 
                             <div class="mb-4">
                                 <img v-if="selectedLeaseProvider?.logo" :src="selectedLeaseProvider.logo" class="max-w-1/3 h-7" :alt="selectedLeaseProvider.name">

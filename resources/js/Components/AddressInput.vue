@@ -71,6 +71,8 @@ const selectedAddress = ref();
 
 const addressesFound = computed(() => Object.keys(addresses.value).length > 0);
 
+const manualAddress = ref(props.allowManualEntry);
+
 function lookup()
 {
     axios.get(route('payment.address.lookup', addressModel.value.postCode))
@@ -131,6 +133,8 @@ function returnSelectedAddress()
     addressModel.value.uprn = selectedAddress.value.uprn;
 
     addressLookupModal.value.hide();
+
+    addressModel.value.manual = false;
 }
 
 function selectAddress(address)
@@ -144,11 +148,24 @@ function selectAddressAndClose(address)
     returnSelectedAddress();
 }
 
+function notListed()
+{
+    addressModel.value.manual = true;
+    addressModel.value.uprn = null;
+}
+
 </script>
 
 <template>
 
-    <Modal ref="addressLookupModal" type="question" title="Select Address" class="w-1/2" :buttons="['ok', 'cancel']" @ok="returnSelectedAddress">
+    <Modal ref="addressLookupModal"
+           type="question"
+           title="Select Address"
+           class="w-1/2"
+           :buttons="['ok', 'cancel', 'custom1']"
+           custom1-text="Not Listed"
+           @ok="returnSelectedAddress"
+           @custom1="notListed">
         <div v-if="addressesFound > 0" class="w-full border border-gray-300 rounded-lg max-h-[20rem] overflow-y-auto">
             <button type="button"
                     v-for="(address, index) in addresses"
@@ -163,20 +180,20 @@ function selectAddressAndClose(address)
         <div v-else>No addresses matched the post code.</div>
     </Modal>
 
-    <div v-bind="$attrs" class="border border-gray-300 rounded">
+    <div v-bind="$attrs" class="border border-gray-300 rounded bg-gray-50">
         <div v-if="showHouseNumber">
             <input type="text"
                    v-model="addressModel.houseNumber"
                    :id="'houseNumber.' + uniqueId"
                    placeholder="House"
-                   :disabled="!allowManualEntry"
+                   :disabled="!addressModel.manual"
                    class="w-[4rem] border-0 border-r-[1px] border-b-[1px] border-r-gray-300 border-b-gray-300 rounded-tl bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
 
             <input type="text"
                    v-model="addressModel.street"
                    :id="'street.' + uniqueId"
                    placeholder="Street"
-                   :disabled="!allowManualEntry"
+                   :disabled="!addressModel.manual"
                    class="w-[calc(100%-4rem)] border-0 border-b-[1px] border-b-gray-300 rounded-tr bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
         </div>
 
@@ -184,7 +201,7 @@ function selectAddressAndClose(address)
                type="text"
                v-model="addressModel.address1"
                :id="'address1.' + uniqueId"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                :placeholder="showHouseNumber ? 'Additional Line' : 'Line 1'"
                class="w-full rounded-t border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"
                :class="{'border-t-[1px]': showHouseNumber, 'rounded-t': !showHouseNumber}"/>
@@ -193,14 +210,14 @@ function selectAddressAndClose(address)
                type="text"
                v-model="addressModel.address2"
                :id="'address2.' + uniqueId"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                :placeholder="showHouseNumber ? 'Additional Line' : 'Line 2'"
                class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
         <input type="text"
                v-model="addressModel.town"
                :id="'town.' + uniqueId"
                placeholder="Town"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"
         />
 
@@ -208,7 +225,7 @@ function selectAddressAndClose(address)
                v-model="addressModel.county"
                :id="'county.' + uniqueId"
                placeholder="County"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
 
         <div class="flex items-center">

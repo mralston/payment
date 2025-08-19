@@ -5,8 +5,9 @@ import {cleanUrl} from "../../Helpers/Strings.js";
 import {formatDate, fromNow} from "../../Helpers/Date.js";
 import {makeNumeric} from "../../Helpers/Number.js";
 import RepresentativeExample from "../../Components/RepresentativeExample.vue";
-import {ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+import {ArrowPathIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
 import ValidationBanner from "../../Components/ValidationBanner.vue";
+import {ref} from "vue";
 
 const props = defineProps({
     parentModel: Object,
@@ -229,8 +230,11 @@ function unselectOffer() {
                                :total-payable="makeNumeric(offer.total_payable)" />
 
         <div class="text-right">
-            <button @click="submit" class="mt-10 rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                Submit Lease Application
+            <button @click="submit"
+                    :disabled="form.processing"
+                    class="mt-10 rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                <ArrowPathIcon v-if="form.processing" class="text-white h-4 w-4 inline animate-spin" aria-hidden="true"/>
+                <span v-else>Submit Lease Application</span>
             </button>
         </div>
 

@@ -23,6 +23,8 @@ const props = defineProps({
         type: Array,
         default: ['ok'],
     },
+    custom1Text: String,
+    custom2Text: String,
 });
 
 const emit = defineEmits([
@@ -32,6 +34,8 @@ const emit = defineEmits([
     'no',
     'send',
     'submit',
+    'custom1',
+    'custom2',
 ]);
 
 const computedTitle = computed(() => {
@@ -101,6 +105,18 @@ function submit()
     emit('submit');
 }
 
+function custom1()
+{
+    open.value = false;
+    emit('custom1');
+}
+
+function custom2()
+{
+    open.value = false;
+    emit('custom2');
+}
+
 defineExpose({
     show,
     hide,
@@ -145,13 +161,20 @@ defineExpose({
                                     </div>
                                 </div>
                             </div>
-                            <div class="mt-5 sm:mt-4 sm:flex sm:flex-row-reverse">
-                                <button v-if="buttons.includes('cancel')" type="button" class="inline-flex xw-full justify-center rounded-md bg-stone-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-stone-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-600 sm:col-start-2 ml-1" @click="cancel">Cancel</button>
-                                <button v-if="buttons.includes('ok')" type="button" class="inline-flex xw-full justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 sm:col-start-2 ml-1" @click="ok">OK</button>
-                                <button v-if="buttons.includes('no')" type="button" class="inline-flex xw-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 sm:col-start-2 ml-1" @click="no">No</button>
-                                <button v-if="buttons.includes('yes')" type="button" class="inline-flex xw-full justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:col-start-2 ml-1" @click="yes">Yes</button>
-                                <button v-if="buttons.includes('send')" type="button" class="inline-flex xw-full justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:col-start-2 ml-1" @click="send">Send</button>
-                                <button v-if="buttons.includes('submit')" type="button" class="inline-flex xw-full justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:col-start-2 ml-1" @click="submit">Submit</button>
+                            <div class="mt-5 sm:mt-4 sm:flex sm:justify-between">
+                                <div class="flex">
+                                    <button v-if="buttons.includes('custom1')" type="button" class="inline-flex w-full justify-center rounded-md bg-gray-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-600 sm:w-auto" @click="custom1">{{ custom1Text }}</button>
+                                    <button v-if="buttons.includes('custom2')" type="button" class="ml-2 inline-flex w-full justify-center rounded-md bg-gray-400 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-600 sm:w-auto" @click="custom2">{{ custom2Text }}</button>
+                                </div>
+
+                                <div class="mt-3 flex sm:mt-0 sm:flex-row-reverse">
+                                    <button v-if="buttons.includes('cancel')" type="button" class="inline-flex xw-full justify-center rounded-md bg-stone-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-stone-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-600 sm:col-start-2 ml-1" @click="cancel">Cancel</button>
+                                    <button v-if="buttons.includes('ok')" type="button" class="inline-flex xw-full justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 sm:col-start-2 ml-1" @click="ok">OK</button>
+                                    <button v-if="buttons.includes('no')" type="button" class="inline-flex xw-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 sm:col-start-2 ml-1" @click="no">No</button>
+                                    <button v-if="buttons.includes('yes')" type="button" class="inline-flex xw-full justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:col-start-2 ml-1" @click="yes">Yes</button>
+                                    <button v-if="buttons.includes('send')" type="button" class="inline-flex xw-full justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:col-start-2 ml-1" @click="send">Send</button>
+                                    <button v-if="buttons.includes('submit')" type="button" class="inline-flex xw-full justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:col-start-2 ml-1" @click="submit">Submit</button>
+                                </div>
                             </div>
                         </DialogPanel>
                     </TransitionChild>

@@ -30,6 +30,12 @@ class PrequalController extends Controller
 
         $totalCost = $request->float('totalCost');
 
+        if ($request->boolean('reset')) {
+            $parentModel
+                ->paymentOffers()
+                ->delete();
+        }
+
         $results = $this->prequalService->run($survey, $totalCost);
 
         return response()

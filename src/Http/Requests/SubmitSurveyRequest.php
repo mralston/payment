@@ -57,7 +57,7 @@ class SubmitSurveyRequest extends FormRequest
                     'addresses.*.street' => ['required', 'string', 'max:255'],
                     'addresses.*.postCode' => ['required', 'string', 'max:255'],
                     'addresses.*.dateMovedIn' => ['required', 'date'],
-                    'addresses.*.uprn' => ['required'],
+                    'addresses.*.uprn' => ['required_unless:addresses.*.manual,true'],
                 ]
             ];
         }
@@ -91,7 +91,7 @@ class SubmitSurveyRequest extends FormRequest
                     'financeResponses.employerAddress.address2' => ['nullable', 'string', 'max:255'],
                     'financeResponses.employerAddress.county' => ['nullable', 'string', 'max:255'],
                     'financeResponses.employerAddress.postCode' => ['required', 'string', 'max:255'],
-                    'financeResponses.employerAddress.uprn' => ['required'],
+                    'financeResponses.employerAddress.uprn' => ['required_unless:financeResponses.employerAddress.manual,true'],
 
                     'financeResponses.bankAccount.bankName' => ['required', 'string', 'max:255'],
                     'financeResponses.bankAccount.accountName' => ['required', 'string', 'max:255'],
@@ -142,7 +142,7 @@ class SubmitSurveyRequest extends FormRequest
             'addresses.*.postCode.required' => 'You must enter a post code.',
             'addresses.*.dateMovedIn.required' => 'You must enter a date moved in.',
             'addresses.*.dateMovedIn.date' => 'The date moved in is not a valid date.',
-            'addresses.*.uprn.required' => 'You must use the post code lookup button to select an exact address.',
+            'addresses.*.uprn.required_unless' => 'You must use the post code lookup button to select an exact address.',
 
             'financeResponses.occupation.required' => 'You must enter your occupation.',
             'financeResponses.employerName.required' => 'You must enter the name of your employer.',
@@ -151,7 +151,7 @@ class SubmitSurveyRequest extends FormRequest
             'financeResponses.employerAddress.address1.required' => 'You must enter the first line.',
             'financeResponses.employerAddress.town.required' => 'You must enter the town.',
             'financeResponses.employerAddress.postCode.required' => 'You must enter the post code.',
-            'financeResponses.employerAddress.uprn.required' => 'You must use the post code lookup button to select an exact address.',
+            'financeResponses.employerAddress.uprn.required_unless' => 'You must use the post code lookup button to select an exact address.',
 
             'financeResponses.bankAccount.bankName.required' => 'You must enter the name of the bank.',
             'financeResponses.bankAccount.accountName.required' => 'You must enter the name of the account holder.',
