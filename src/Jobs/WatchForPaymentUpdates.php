@@ -5,6 +5,7 @@ namespace Mralston\Payment\Jobs;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Queue\Queueable;
 use Illuminate\Support\Facades\Log;
+use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentStatus;
 
 class WatchForPaymentUpdates implements ShouldQueue
@@ -15,7 +16,7 @@ class WatchForPaymentUpdates implements ShouldQueue
      * Create a new job instance.
      */
     public function __construct(
-        protected $payment,
+        protected int $paymentId,
     ) {
         //
     }
@@ -27,7 +28,8 @@ class WatchForPaymentUpdates implements ShouldQueue
     {
         Log::debug('watching status');
 
-        $gateway = $this->payment->paymentProvider->gateway();
+        $payment = Payment::findOrFail($this->paymentId);
+        $gateway = $payment->paymentProvider->gateway();
 
 
         do {
@@ -35,7 +37,7 @@ class WatchForPaymentUpdates implements ShouldQueue
             sleep(3);
 
             // Fetch the latest application status.
-            $response = $gateway->pollStatus($this->payment);
+            $response = $gateway->pollStatus($payment);
 
             Log::debug('status currently: ', [$response['status']]);
         } while ($response['status'] == 'processing'); // Repeat if still processing.
@@ -44,7 +46,7 @@ class WatchForPaymentUpdates implements ShouldQueue
 
         // Once the status is no longer 'processing', update the payment record
         Log::debug('updating payment');
-        $result = $this->payment->update([
+        $result = $payment->update([
             'provider_request_data' => $gateway->getRequestData(),
             'provider_response_data' => $gateway->getResponseData(),
             'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,

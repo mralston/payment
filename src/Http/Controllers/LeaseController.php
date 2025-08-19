@@ -146,7 +146,7 @@ class LeaseController
         }
 
         // Watch the status in the background for a little while and see if it updates
-        WatchForPaymentUpdates::dispatch($payment);
+        WatchForPaymentUpdates::dispatch($payment->id);
 
         return redirect()
             ->route('payment.lease.show', [

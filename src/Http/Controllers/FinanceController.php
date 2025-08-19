@@ -113,7 +113,7 @@ class FinanceController
         // Watch the status in the background for a little while and see if it updates
         if ($result) {
             Log::debug('starting background watch for payment updates');
-            WatchForPaymentUpdates::dispatch($payment);
+            WatchForPaymentUpdates::dispatch($payment->id);
             Log::debug('dispatched wait job');
         } else {
             Log::debug('not starting watch for payment updates');
