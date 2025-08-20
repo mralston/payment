@@ -4,14 +4,27 @@ import { toMax2DP } from "../Helpers/Number.js";
 import {computed} from "vue";
 
 const props = defineProps({
+    title: {
+        type: String,
+        default: 'Representative Example',
+    },
     amount: Number,
     deposit: Number,
     term: Number,
     apr: Number,
+    upfrontPayment: Number,
     firstPayment: Number,
     monthlyPayment: Number,
     finalPayment: Number,
     totalPayable: Number,
+    showInterest: {
+        type: Boolean,
+        default: true,
+    },
+    showMonthlyPayment: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const aer = computed(() => {
@@ -26,7 +39,7 @@ const aer = computed(() => {
 
 <template>
     <div>
-        <h2 class="text-2xl mb-4">Representative Example</h2>
+        <h2 class="text-2xl mb-4">{{ title }}</h2>
         <table class="w-full">
             <tbody>
                 <tr>
@@ -53,15 +66,19 @@ const aer = computed(() => {
                     <th class="bg-gray-100 p-1 mr-2">Amount of credit</th>
                     <td class="bg-gray-100 p-1">{{ toPounds(amount) }}</td>
                     <th class="bg-gray-100 p-1 mr-2">
-                        <span v-if="firstPayment">
-                            {{ term - 2 }} payments of
-                        </span>
-                        <span v-else>
-                            {{ term }} payments of
+                        <span v-if="showMonthlyPayment">
+                            <span v-if="firstPayment">
+                                {{ term - 2 }} payments of
+                            </span>
+                            <span v-else>
+                                {{ term }} payments of
+                            </span>
                         </span>
                     </th>
                     <td class="bg-gray-100 p-1">
-                        {{ toPounds(monthlyPayment) }}
+                        <span v-if="showMonthlyPayment">
+                            {{ toPounds(monthlyPayment) }}
+                        </span>
                     </td>
                 </tr>
                 <tr>
@@ -69,10 +86,16 @@ const aer = computed(() => {
                         <span v-if="aer">
                             Annual percentage rate (APR)
                         </span>
+                        <span v-if="upfrontPayment">
+                            Upfront payment
+                        </span>
                     </th>
                     <td class="p-1">
                         <span v-if="aer">
                             {{ toMax2DP(apr) }}%
+                        </span>
+                        <span v-if="upfrontPayment">
+                            {{ toMax2DP(upfrontPayment) }}%
                         </span>
                     </td>
                     <th class="p-1 mr-2">
@@ -86,7 +109,7 @@ const aer = computed(() => {
                         </span>
                     </td>
                 </tr>
-                <tr>
+                <tr v-if="aer || showInterest">
                     <th class="bg-gray-100 p-1 mr-2">
                         <span v-if="aer">
                             Annual interest rate
@@ -97,14 +120,22 @@ const aer = computed(() => {
                             {{ toMax2DP(aer) }}%
                         </span>
                     </td>
-                    <th class="bg-gray-100 p-1 mr-2">Interest payable</th>
-                    <td class="bg-gray-100 p-1">{{ toPounds(totalPayable - amount) }}</td>
+                    <th class="bg-gray-100 p-1 mr-2">
+                        <span v-if="showInterest">
+                            Interest payable
+                        </span>
+                    </th>
+                    <td class="bg-gray-100 p-1">
+                        <span v-if="showInterest">
+                            {{ toPounds(totalPayable - amount) }}
+                        </span>
+                    </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2"></th>
-                    <td class="p-1"></td>
-                    <th class="p-1 mr-2">Total amount payable</th>
-                    <td class="p-1">{{ toPounds(totalPayable) }}</td>
+                    <th class="p-1 mr-2" :class="{'bg-gray-100': !aea && !showInterest}"></th>
+                    <td class="p-1" :class="{'bg-gray-100': !aea && !showInterest}"></td>
+                    <th class="p-1 mr-2" :class="{'bg-gray-100': !aea && !showInterest}">Total amount payable</th>
+                    <td class="p-1" :class="{'bg-gray-100': !aea && !showInterest}">{{ toPounds(totalPayable) }}</td>
                 </tr>
             </tbody>
         </table>

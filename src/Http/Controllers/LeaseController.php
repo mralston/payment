@@ -89,8 +89,7 @@ class LeaseController
                 'eligible' => $request->get('eligible'),
                 'gdpr_opt_in' => $request->get('gdprOptIn'),
                 'read_terms_conditions' => $request->get('readTermsConditions'),
-                'bank_account_number' => $request->get('accountNumber'),
-                'bank_account_sort_code' => $request->get('sortCode'),
+                'credit_check_consent' => $request->get('creditCheckConsent'),
             ]);
         $payment->save();
 

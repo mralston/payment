@@ -57,7 +57,7 @@ const props = defineProps({
                         :value="formatCurrency(payment.subsidy)"
                     />
                     <DetailsRow
-                        label="Monthly repayment"
+                        label="Monthly payment"
                         :value="formatCurrency(payment.monthly_payment)"
                     />
                     <DetailsRow

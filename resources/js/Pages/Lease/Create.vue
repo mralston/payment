@@ -62,50 +62,50 @@ function unselectOffer() {
             {{ offer.payment_provider.name }}
         </h1>
 
-<!--        <h2 class="text-2xl mb-4">Key Information</h2>-->
+        <h2 class="text-2xl mb-4">Key Information</h2>
 
-<!--        <p class="mb-4">-->
-<!--            {{ companyDetails.legalName }}-->
-<!--            is a broker and works with a number of lenders to help customers apply for finance to assist their purchase.-->
-<!--            Credit is provided from selection of lenders:-->
+        <p class="mb-4">
+            {{ companyDetails.legalName }}
+            is a broker and works with a panel of finance providers to help customers apply for finance to assist their purchase.
+<!--            Credit is provided from selection of providers:-->
 <!--            <span v-for="(paymentProvider, index) in paymentProviders" :key="paymentProvider.id">-->
 <!--                {{ paymentProvider.name }}<span v-if="index < paymentProviders.length - 2">, </span><span v-else-if="index < paymentProviders.length - 1"> and </span>-->
 <!--            </span>.-->
+        </p>
+
+<!--        <h2 class="text-2xl mb-4">Eligibility</h2>-->
+
+<!--        <p class="mb-4">-->
+<!--            To apply you will need to be:-->
+<!--        </p>-->
+<!--        <ul class="list-disc list-inside mb-4">-->
+<!--            <li>18 years or over</li>-->
+<!--            <li>A UK resident</li>-->
+<!--            <li>Employed/self-employed for 16 hours or more a week or retired with pension</li>-->
+<!--            <li>Able to demonstrate the loan is affordable</li>-->
+<!--            <li>Have a UK bank account that accepts Direct Debits</li>-->
+<!--        </ul>-->
+
+<!--        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.eligible }">-->
+<!--            <input type="checkbox" v-model="form.eligible" id="eligible" class="mr-2" value="1">-->
+<!--            <label for="eligible"><b>I confirm that I meet these eligibility requirements.</b></label>-->
+<!--            <div v-if="form.errors.eligible" class="text-red-500">{{ form.errors.eligible }}</div>-->
+<!--        </div>-->
+
+<!--        <h2 class="text-2xl mb-4">How will my data be used?</h2>-->
+
+<!--        <p class="mb-4">-->
+<!--            We may share information about you with credit reference and fraud preventions agencies. This includes-->
+<!--            requesting verification of information provided by you to assist in making future lending decisions and may-->
+<!--            include up to two credit searches.-->
+<!--        </p>-->
+<!--        <p class="mb-4">-->
+<!--            Credit reference agencies will keep a record of any searches or information shared with then. This information-->
+<!--            may be shared with other lenders, and other organisations. Fraud prevention agencies may share the information-->
+<!--            with other organisations including law enforcement to prevent fraud and money laundering.-->
 <!--        </p>-->
 
-        <h2 class="text-2xl mb-4">Eligibility</h2>
-
-        <p class="mb-4">
-            To apply you will need to be:
-        </p>
-        <ul class="list-disc list-inside mb-4">
-            <li>18 years or over</li>
-            <li>A UK resident</li>
-            <li>Employed/self-employed for 16 hours or more a week or retired with pension</li>
-            <li>Able to demonstrate the loan is affordable</li>
-            <li>Have a UK bank account that accepts Direct Debits</li>
-        </ul>
-
-        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.eligible }">
-            <input type="checkbox" v-model="form.eligible" id="eligible" class="mr-2" value="1">
-            <label for="eligible"><b>I confirm that I meet these eligibility requirements.</b></label>
-            <div v-if="form.errors.eligible" class="text-red-500">{{ form.errors.eligible }}</div>
-        </div>
-
-        <h2 class="text-2xl mb-4">How will my data be used?</h2>
-
-        <p class="mb-4">
-            We may share information about you with credit reference and fraud preventions agencies. This includes
-            requesting verification of information provided by you to assist in making future lending decisions and may
-            include up to two credit searches.
-        </p>
-        <p class="mb-4">
-            Credit reference agencies will keep a record of any searches or information shared with then. This information
-            may be shared with other lenders, and other organisations. Fraud prevention agencies may share the information
-            with other organisations including law enforcement to prevent fraud and money laundering.
-        </p>
-
-        <h3 class="text-xl mb-4">Privacy policies</h3>
+        <h3 class="text-xl mb-4">Privacy & Digital Documentation</h3>
 
         <table class="mb-4 w-full md:w-1/2">
             <tbody>
@@ -120,114 +120,138 @@ function unselectOffer() {
             </tbody>
         </table>
 
+        <p class="mb-4">
+            Hometree Finance operates as a digital business and uses email and SMS as the main means of communicating with customers.
+            This includes sending important documents such as pre-contract information, your signed finance agreement and documents that explain your rights to cancel.
+        </p>
+
 
         <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.gdprOptIn }">
             <input type="checkbox" v-model="form.gdprOptIn" id="gdprOptIn" class="mr-2 outline-none" value="1">
-            <label for="gdprOptIn"><b>I agree to my personal data being used as part of my loan application as described above.</b></label>
+            <label for="gdprOptIn"><b>I agree to {{ offer.payment_provider.name }}'s privacy policy, and for documents and other messages to be sent to me via email and/or SMS.</b></label>
             <div v-if="form.errors.gdprOptIn" class="text-red-500">{{ form.errors.gdprOptIn }}</div>
         </div>
 
-        <h2 class="text-2xl mb-4">Your Lease Application</h2>
+<!--        <h2 class="text-2xl mb-4">Your Lease Application</h2>-->
 
-        <p class="mb-4">Please take a moment to review your application details and important information below.</p>
+<!--        <p class="mb-4">Please take a moment to review your application details and important information below.</p>-->
 
 
-        <table class="mb-4 w-full md:w-1/2">
-            <tbody>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Finance Product</th>
-                    <td class="bg-gray-100 p-1">
-                        {{ offer.name }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Your name</th>
-                    <td class="p-1">
-                        {{ survey.customers[0].title }}
-                        {{ survey.customers[0].firstName }}
-                        {{ survey.customers[0].lastName }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Date of birth</th>
-                    <td class="bg-gray-100 p-1">
-                        {{ formatDate(survey.customers[0].dateOfBirth, 'DD/MM/YYYY') }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Dependants</th>
-                    <td class="p-1">
-                        {{ survey.customers[0].dependants }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Mobile</th>
-                    <td class="bg-gray-100 p-1">
-                        {{ survey.customers[0].mobile }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">E-mail</th>
-                    <td class="p-1">
-                        {{ survey.customers[0].email }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2 align-top">Address</th>
-                    <td class="bg-gray-100 p-1">
-                        <div v-if="survey.addresses[0].houseNumber || survey.addresses[0].street">
-                            {{ survey.addresses[0].houseNumber }} {{ survey.addresses[0].street }}
-                        </div>
-                        <div v-if="survey.addresses[0].address1">{{ survey.addresses[0].address1 }}</div>
-                        <div v-if="survey.addresses[0].address2">{{ survey.addresses[0].address2 }}</div>
-                        <div v-if="survey.addresses[0].town">{{ survey.addresses[0].town }}</div>
-                        <div v-if="survey.addresses[0].county">{{ survey.addresses[0].county }}</div>
-                        <div v-if="survey.addresses[0].postCode">{{ survey.addresses[0].postCode }}</div>
-                    </td>
-                </tr>
-                <tr>
-                    <th class="p-1 mr-2">Time at address</th>
-                    <td class="p-1">
-                        {{ fromNow(survey.addresses[0].dateMovedIn, true) }}
-                    </td>
-                </tr>
-                <tr>
-                    <th class="bg-gray-100 p-1 mr-2">Employment status</th>
-                    <td class="bg-gray-100 p-1">
-                        {{ employmentStatuses.find(status => status.value === survey.customers[0].employmentStatus)?.name }}
-                    </td>
-                </tr>
-            </tbody>
-        </table>
+<!--        <table class="mb-4 w-full md:w-1/2">-->
+<!--            <tbody>-->
+<!--                <tr>-->
+<!--                    <th class="bg-gray-100 p-1 mr-2">Finance Product</th>-->
+<!--                    <td class="bg-gray-100 p-1">-->
+<!--                        {{ offer.name }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="p-1 mr-2">Your name</th>-->
+<!--                    <td class="p-1">-->
+<!--                        {{ survey.customers[0].title }}-->
+<!--                        {{ survey.customers[0].firstName }}-->
+<!--                        {{ survey.customers[0].lastName }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="bg-gray-100 p-1 mr-2">Date of birth</th>-->
+<!--                    <td class="bg-gray-100 p-1">-->
+<!--                        {{ formatDate(survey.customers[0].dateOfBirth, 'DD/MM/YYYY') }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="p-1 mr-2">Dependants</th>-->
+<!--                    <td class="p-1">-->
+<!--                        {{ survey.customers[0].dependants }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="bg-gray-100 p-1 mr-2">Mobile</th>-->
+<!--                    <td class="bg-gray-100 p-1">-->
+<!--                        {{ survey.customers[0].mobile }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="p-1 mr-2">E-mail</th>-->
+<!--                    <td class="p-1">-->
+<!--                        {{ survey.customers[0].email }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="bg-gray-100 p-1 mr-2 align-top">Address</th>-->
+<!--                    <td class="bg-gray-100 p-1">-->
+<!--                        <div v-if="survey.addresses[0].houseNumber || survey.addresses[0].street">-->
+<!--                            {{ survey.addresses[0].houseNumber }} {{ survey.addresses[0].street }}-->
+<!--                        </div>-->
+<!--                        <div v-if="survey.addresses[0].address1">{{ survey.addresses[0].address1 }}</div>-->
+<!--                        <div v-if="survey.addresses[0].address2">{{ survey.addresses[0].address2 }}</div>-->
+<!--                        <div v-if="survey.addresses[0].town">{{ survey.addresses[0].town }}</div>-->
+<!--                        <div v-if="survey.addresses[0].county">{{ survey.addresses[0].county }}</div>-->
+<!--                        <div v-if="survey.addresses[0].postCode">{{ survey.addresses[0].postCode }}</div>-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="p-1 mr-2">Time at address</th>-->
+<!--                    <td class="p-1">-->
+<!--                        {{ fromNow(survey.addresses[0].dateMovedIn, true) }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--                <tr>-->
+<!--                    <th class="bg-gray-100 p-1 mr-2">Employment status</th>-->
+<!--                    <td class="bg-gray-100 p-1">-->
+<!--                        {{ employmentStatuses.find(status => status.value === survey.customers[0].employmentStatus)?.name }}-->
+<!--                    </td>-->
+<!--                </tr>-->
+<!--            </tbody>-->
+<!--        </table>-->
 
-        <h2 class="text-2xl mb-4">Important Information</h2>
+<!--        <h2 class="text-2xl mb-4">Important Information</h2>-->
+
+<!--        <p class="mb-4">-->
+<!--            Please read the following important information before submitting your loan application.-->
+<!--        </p>-->
+<!--        <ul class="list-disc list-inside mb-4">-->
+<!--            <li>You are satisfied that the monthly repayment fits your budget and is affordable over the life of the loan.</li>-->
+<!--            <li>You have considered any potential changes to your personal circumstances when considering the affordability of the loan e.g. redundancy, retirement, starting a family, etc.</li>-->
+<!--            <li>The application details which you have entered above are correct.</li>-->
+<!--            <li>The minimum payment must be made every month. If you miss payments you may incur additional charges and your ability to obtain credit in the future could be negatively impacted.</li>-->
+<!--            <li>When you click to submit your loan application, your credit file will be searched by {{ offer.payment_provider.name }} and a record left of the search.</li>-->
+<!--        </ul>-->
+
+<!--        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.readTermsConditions }">-->
+<!--            <input type="checkbox" v-model="form.readTermsConditions" id="readTermsConditions" class="mr-2" value="1">-->
+<!--            <label for="readTermsConditions"><b>I confirm that I have read and understood the important information.</b></label>-->
+<!--            <div v-if="form.errors.readTermsConditions" class="text-red-500">{{ form.errors.readTermsConditions }}</div>-->
+<!--        </div>-->
+
+        <h2 class="text-2xl mb-4">Credit Check Consent</h2>
 
         <p class="mb-4">
-            Please read the following important information before submitting your loan application.
+            To check your eligibility, {{ offer.payment_provider.name }} will run checks including confirming your identity and reviewing applicants' credit files and affordability.
+            These checks will not appear on your public credit file or affect your credit score. Automated processing may be used to make decisions during this process; you have the
+            right to request a manual review of any decision made this way. There is no obligation for you to proceed with any finance offers.
         </p>
-        <ul class="list-disc list-inside mb-4">
-            <li>You are satisfied that the monthly repayment fits your budget and is affordable over the life of the loan.</li>
-            <li>You have considered any potential changes to your personal circumstances when considering the affordability of the loan e.g. redundancy, retirement, starting a family, etc.</li>
-            <li>The application details which you have entered above are correct.</li>
-            <li>The minimum payment must be made every month. If you miss payments you may incur additional charges and your ability to obtain credit in the future could be negatively impacted.</li>
-            <li>When you click to submit your loan application, your credit file will be searched by {{ offer.payment_provider.name }} and a record left of the search.</li>
-        </ul>
 
-        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.readTermsConditions }">
-            <input type="checkbox" v-model="form.readTermsConditions" id="readTermsConditions" class="mr-2" value="1">
-            <label for="readTermsConditions"><b>I confirm that I have read and understood the important information.</b></label>
-            <div v-if="form.errors.readTermsConditions" class="text-red-500">{{ form.errors.readTermsConditions }}</div>
+        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.creditCheckConsent }">
+            <input type="checkbox" v-model="form.creditCheckConsent" id="creditCheckConsent" class="mr-2" value="1">
+            <label for="creditCheckConsent"><b>I agree to the above checks</b></label>
+            <div v-if="form.errors.creditCheckConsent" class="text-red-500">{{ form.errors.creditCheckConsent }}</div>
         </div>
 
         <RepresentativeExample class=" w-full md:w-3/4"
+                               title="Your Selected Solar Plan"
                                :amount="makeNumeric(offer.amount)"
                                :deposit="makeNumeric(deposit)"
                                :term="makeNumeric(offer.term)"
                                :apr="makeNumeric(offer.apr)"
+                               :upfront-payment="makeNumeric(offer.upfront_payment)"
                                :first-payment="makeNumeric(offer.first_payment)"
                                :monthly-payment="makeNumeric(offer.monthly_payment)"
                                :final-payment="makeNumeric(offer.final_payment)"
-                               :total-payable="makeNumeric(offer.total_payable)" />
+                               :total-payable="makeNumeric(offer.total_payable)"
+                               :show-interest="false"
+                               :show-monthly-payment="false"
+        />
 
         <div class="text-right">
             <button @click="submit"
