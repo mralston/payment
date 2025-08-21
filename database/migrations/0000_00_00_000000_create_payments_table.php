@@ -68,7 +68,6 @@ return new class extends Migration
             $table->string('bank_account_number')->nullable();
             $table->string('bank_account_sort_code')->nullable();
             $table->tinyInteger('read_terms_conditions')->nullable();
-            $table->tinyInteger('credit_check_consent')->nullable();
             $table->boolean('was_referred')->default(false);
             $table->integer('payment_status_id')->default(1)->index();
             $table->string('provider_foreign_id')->nullable();

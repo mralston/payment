@@ -42,10 +42,10 @@ const paymentsBreakdown = computed(() => {
         const yearlyPayment = props.yearlyPayments[i] ?? 0;
 
         // Calculate the average monthly cost for this specific year
-        const monthlyCost = yearlyPayment / 12;
+        datum.monthlyPayment = yearlyPayment / 12;
 
         // Calculate the difference
-        datum.diff = datum.monthly - monthlyCost;
+        datum.diff = datum.monthly - datum.monthlyPayment;
 
         result.push(datum);
     }
@@ -76,6 +76,7 @@ const termInYears = computed(() => props.term / 12);
             <thead>
                 <tr>
                     <th>Yr</th>
+                    <th>Avg. Monthly Payment</th>
                     <th>Yearly Savings</th>
                     <th>Avg. Monthly Savings</th>
                     <th>Monthly Net Position</th>
@@ -87,6 +88,7 @@ const termInYears = computed(() => props.term / 12);
                         {{ row.year }}
                         <span v-if="upfrontPayment > 0 && index === 0">*</span>
                     </td>
+                    <td>{{ toPounds(row.monthlyPayment) }}</td>
                     <td>{{ toPounds(row.savings) }}</td>
                     <td>{{ toPounds(row.monthly) }}</td>
                     <td :class="row.diff < 0 ? 'alert-danger' : 'alert-success'">

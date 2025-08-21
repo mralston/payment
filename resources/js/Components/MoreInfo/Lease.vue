@@ -56,6 +56,10 @@ const props = defineProps({
                                        :system-savings="systemSavings"
                                        class="bg-white mb-4"/>
             </div>
+            <div>
+                <p class="font-bold mb-4">Total Payable</p>
+                <p>{{ toPounds(selectedOffer.total_payable) }}</p>
+            </div>
         </div>
     </Card>
 

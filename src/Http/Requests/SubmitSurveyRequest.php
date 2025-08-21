@@ -58,6 +58,8 @@ class SubmitSurveyRequest extends FormRequest
                     'addresses.*.postCode' => ['required', 'string', 'max:255'],
                     'addresses.*.dateMovedIn' => ['required', 'date'],
                     'addresses.*.uprn' => ['required_unless:addresses.*.manual,true'],
+
+                    'creditCheckConsent' => 'accepted',
                 ]
             ];
         }
@@ -143,6 +145,8 @@ class SubmitSurveyRequest extends FormRequest
             'addresses.*.dateMovedIn.required' => 'You must enter a date moved in.',
             'addresses.*.dateMovedIn.date' => 'The date moved in is not a valid date.',
             'addresses.*.uprn.required_unless' => 'You must use the post code lookup button to select an exact address.',
+
+            'creditCheckConsent.accepted' => 'You must consent to the identity and credit check being performed.',
 
             'financeResponses.occupation.required' => 'You must enter your occupation.',
             'financeResponses.employerName.required' => 'You must enter the name of your employer.',

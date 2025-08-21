@@ -675,9 +675,9 @@ function resetPrequal()
 
                             <div class="mt-8">
                                 <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.lease_deposit)) }}
-                                <button type="button" class="float-right" @click="changeDeposit('lease')">
-                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                </button>
+<!--                                <button type="button" class="float-right" @click="changeDeposit('lease')">-->
+<!--                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />-->
+<!--                                </button>-->
                             </div>
 
                             <button @click="selectOffer('lease')"

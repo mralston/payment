@@ -32,6 +32,10 @@ const aer = computed(() => {
         return 0;
     }
 
+    if (!props.apr) {
+        return null;
+    }
+
     return (Math.pow(1 + props.apr / 100, 1 / props.term) - 1) * props.term * 100;
 });
 
@@ -132,10 +136,10 @@ const aer = computed(() => {
                     </td>
                 </tr>
                 <tr>
-                    <th class="p-1 mr-2" :class="{'bg-gray-100': !aea && !showInterest}"></th>
-                    <td class="p-1" :class="{'bg-gray-100': !aea && !showInterest}"></td>
-                    <th class="p-1 mr-2" :class="{'bg-gray-100': !aea && !showInterest}">Total amount payable</th>
-                    <td class="p-1" :class="{'bg-gray-100': !aea && !showInterest}">{{ toPounds(totalPayable) }}</td>
+                    <th class="p-1 mr-2" :class="{'bg-gray-100': !aer && !showInterest}"></th>
+                    <td class="p-1" :class="{'bg-gray-100': !aer && !showInterest}"></td>
+                    <th class="p-1 mr-2" :class="{'bg-gray-100': !aer && !showInterest}">Total amount payable</th>
+                    <td class="p-1" :class="{'bg-gray-100': !aer && !showInterest}">{{ toPounds(totalPayable) }}</td>
                 </tr>
             </tbody>
         </table>

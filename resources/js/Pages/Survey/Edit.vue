@@ -59,6 +59,7 @@ const form = useForm({
     customers: props.paymentSurvey.customers,
     addresses: props.paymentSurvey.addresses,
     financeResponses: props.paymentSurvey.finance_responses,
+    creditCheckConsent: props.paymentSurvey.credit_check_consent ? true : false,
 });
 
 function addCustomer() {
@@ -510,6 +511,21 @@ function skip()
 
         </section>
 
+        <section v-if="showBasicQuestions">
+
+            <p class="mb-4">
+                To check your eligibility, finance providers may run checks including confirming your identity and reviewing applicants' credit files and affordability.
+                These checks will not appear on your public credit file or affect your credit score. Automated processing may be used to make decisions during this process; you have the
+                right to request a manual review of any decision made this way. There is no obligation for you to proceed with any finance offers.
+            </p>
+
+            <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.creditCheckConsent }">
+                <input type="checkbox" v-model="form.creditCheckConsent" id="creditCheckConsent" class="mr-2" value="1">
+                <label for="creditCheckConsent"><b>I agree to the above checks</b></label>
+                <div v-if="form.errors.creditCheckConsent" class="text-red-500">{{ form.errors.creditCheckConsent }}</div>
+            </div>
+
+        </section>
 
         <div class="my-4 text-end">
             <button type="button"
@@ -527,5 +543,9 @@ function skip()
 INPUT, SELECT, TEXTAREA
 {
     border-color: inherit;
+}
+
+SECTION {
+    min-height: auto;
 }
 </style>

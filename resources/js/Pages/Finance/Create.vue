@@ -274,20 +274,6 @@ function unselectOffer() {
             <label for="read_terms_conditions"><b>I confirm that I have read and understood the important information.</b></label>
         </ValidationWrapper>
 
-        <h2 class="text-2xl mb-4">Credit Check Consent</h2>
-
-        <p class="mb-4">
-            To check your eligibility, {{ offer.payment_provider.name }} will run checks including confirming your identity and reviewing applicants' credit files and affordability.
-            These checks will not appear on your public credit file or affect your credit score. Automated processing may be used to make decisions during this process; you have the
-            right to request a manual review of any decision made this way. There is no obligation for you to proceed with any finance offers.
-        </p>
-
-        <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.creditCheckConsent }">
-            <input type="checkbox" v-model="form.creditCheckConsent" id="creditCheckConsent" class="mr-2" value="1">
-            <label for="creditCheckConsent"><b>I agree to the above checks</b></label>
-            <div v-if="form.errors.creditCheckConsent" class="text-red-500">{{ form.errors.creditCheckConsent }}</div>
-        </div>
-
         <RepresentativeExample class="w-3/4"
                                :amount="makeNumeric(offer.amount)"
                                :deposit="makeNumeric(deposit)"
