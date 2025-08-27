@@ -9,7 +9,7 @@ trait RedirectsOnActivePayment
     protected function redirectToActivePayment(PaymentParentModel $parentModel)
     {
         // Check to see whether the parent has an active payment
-        if (!empty($parentModel->activePayment)) {
+        if (!empty($parentModel->activePayment->paymentOffer)) {
 
             // Construct a URL to the payment show page
             $url = route('payment.' . $parentModel->activePayment->paymentOffer->type . '.show', [
