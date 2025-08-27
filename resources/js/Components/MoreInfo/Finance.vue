@@ -11,7 +11,7 @@ const props = defineProps({
     deposit: Number,
     selectedOffer: Object,
     otherOffers: Array,
-    systemSavings: Object,
+    systemSavings: Array,
 });
 
 </script>

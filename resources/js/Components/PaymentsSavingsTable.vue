@@ -10,7 +10,7 @@ const props = defineProps({
     upfrontPayment: Number,
     yearlyPayments: Array,
     apr: Number,
-    systemSavings: Object,
+    systemSavings: Array,
     showTitle: {
         type: Boolean,
         default: true,
@@ -29,8 +29,8 @@ const paymentsBreakdown = computed(() => {
         };
 
         // Savings calculations remain the same
-        if (props.systemSavings.data[i]) {
-            datum.savings = props.systemSavings.data[i]['total'];
+        if (props.systemSavings[i]) {
+            datum.savings = props.systemSavings[i];
             datum.monthly = datum.savings / 12;
         } else {
             datum.legend = '*';

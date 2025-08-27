@@ -27,16 +27,23 @@ const props = defineProps({
     },
 });
 
+/**
+ * Calculate AER from APR
+ * As per https://www.natwest.com/savings/savings-guides/what-is-aer.html
+ */
 const aer = computed(() => {
-    if (props.term <= 0) {
-        return 0;
-    }
-
     if (!props.apr) {
-        return null;
+        return null; // Return null if APR is not provided
     }
 
-    return (Math.pow(1 + props.apr / 100, 1 / props.term) - 1) * props.term * 100;
+    // The annual percentage rate as a decimal
+    const r = props.apr / 100;
+
+    // The number of compounding periods per year
+    const n = 12;
+
+    // AER formula: (1 + r/n)^n - 1
+    return (Math.pow(1 + r / n, n) - 1) * 100;
 });
 
 </script>
@@ -87,7 +94,7 @@ const aer = computed(() => {
                 </tr>
                 <tr>
                     <th class="p-1 mr-2">
-                        <span v-if="aer">
+                        <span v-if="apr">
                             Annual percentage rate (APR)
                         </span>
                         <span v-if="upfrontPayment">
@@ -95,7 +102,7 @@ const aer = computed(() => {
                         </span>
                     </th>
                     <td class="p-1">
-                        <span v-if="aer">
+                        <span v-if="apr">
                             {{ toMax2DP(apr) }}%
                         </span>
                         <span v-if="upfrontPayment">
@@ -116,7 +123,7 @@ const aer = computed(() => {
                 <tr v-if="aer || showInterest">
                     <th class="bg-gray-100 p-1 mr-2">
                         <span v-if="aer">
-                            Annual interest rate
+                            Effective annual rate (AER)
                         </span>
                     </th>
                     <td class="bg-gray-100 p-1">

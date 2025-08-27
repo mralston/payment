@@ -161,6 +161,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         Log::debug('Hometree prequal request:', $payload);
         Log::debug('POST /applications');
+        Log::debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -233,6 +234,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
 //        Log::debug('Hometree update application request:', $payload);
         Log::debug('PATCH /applications/' . $applicationId);
+        Log::debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -253,6 +255,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
     public function getApplication(string $applicationId): array
     {
         Log::debug('GET /applications/' . $applicationId);
+        Log::debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -270,6 +273,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
     public function getProducts(): array
     {
+        Log::debug('token: ' . $this->key);
+
         try {
             $response = Http::baseUrl($this->endpoint)
                 ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -361,7 +366,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                                 'upfront_payment' => $offer['params']['upfront_payment_gross'] ?? 0,
                                 'first_payment' => $offer['params']['min_payments_gross'][0] ?? 0,
                                 'monthly_payment' => $offer['params']['monthly_payment_gross'],
-                                'final_payment' => $offer['params']['monthly_payment_gross'],
+                                'final_payment' => $offer['params']['min_payments_gross'][count($offer['params']['min_payments_gross']) - 1],
                                 'minimum_payments' => $offer['params']['min_payments_gross'],
                                 'total_payable' => collect($offer['params']['min_payments_gross'])->sum(),
                                 'provider_application_id' => $response['id'],
@@ -457,7 +462,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                             'upfront_payment' => $offer['params']['upfront_payment_gross'] ?? 0,
                             'first_payment' => $offer['params']['min_payments_gross'][0] ?? 0,
                             'monthly_payment' => $offer['params']['monthly_payment_gross'],
-                            'final_payment' => $offer['params']['monthly_payment_gross'],
+                            'final_payment' => $offer['params']['min_payments_gross'][count($offer['params']['min_payments_gross']) - 1],
                             'minimum_payments' => $offer['params']['min_payments_gross'],
                             'total_payable' => collect($offer['params']['min_payments_gross'])->sum(),
                             'provider_application_id' => $response['id'],
@@ -511,6 +516,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         }
 
         Log::debug('POST /applications/' . $offer->provider_application_id . '/offers/' . $offer->provider_offer_id . '/select');
+        Log::debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -553,6 +559,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         ];
 
         Log::debug('POST /applications/' . $payment->provider_foreign_id . '/abandon');
+        Log::debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))

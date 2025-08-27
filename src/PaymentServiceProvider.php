@@ -54,29 +54,35 @@ class PaymentServiceProvider extends ServiceProvider
 
         $this->app->register(EventServiceProvider::class);
 
+        $this->app->singleton(PaymentHelper::class, function ($app) {
+            return app(config('payment.helper'));
+        });
+
         $this->app->singleton(Tandem::class, function ($app) {
+            $helper = app(PaymentHelper::class);
+
             return new Tandem(
-                config('payment.tandem.api_key'),
+                $helper->getApiKey('tandem') ?? config('payment.tandem.api_key'),
                 config('payment.tandem.endpoint'),
             );
         });
 
         $this->app->singleton(Propensio::class, function ($app) {
+            $helper = app(PaymentHelper::class);
+
             return new Propensio(
-                config('payment.propensio.ibc_ref'),
+                $helper->getApiKey('propensio') ?? config('payment.propensio.api_key'),
                 config('payment.propensio.endpoint'),
             );
         });
 
         $this->app->singleton(Hometree::class, function ($app) {
+            $helper = app(PaymentHelper::class);
+
             return new Hometree(
-                config('payment.hometree.api_key'),
+                $helper->getApiKey('hometree') ?? config('payment.hometree.api_key'),
                 config('payment.hometree.endpoint'),
             );
-        });
-
-        $this->app->singleton(PaymentHelper::class, function ($app) {
-            return app(config('payment.helper'));
         });
 
         $this->app->bind(PaymentAddressLookup::class, function ($app) {

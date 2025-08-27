@@ -49,7 +49,7 @@ return [
     */
 
     'propensio' => [
-        'ibc_ref' => env('PROPENSIO_IBC_REF') ?? '',
+        'api_key' => env('PROPENSIO_API_KEY') ?? '',
         'endpoint' => env('PROPENSIO_ENDPOINT', config('app.env')),
     ],
 

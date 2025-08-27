@@ -29,7 +29,7 @@ const props = defineProps({
     totalCost: Number,
     leaseMoreInfoContent: String,
     paymentProviders: Array,
-    systemSavings: Object,
+    systemSavings: Array,
     prequalOnLoad: {
         type: Boolean,
         default: true,

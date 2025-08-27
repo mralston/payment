@@ -12,7 +12,7 @@ const props = defineProps({
     deposit: Number,
     selectedOffer: Object,
     otherOffers: Array,
-    systemSavings: Object,
+    systemSavings: Array,
 })
 
 </script>
@@ -22,7 +22,7 @@ const props = defineProps({
 
     <h2 class="text-2xl mb-4">Potential Savings</h2>
 
-    <Card class="mb-8" header-class="bg-gray-100" :collapsed="true">
+    <Card class="mb-8" header-class="bg-gray-100">
         <template v-slot:header>
             <div class="text-2xl">
                 <img v-if="selectedOffer.payment_provider.logo"
