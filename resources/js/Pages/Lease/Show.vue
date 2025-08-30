@@ -212,15 +212,15 @@ useEcho(
                             {{ formatCurrency(offer.first_payment) }}
                         </td>
                     </tr>
+<!--                    <tr>-->
+<!--                        <th class="bg-gray-100 p-1 mr-2">Monthly Payment</th>-->
+<!--                        <td class="bg-gray-100 p-1">-->
+<!--                            {{ formatCurrency(offer.monthly_payment) }}-->
+<!--                        </td>-->
+<!--                    </tr>-->
                     <tr>
-                        <th class="bg-gray-100 p-1 mr-2">Monthly Payment</th>
+                        <th class="bg-gray-100 p-1 mr-2">Final Payment</th>
                         <td class="bg-gray-100 p-1">
-                            {{ formatCurrency(offer.monthly_payment) }}
-                        </td>
-                    </tr>
-                    <tr>
-                        <th class="p-1 mr-2">Final Payment</th>
-                        <td class="p-1">
                             {{ formatCurrency(offer.final_payment) }}
                         </td>
                     </tr>

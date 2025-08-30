@@ -16,7 +16,7 @@
             <tr>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">Upfront Payment</td>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">25% deposit, 75% on completion</td>
-                <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">From &pound;99 deposit (paid on booking)</td>
+                <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">From &pound;100 deposit (paid on booking)</td>
             </tr>
             <tr>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Ownership</td>

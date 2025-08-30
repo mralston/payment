@@ -40,4 +40,34 @@ trait HasPayments
             })
             ->latest();
     }
+
+    public function paymentIsCash(): bool
+    {
+        return $this->selectedPaymentOffer?->type === 'cash';
+    }
+
+    public function paymentIsNotCash(): bool
+    {
+        return ! $this->paymentIsCash;
+    }
+
+    public function paymentIsLoan(): bool
+    {
+        return $this->selectedPaymentOffer?->type === 'finance';
+    }
+
+    public function paymentIsNotLoan(): bool
+    {
+        return ! $this->paymentIsLoan();
+    }
+
+    public function paymentIsLease(): bool
+    {
+        return $this->selectedPaymentOffer?->type === 'lease';
+    }
+
+    public function paymentIsNotLease(): bool
+    {
+        return ! $this->paymentIsLease();
+    }
 }
