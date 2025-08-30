@@ -31,7 +31,7 @@
             <tr>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">System Ownership</td>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Customer owns the system from day one!</td>
-                <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Hometree owns and maintains the equipment during the plan term; customer gets full system benefit (generation, savings, SEG payments). At the plan end, once all payments have been made, the equipment will remain in the home for continued use. It is Hometree's policy to offer to transfer title of the equipment, for no additional charge.</td>
+                <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3 bg-gray-50">Hometree owns and maintains the equipment during the plan term; customer gets full system benefit (generation, savings, SEG payments). At the plan end, once all payments have been made, the equipment will remain in the home for continued use.</td>
             </tr>
             <tr>
                 <td class="py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-3">Maintenance &amp; Repairs</td>

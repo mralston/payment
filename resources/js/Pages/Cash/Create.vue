@@ -10,6 +10,10 @@ const props = defineProps({
     totalCost: Number,
     deposit: Number,
     minimal: Boolean,
+    canChangePaymentMethod: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 function unselectOffer() {
@@ -28,7 +32,8 @@ function unselectOffer() {
 
     <div class="p-4">
 
-        <button type="button"
+        <button v-if="canChangePaymentMethod"
+                type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                 @click="unselectOffer">
             Change Payment Option

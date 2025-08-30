@@ -21,10 +21,6 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
-    showMonthlyPayment: {
-        type: Boolean,
-        default: true,
-    },
 });
 
 /**
@@ -77,19 +73,15 @@ const aer = computed(() => {
                     <th class="bg-gray-100 p-1 mr-2">Amount of credit</th>
                     <td class="bg-gray-100 p-1">{{ toPounds(amount) }}</td>
                     <th class="bg-gray-100 p-1 mr-2">
-                        <span v-if="showMonthlyPayment">
-                            <span v-if="firstPayment">
-                                {{ term - 2 }} payments of
-                            </span>
-                            <span v-else>
-                                {{ term }} payments of
-                            </span>
+                        <span v-if="firstPayment">
+                            {{ term - 2 }} payments of
+                        </span>
+                        <span v-else>
+                            {{ term }} payments of
                         </span>
                     </th>
                     <td class="bg-gray-100 p-1">
-                        <span v-if="showMonthlyPayment">
-                            {{ toPounds(monthlyPayment) }}
-                        </span>
+                        {{ toPounds(monthlyPayment) }}
                     </td>
                 </tr>
                 <tr>
@@ -106,7 +98,7 @@ const aer = computed(() => {
                             {{ toMax2DP(apr) }}%
                         </span>
                         <span v-if="upfrontPayment">
-                            {{ toMax2DP(upfrontPayment) }}%
+                            {{ toPounds(upfrontPayment) }}
                         </span>
                     </td>
                     <th class="p-1 mr-2">

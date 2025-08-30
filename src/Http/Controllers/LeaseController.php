@@ -64,6 +64,7 @@ class LeaseController
                 ->get(),
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
+            'canChangePaymentMethod' => $this->helper->canChangePaymentMethod(),
         ])
             ->withViewData($this->helper->getViewData());
     }

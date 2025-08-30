@@ -4,7 +4,7 @@ import {Head, router, useForm} from "@inertiajs/vue3";
 import {cleanUrl} from "../../Helpers/Strings.js";
 import {formatDate, fromNow} from "../../Helpers/Date.js";
 import {makeNumeric} from "../../Helpers/Number.js";
-import RepresentativeExample from "../../Components/RepresentativeExample.vue";
+import LeaseRepresentativeExample from "../../Components/LeaseRepresentativeExample.vue";
 import {ArrowPathIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
 import ValidationBanner from "../../Components/ValidationBanner.vue";
 import {ref} from "vue";
@@ -18,6 +18,10 @@ const props = defineProps({
     companyDetails: Object,
     paymentProviders: Object,
     employmentStatuses: Array,
+    canChangePaymentMethod: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const form = useForm({
@@ -53,7 +57,8 @@ function unselectOffer() {
 
         <ValidationBanner :form="form"/>
 
-        <button type="button"
+        <button v-if="canChangePaymentMethod"
+                type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                 @click="unselectOffer">
             Change Payment Option
@@ -225,7 +230,7 @@ function unselectOffer() {
 <!--            <div v-if="form.errors.readTermsConditions" class="text-red-500">{{ form.errors.readTermsConditions }}</div>-->
 <!--        </div>-->
 
-        <RepresentativeExample class=" w-full md:w-3/4"
+        <LeaseRepresentativeExample class=" w-full md:w-3/4"
                                title="Your Selected Solar Plan"
                                :amount="makeNumeric(offer.amount)"
                                :deposit="makeNumeric(deposit)"

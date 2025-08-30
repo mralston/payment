@@ -67,6 +67,7 @@ class FinanceController
                 ->paymentLookupValues,
             'nationalities' => PaymentLookupField::byIdentifier(LookupField::NATIONALITY)
                 ->paymentLookupValues,
+            'canChangePaymentMethod' => $this->helper->canChangePaymentMethod(),
         ])
             ->withViewData($this->helper->getViewData());
     }

@@ -28,6 +28,7 @@ class CashController
             'parentModel' => $parentModel,
             'totalCost' => $this->helper->getTotalCost(),
             'deposit' => $parentModel->paymentSurvey->cash_deposit,
+            'canChangePaymentMethod' => $this->helper->canChangePaymentMethod(),
         ])
             ->withViewData($this->helper->getViewData());
     }

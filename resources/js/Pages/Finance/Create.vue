@@ -5,7 +5,7 @@ import OverpaymentCalculator from "../../Components/OverpaymentCalculator.vue";
 import { makeNumeric } from "../../Helpers/Number.js";
 import {diffInMonths, formatDate, fromNow, monthsYears} from "../../Helpers/Date.js";
 import {cleanUrl} from "../../Helpers/Strings.js";
-import RepresentativeExample from "../../Components/RepresentativeExample.vue";
+import LoanRepresentativeExample from "../../Components/LoanRepresentativeExample.vue";
 import {ArrowPathIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
 import ValidationWrapper from "../../Components/ValidationWrapper.vue";
 import ValidationBanner from "../../Components/ValidationBanner.vue";
@@ -23,6 +23,10 @@ const props = defineProps({
     employmentStatuses: Array,
     residentialStatuses: Array,
     nationalities: Array,
+    canChangePaymentMethod: {
+        type: Boolean,
+        default: true,
+    },
 });
 
 const form = useForm({
@@ -62,7 +66,8 @@ function unselectOffer() {
 
         <ValidationBanner :form="form"/>
 
-        <button type="button"
+        <button v-if="canChangePaymentMethod"
+                type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                 @click="unselectOffer">
             Change Payment Option
@@ -274,7 +279,7 @@ function unselectOffer() {
             <label for="read_terms_conditions"><b>I confirm that I have read and understood the important information.</b></label>
         </ValidationWrapper>
 
-        <RepresentativeExample class="w-3/4"
+        <LoanRepresentativeExample class="w-3/4"
                                :amount="makeNumeric(offer.amount)"
                                :deposit="makeNumeric(deposit)"
                                :term="makeNumeric(offer.term)"

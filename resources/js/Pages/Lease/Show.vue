@@ -181,10 +181,18 @@ useEcho(
             </button>
 
             <p class="mb-4">
-                Great news! {{ payment.payment_provider.name }} have received your application.
-                <span v-if="payment.payment_status.referred">They will be in touch soon.</span>
-                <span v-else>Look out for further communications.</span>
+                Great news! {{ payment.payment_provider.name }} has received your application.
             </p>
+            <p v-if="payment.payment_status.identifier === 'pending-customer-agreement'" class="mb-4">
+                Check your email where you'll find a link to review and sign their {{ payment.payment_provider.name }} agreement.
+            </p>
+            <p v-else-if="payment.payment_status.identifier === 'pending-customer-data'" class="mb-4">
+                Check your email where you'll find a link to provide {{ payment.payment_provider.name }} with additional details.
+            </p>
+            <p v-else-if="payment.payment_status.identifier === 'pending-underwriting-review' || payment.payment_status.referred" class="mb-4">
+                {{ payment.payment_provider.name }} is reviewing this application, and will contact the you directly with further updates.
+            </p>
+            <p v-else class="mb-4">Look out for further communications from {{ payment.payment_provider.name }}.</p>
 
             <table class="mb-4 w-full md:w-1/2">
                 <tbody>
