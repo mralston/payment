@@ -9,6 +9,7 @@ import {makeNumeric} from "../../Helpers/Number.js";
 import PaymentsSavingsTable from "../../Components/PaymentsSavingsTable.vue";
 import Card from "../../Components/Card.vue";
 import Modal from "../../Components/Modal.vue";
+import {decompress} from "../../Helpers/Compression.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -60,6 +61,7 @@ useEcho(
     `payments.${props.payment.id}`,
     'PaymentUpdated',
     (e) => {
+        e = decompress(e.payload);
         console.log(e);
         payment.value = e.payment;
     }

@@ -148,7 +148,6 @@ class FinanceController
     {
         try {
             $payment = $gateway->apply($payment);
-            Log::debug('Apply Response: ', [$payment]);
         } catch (\Exception $e) {
             Log::error('Error submitting application: ' . $e->getMessage());
             $payment->update([

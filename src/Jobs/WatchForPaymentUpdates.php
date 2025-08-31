@@ -31,13 +31,14 @@ class WatchForPaymentUpdates implements ShouldQueue
         $payment = Payment::findOrFail($this->paymentId);
         $gateway = $payment->paymentProvider->gateway();
 
-
         do {
             // Wait for 3 seconds before each status check.
             sleep(3);
 
             // Fetch the latest application status.
             $response = $gateway->pollStatus($payment);
+
+            Log::debug('poll status result: ', $response);
 
             Log::debug('status currently: ', [$response['status']]);
         } while ($response['status'] == 'processing'); // Repeat if still processing.
@@ -46,11 +47,18 @@ class WatchForPaymentUpdates implements ShouldQueue
 
         // Once the status is no longer 'processing', update the payment record
         Log::debug('updating payment');
-        $result = $payment->update([
-            'provider_request_data' => $gateway->getRequestData(),
+        Log::debug('updating payment', $gateway->getResponseData());
+        $update = [
             'provider_response_data' => $gateway->getResponseData(),
             'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
-        ]);
+        ];
+
+        // Only overwrite provider_request_data if the gateway supplies new request data
+        if (!is_null($gateway->getRequestData())) {
+            $update['provider_request_data'] = $gateway->getRequestData();
+        }
+
+        $result = $payment->update($update);
         Log::debug('payment updated: ' . $result ? 'success' : 'failure');
     }
 }

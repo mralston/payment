@@ -377,7 +377,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             ],
         ];
 
-        $this->requestData = ['xml' => $data];
+        $this->requestData = ['data' => $data];
 
         $payment->update([
             'provider_request_data' => $this->requestData
@@ -389,9 +389,11 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
         $response = $this->validateAndSend(
             $data,
-            '../schemas/Propensio.xsd' /*schema file*/,
+            '../schemas/Propensio.xsd', /*schema file*/
             'SubmitXML', /*method*/
-            'proposalXML' /*request key*/
+            'proposalXML', /*request key*/
+            'RETURN_MESSAGE', /* response key */
+            $payment
         );
 
         #Log::channel('finance')->info($response);
@@ -437,8 +439,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         $schemaFile,
         $methodName,
         $formParamsSubmitKey,
-        $responseKey = 'RETURN_MESSAGE'
-    ) {
+        $responseKey = 'RETURN_MESSAGE',
+        ?Payment $payment = null,
+    ): array {
         if (!empty($data)) {
             $rootKey = 'CONTRACT';
 
@@ -475,6 +478,13 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             Log::channel('finance')->info('Propensio Request (no XML) [' . $methodName . ']');
         }
 
+        if (!empty($payment)) {
+            // Merge xml into existing provider_request_data safely (casted as collection)
+            $existing = ($payment->provider_request_data ?? collect())->toArray();
+            $merged = array_merge($existing, ['xml' => $xmlOutput ?? null]);
+            $payment->update(['provider_request_data' => $merged]);
+        }
+
         $response = $this->guzzleClient->request(
             'POST',
             $methodName,
@@ -484,6 +494,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 ]
             ]
         );
+
         $status = $response->getStatusCode();
 
         if ($status == 200) {
@@ -509,6 +520,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
             // Parse XML into array
             $output = $this->xmlToArray($responseXml);
+
+            Log::debug('output:', $output);
 
             // Parse RETURN_MESSAGE into an array
             if ($methodName != 'GetDocument') {
@@ -580,6 +593,12 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'RequestStatus',
             'statusRequestXML'
         );
+
+        $this->responseData = $response;
+
+        $payment->update([
+            'provider_response_data' => $this->responseData
+        ]);
 
         if (!is_array($response) || !isset($response['response']['RETURN_MESSAGE']['STATUS_CODE'])) {
             $status = 'error';
@@ -917,6 +936,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
     {
         $matches = Str::of($returnMessage)
             ->matchAllFull('/([A-Z_]+)=[\'"]([^\'"]*)[\'"]/');
+
+        if (empty($matches[0])) {
+            Log::debug('return message: ' . $returnMessage);
+        }
 
         return collect($matches[0])
             ->combine($matches[1]);

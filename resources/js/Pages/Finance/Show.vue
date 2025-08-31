@@ -7,6 +7,7 @@ import {formatCurrency} from "../../Helpers/Currency.js";
 import {ArrowPathIcon} from "@heroicons/vue/16/solid/index.js";
 import Card from "../../Components/Card.vue";
 import Modal from "../../Components/Modal.vue";
+import {decompress} from "../../Helpers/Compression.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -58,8 +59,7 @@ useEcho(
     `payments.${props.payment.id}`,
     'PaymentUpdated',
     (e) => {
-        console.log(e);
-        payment.value = e.payment;
+        payment.value = decompress(e.payload);
     }
 );
 
@@ -157,6 +157,13 @@ useEcho(
                     {{ error }}
                 </li>
             </ul>
+
+            <ul v-else-if="payment.provider_response_data?.response?.RETURN_MESSAGE" class="list-disc list-inside text-red-500">
+                <li>
+                    {{ payment.provider_response_data?.response?.RETURN_MESSAGE.MESSAGE_TEXT }}
+                </li>
+            </ul>
+
 
             <Card v-else-if="payment.provider_response_data" class="mb-8 w-1/2" header-class="bg-gray-100" :collapsed="true">
                 <template v-slot:header><b>More Info</b></template>

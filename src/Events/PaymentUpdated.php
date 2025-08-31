@@ -10,6 +10,7 @@ use Illuminate\Queue\InteractsWithQueue;
 use Illuminate\Queue\SerializesModels;
 use Illuminate\Support\Facades\Log;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Services\Compression;
 
 class PaymentUpdated extends Event implements ShouldBroadcast
 {
@@ -59,7 +60,8 @@ class PaymentUpdated extends Event implements ShouldBroadcast
         Log::debug('broadcasting', ['payment' => $payload]);
 
         return [
-            'payment' => $payload,
+            'payload' => app(Compression::class)
+                ->compress($payload),
         ];
     }
 }
