@@ -35,7 +35,7 @@ class SatNoteUpload extends Mailable implements ShouldQueue
     public function build()
     {
         $mail = $this->subject('Sat Note Upload for Finance Application ' . $this->payment->provider_foreign_id)
-            ->markdown('mail.sat_note_upload')
+            ->markdown('payment::mail.sat_note_upload')
             ->with([
                 'payment' => $this->payment,
                 'parent' => $this->payment->parentable,

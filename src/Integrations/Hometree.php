@@ -8,6 +8,7 @@ use Illuminate\Http\Client\RequestException;
 use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
+use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Number;
 use Illuminate\Support\Str;
 use Mralston\Payment\Data\ErrorCollectionData;
@@ -22,6 +23,7 @@ use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupValue;
 use Mralston\Payment\Models\PaymentOffer;
@@ -552,7 +554,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         return $this->responseData;
     }
 
-    public function cancel(Payment $payment): bool
+    public function cancel(Payment $payment, ?string $reason = null): bool
     {
         $this->requestData = [
             'reason' => 'customer.unknown',
@@ -566,6 +568,10 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ->withToken($this->key, 'Token')
             ->post('/applications/' . $payment->provider_foreign_id . '/abandon', $this->requestData);
 
+        Log::debug('HT cancellation response status: ' . $response->status());
+        Log::debug('HT cancellation response status code: ' . $response->getStatusCode());
+        Log::debug('HT cancellation response body: ' . $response->body());
+
         // Add application and offer IDs to the request data stored to the DB for easier troubleshooting
         $this->requestData = [
             ...$this->requestData,
@@ -574,10 +580,16 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         $this->responseData = $response->json();
 
-//        Log::debug($this->requestData);
-//        Log::debug($this->responseData);
+        Log::debug($this->requestData);
+        Log::debug($this->responseData);
 
-        $response->throw();
+        try{
+            $response->throw();
+        } catch (RequestException $ex) {
+            Log::debug('Sending cancellation e-mail to ' . $payment->paymentProvider->underwriter_email);
+            Mail::to($payment->paymentProvider->underwriter_email)
+                ->send(new CancelManually($payment, $reason));
+        }
 
         return true;
     }

@@ -40,9 +40,7 @@ const props = defineProps({
                         </span>
                     </th>
                     <td class="bg-gray-100 p-1">
-                        <span v-if="upfrontPayment">
-                            {{ toPounds(upfrontPayment) }}
-                        </span>
+                        {{ toPounds(upfrontPayment ?? 0) }}
                     </td>
                 </tr>
                 <tr>

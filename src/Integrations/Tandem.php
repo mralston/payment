@@ -355,7 +355,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         ];
     }
 
-    public function cancel(Payment $payment): bool
+    public function cancel(Payment $payment, ?string $reason = null): bool
     {
         $data = [
             'cancellationReason' => 'Customer Withdrawn',

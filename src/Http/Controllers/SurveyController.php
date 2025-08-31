@@ -3,6 +3,7 @@
 namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Mralston\Payment\Data\FinanceData;
 use Mralston\Payment\Enums\LookupField;
@@ -148,7 +149,9 @@ class SurveyController
 
         $this->redirectToActivePayment($parentModel);
 
-        $parentModel->paymentSurvey()
+        $survey = $parentModel->paymentSurvey;
+
+        $survey
             ->update([
                 ...$request->except(
                     'basicQuestionsCompleted',
@@ -166,6 +169,11 @@ class SurveyController
                 'lease_responses' => $request->get('leaseResponses'),
                 'finance_responses' => $request->get('financeResponses'),
             ]);
+
+        // Clear offers if the survey was changed so that the options page is refreshed
+        if ($survey->wasChanged()) {
+            $parentModel->paymentOffers()->delete();
+        }
 
         if ($request->get('redirect')) {
             return redirect($request->get('redirect'));

@@ -25,13 +25,11 @@ class PaymentService
             'source' => $dto->source,
         ]);
 
-        // if (method_exists($payment->paymentProvider, 'gateway')) {
-        //     $payment
-        //         ->paymentProvider
-        //         ->gateway()
-        //         ->cancel($payment);
-        // }
+        // Delete related offers from DB (they will have been cancelled by some providers)
+        $payment->parentable
+            ->paymentOffers()
+            ->delete();
 
-        event(new PaymentCancelled($payment));
+        event(new PaymentCancelled($payment, $dto->reason));
     }
 }

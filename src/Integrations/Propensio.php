@@ -639,7 +639,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         ];
     }
 
-    public function cancel(Payment $payment): bool
+    public function cancel(Payment $payment, ?string $reason = null): bool
     {
         $data = [
             'AGREEMENT' => [

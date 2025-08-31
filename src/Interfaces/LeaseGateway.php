@@ -11,7 +11,7 @@ interface LeaseGateway
 {
     public function apply(Payment $payment): array; // TODO: Change return type to Payment
 
-    public function cancel(Payment $payment): bool;
+    public function cancel(Payment $payment, ?string $reason = null): bool;
 
     public function pollStatus(Payment $payment): array;
 }
