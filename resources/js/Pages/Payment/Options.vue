@@ -43,6 +43,10 @@ const prequalErrorsModal = ref(null);
 const cashVsFinanceModal = ref(null);
 const financeVsLeaseModal = ref(null);
 const depositModal = ref(null);
+const errorModal = ref(null);
+
+const errorModalMessage = ref(null);
+let errorModalCallback = null;
 
 const prequalRunning = ref(false);
 
@@ -240,7 +244,19 @@ function initiatePrequal(reset = false)
             }
         })
         .catch(error => {
-            alert('There was a problem running starting prequalification process.');
+            console.log(error);
+
+            if (error.response.status === 419) {
+                errorModalMessage.value = 'Your session has expired. Press OK to refresh the page and try again.';
+                errorModalCallback = () => {
+                    window.location.reload();
+                };
+                errorModal.value.show();
+                return;
+            }
+
+            errorModalMessage.value = error.response.data.message ?? 'There was a problem running the prequalification process.';
+            errorModal.value.show();
         });
 }
 
@@ -478,6 +494,15 @@ function resetPrequal()
             <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
             <input type="number" step="0.01" v-model="newDeposit" :id="newDeposit" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
         </div>
+    </Modal>
+
+    <Modal ref="errorModal" title="Error" :buttons="['ok', 'cancel']" type="danger" @ok="if (errorModalCallback) { errorModalCallback(); }">
+        <p class="text-sm text-gray-500 mb-4">
+            There was a problem.
+        </p>
+        <p class="text-red-500 font-bold mb-4">
+            {{ errorModalMessage }}
+        </p>
     </Modal>
 
     <div class="p-4">
