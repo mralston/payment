@@ -22,11 +22,15 @@ const props = defineProps({
 
 const payment = ref(props.payment);
 
+console.log('Initial payment state', payment.value);
+
 const cancelModal = ref(null);
 const cancellationReason = ref();
 
 onMounted(() => {
     payment.value = props.payment;
+
+    console.log('onMounted payment state', payment.value);
 });
 
 function cancel()
@@ -65,6 +69,7 @@ useEcho(
     'PaymentUpdated',
     (e) => {
         payment.value = decompress(e.payload);
+        console.log('Payment updated', payment.value);
     }
 );
 
