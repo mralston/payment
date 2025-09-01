@@ -130,7 +130,7 @@ const disabledCancellationButtons = computed(() => {
 
         <div v-else-if="payment.payment_status.error">
 
-            <button v-if="payment.payment_status.active"
+            <button v-if="payment.payment_status.active && payment.payment_status.cancellable"
                     type="button"
                     class="float-right rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                     @click="cancelModal.show">
@@ -194,7 +194,8 @@ const disabledCancellationButtons = computed(() => {
 
         <div v-else>
 
-            <button type="button"
+            <button v-if="payment.payment_status.cancellable"
+                    type="button"
                     class="float-right rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                     @click="cancelModal.show">
                 Cancel Application
