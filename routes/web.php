@@ -28,6 +28,9 @@ Route::group(['middleware' => ['web', 'auth']], function () {
             Route::get('{parent}', [PaymentController::class, 'start'])
                 ->name('start');
 
+            Route::get('{parent}/locked', [PaymentController::class, 'locked'])
+                ->name('locked');
+
             Route::get('{parent}/surveys/{survey}/lease', [SurveyController::class, 'lease'])
                 ->name('surveys.lease');
 

@@ -38,6 +38,7 @@ class FinanceController
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
         $survey = $parentModel->paymentSurvey;
@@ -77,6 +78,7 @@ class FinanceController
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $survey = $parentModel->paymentSurvey;
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
@@ -140,6 +142,8 @@ class FinanceController
             ]),
             'survey' => $payment->paymentOffer->paymentSurvey,
             'offer' => $payment->paymentOffer,
+            'disableChangePaymentMethodAfterCancellation' => boolval($this->helper->disableChangePaymentMethodAfterCancellation()),
+            'disableChangePaymentMethodAfterCancellationReason' => strval($this->helper->disableChangePaymentMethodAfterCancellation()),
         ])
             ->withViewData($this->helper->getViewData());
     }

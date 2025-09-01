@@ -56,4 +56,6 @@ interface PaymentHelper
     public function getApiKey(string $provider): ?string;
 
     public function canChangePaymentMethod(): bool;
+
+    public function disableChangePaymentMethodAfterCancellation(): bool|string;
 }

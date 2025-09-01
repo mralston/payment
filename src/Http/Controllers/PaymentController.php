@@ -3,6 +3,7 @@
 namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
 use Mralston\Payment\Data\CancellationData;
@@ -67,15 +68,9 @@ class PaymentController
             ])->withViewData($this->helper->getViewData());
         }
 
-        // If there's an active payment, go straight there
-        if ($redirect = $this->redirectToActivePayment($parentModel)) {
-            return $redirect;
-        }
-
-        // If an offer has been selected go there
-        if ($redirect = $this->redirectToSelectedOffer($parentModel)) {
-            return $redirect;
-        }
+        $this->redirectToActivePayment($parentModel);
+        $this->redirectToSelectedOffer($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         // If the survey has been filled in, go to the options page
         if ($parentModel->paymentSurvey?->basic_questions_completed) {
@@ -95,10 +90,11 @@ class PaymentController
         $this->paymentService->cancel(
             new CancellationData(
                 paymentId: $payment->id,
-                paymentStatusIdentifier: $request->payment_status_identifier,
-                reason: $request->cancellation_reason,
-                source: $request->source,
-                userId: auth()->user()->id,
+                paymentStatusIdentifier: $request->input('payment_status_identifier'),
+                reason: $request->input('cancellation_reason'),
+                source: $request->input('source'),
+                userId: Auth::id(),
+                disableChangePaymentMethodAfterCancellation: $request->boolean('disableChangePaymentMethodAfterCancellation'),
             )
         );
 
@@ -130,5 +126,21 @@ class PaymentController
                 ]),
             'products' => $helper->getBasketItems(),
         ])->withViewData($this->helper->getViewData());
+    }
+
+    public function locked(Request $request, int $parent)
+    {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $reason = 'You cannot start another payment.';
+
+        if (is_string($this->helper->disableChangePaymentMethodAfterCancellation())) {
+            $reason .= ' ' . $this->helper->disableChangePaymentMethodAfterCancellation();
+        }
+
+        return Inertia::render('Payment/Disabled', [
+            'reason' => $reason,
+        ])
+            ->withViewData($this->helper->getViewData());
     }
 }

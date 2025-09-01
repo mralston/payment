@@ -79,6 +79,7 @@ return new class extends Migration
             $table->timestamp('signed_at')->nullable();
             $table->integer('sat_note_file_id')->nullable()->index();
             $table->integer('credit_agreement_file_id')->nullable()->index();
+            $table->tinyInteger('prevent_payment_changes')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

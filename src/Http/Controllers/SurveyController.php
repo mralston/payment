@@ -24,6 +24,7 @@ class SurveyController
         $parentModel = $this->bootstrap($parent, $helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         // If there is already a survey, redirect to the existing survey
         if (!empty($parentModel->paymentSurvey)) {
@@ -52,6 +53,7 @@ class SurveyController
         $parentModel = $this->bootstrap($parent, $helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $parentModel->paymentSurvey()
             ->create([
@@ -81,6 +83,7 @@ class SurveyController
         $parentModel = $this->bootstrap($parent, $helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
@@ -97,6 +100,7 @@ class SurveyController
         $parentModel = $this->bootstrap($parent, $helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
@@ -116,6 +120,7 @@ class SurveyController
         $parentModel = $this->bootstrap($parent, $helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         if (empty($survey->finance_responses)) {
             $survey->finance_responses = app(FinanceData::class);
@@ -148,6 +153,7 @@ class SurveyController
         $parentModel = $this->bootstrap($parent, $helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $survey = $parentModel->paymentSurvey;
 

@@ -36,6 +36,7 @@ class PaymentOptionsController
 
         $this->redirectToActivePayment($parentModel);
         $this->redirectToSelectedOffer($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $survey = $parentModel->paymentSurvey ?? $parentModel->paymentSurvey()->create([
             'customers' => $this->helper->getCustomers(),

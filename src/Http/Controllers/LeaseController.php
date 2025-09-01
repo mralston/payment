@@ -8,7 +8,6 @@ use Inertia\Inertia;
 use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Enums\PaymentType as PaymentTypeEnum;
 use Mralston\Payment\Http\Requests\SubmitLeaseApplicationRequest;
-use Mralston\Payment\Interfaces\LeaseGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Jobs\WaitToSubmitPayment;
 use Mralston\Payment\Jobs\WatchForPaymentUpdates;
@@ -18,7 +17,6 @@ use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
-use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Models\PaymentType;
 use Mralston\Payment\Services\LeaseService;
 use Mralston\Payment\Traits\BootstrapsPayment;
@@ -41,6 +39,7 @@ class LeaseController
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
         $survey = $parentModel->paymentSurvey;
@@ -74,6 +73,7 @@ class LeaseController
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $this->redirectToActivePayment($parentModel);
+        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $survey = $parentModel->paymentSurvey;
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
@@ -167,6 +167,8 @@ class LeaseController
             ]),
             'survey' => $payment->paymentOffer->paymentSurvey,
             'offer' => $payment->paymentOffer,
+            'disableChangePaymentMethodAfterCancellation' => boolval($this->helper->disableChangePaymentMethodAfterCancellation()),
+            'disableChangePaymentMethodAfterCancellationReason' => strval($this->helper->disableChangePaymentMethodAfterCancellation()),
         ])
             ->withViewData($this->helper->getViewData());
     }

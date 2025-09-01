@@ -12,6 +12,7 @@ class CancellationData extends Data
         public string $reason,
         public string $source,
         public string $userId,
+        public bool $disableChangePaymentMethodAfterCancellation = false,
     ) {
         //
     }

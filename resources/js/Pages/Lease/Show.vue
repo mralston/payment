@@ -16,6 +16,8 @@ const props = defineProps({
     survey: Object,
     payment: Object,
     offer: Object,
+    disableChangePaymentMethodAfterCancellation: Boolean,
+    disableChangePaymentMethodAfterCancellationReason: String,
 });
 
 const payment = ref(props.payment);
@@ -39,6 +41,7 @@ function cancel()
         payment: props.payment.id
     }), {
         payment_status_identifier: 'customer_cancelled',
+        disableChangePaymentMethodAfterCancellation: props.disableChangePaymentMethodAfterCancellation,
         cancellation_reason: cancellationReason.value,
         source: 'rep',
         redirect: route('payment.start', {parent: props.parentModel.id}),
@@ -61,11 +64,17 @@ useEcho(
     `payments.${props.payment.id}`,
     'PaymentUpdated',
     (e) => {
-        e = decompress(e.payload);
-        console.log(e);
-        payment.value = e.payment;
+        payment.value = decompress(e.payload);
     }
 );
+
+const disabledCancellationButtons = computed(() => {
+    if (!cancellationReason.value) {
+        return ['yes'];
+    }
+
+    return [];
+});
 
 </script>
 
@@ -75,11 +84,16 @@ useEcho(
         <title>Lease</title>
     </Head>
 
-    <Modal title="Cancel Application" :buttons="['yes', 'no']" ref="cancelModal" @yes="cancel">
-        <p class="text-sm text-gray-500">
+    <Modal title="Cancel Application" :buttons="['yes', 'no']" :disabled-buttons="disabledCancellationButtons" ref="cancelModal" @yes="cancel">
+        <p class="text-sm text-gray-500 mb-4">
             Are you sure you want to cancel this payment?
         </p>
-        <div class="mt-4">
+        <p v-if="disableChangePaymentMethodAfterCancellation" class="text-red-500 font-bold mb-4">
+            WARNING: You cannot choose another payment method after cancelling.
+            <br v-if="disableChangePaymentMethodAfterCancellationReason">
+            {{ disableChangePaymentMethodAfterCancellationReason }}
+        </p>
+        <div>
             <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
                 Reason
             </label>
@@ -112,7 +126,7 @@ useEcho(
 
             <p class="mb-4">
                 <ArrowPathIcon v-if="!payment.payment_provider.animated_logo" class="inline-block h-6 w-6 mr-2 text-black animate-spin"/>
-                Your application is being processed.
+                Your application is being processed. This page will update automatically. You are welcome to check back later.
             </p>
 
         </div>
@@ -186,13 +200,13 @@ useEcho(
                 Great news! {{ payment.payment_provider.name }} has received your application.
             </p>
             <p v-if="payment.payment_status.identifier === 'pending-customer-agreement'" class="mb-4">
-                Check your email where you'll find a link to review and sign their {{ payment.payment_provider.name }} agreement.
+                Check your email where you'll find a link to review and sign your {{ payment.payment_provider.name }} agreement.
             </p>
             <p v-else-if="payment.payment_status.identifier === 'pending-customer-data'" class="mb-4">
                 Check your email where you'll find a link to provide {{ payment.payment_provider.name }} with additional details.
             </p>
             <p v-else-if="payment.payment_status.identifier === 'pending-underwriting-review' || payment.payment_status.referred" class="mb-4">
-                {{ payment.payment_provider.name }} is reviewing this application, and will contact the you directly with further updates.
+                {{ payment.payment_provider.name }} is reviewing your application, and will contact you directly with further updates.
             </p>
             <p v-else class="mb-4">Look out for further communications from {{ payment.payment_provider.name }}.</p>
 

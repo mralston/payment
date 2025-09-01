@@ -89,6 +89,7 @@ class Payment extends Model
         'signed_at',
         'sat_note_file_id',
         'credit_agreement_file_id',
+        'prevent_payment_changes',
     ];
 
     protected $casts = [

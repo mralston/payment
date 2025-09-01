@@ -1,7 +1,7 @@
 <script setup>
 
 import {Head, router} from "@inertiajs/vue3";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {useEcho} from "@laravel/echo-vue";
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {ArrowPathIcon} from "@heroicons/vue/16/solid/index.js";
@@ -14,6 +14,8 @@ const props = defineProps({
     survey: Object,
     payment: Object,
     offer: Object,
+    disableChangePaymentMethodAfterCancellation: Boolean,
+    disableChangePaymentMethodAfterCancellationReason: String,
 });
 
 const payment = ref(props.payment);
@@ -38,6 +40,7 @@ function cancel()
     }), {
         payment_status_identifier: 'customer_cancelled',
         cancellation_reason: cancellationReason.value,
+        disableChangePaymentMethodAfterCancellation: props.disableChangePaymentMethodAfterCancellation,
         source: 'rep',
         redirect: route('payment.start', {parent: props.parentModel.id}),
     }, {
@@ -63,6 +66,14 @@ useEcho(
     }
 );
 
+const disabledCancellationButtons = computed(() => {
+    if (!cancellationReason.value) {
+        return ['yes'];
+    }
+
+    return [];
+});
+
 </script>
 
 <template>
@@ -71,11 +82,16 @@ useEcho(
         <title>Finance</title>
     </Head>
 
-    <Modal title="Cancel Application" :buttons="['yes', 'no']" ref="cancelModal" @yes="cancel">
-        <p class="text-sm text-gray-500">
+    <Modal title="Cancel Application" :buttons="['yes', 'no']" :disabled-buttons="disabledCancellationButtons" ref="cancelModal" @yes="cancel">
+        <p class="text-sm text-gray-500 mb-4">
             Are you sure you want to cancel this payment?
         </p>
-        <div class="mt-4">
+        <p v-if="disableChangePaymentMethodAfterCancellation" class="text-red-500 font-bold mb-4">
+            WARNING: You cannot choose another payment method after cancelling.
+            <br v-if="disableChangePaymentMethodAfterCancellationReason">
+            {{ disableChangePaymentMethodAfterCancellationReason }}
+        </p>
+        <div>
             <label for="reason" class="block text-sm font-medium text-gray-700 mb-2">
                 Reason
             </label>
@@ -107,7 +123,7 @@ useEcho(
 
             <p class="mb-4">
                 <ArrowPathIcon v-if="!payment.payment_provider.animated_logo" class="inline-block h-6 w-6 mr-2 text-black animate-spin"/>
-                Your application is being processed.
+                Your application is being processed. This page will update automatically. You are welcome to check back later.
             </p>
 
         </div>

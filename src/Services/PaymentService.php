@@ -16,6 +16,7 @@ class PaymentService
 
         $payment->update([
             'payment_status_id' => PaymentStatus::byIdentifier($dto->paymentStatusIdentifier)?->id,
+            'prevent_payment_changes' => $dto->disableChangePaymentMethodAfterCancellation,
         ]);
 
         PaymentCancellation::create([

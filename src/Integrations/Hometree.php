@@ -586,9 +586,11 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         try{
             $response->throw();
         } catch (RequestException $ex) {
-            Log::debug('Sending cancellation e-mail to ' . $payment->paymentProvider->underwriter_email);
-            Mail::to($payment->paymentProvider->underwriter_email)
-                ->send(new CancelManually($payment, $reason));
+            if ($ex->getCode() !== 403) {
+                Log::debug('Sending cancellation e-mail to ' . $payment->paymentProvider->underwriter_email);
+                Mail::to($payment->paymentProvider->underwriter_email)
+                    ->send(new CancelManually($payment, $reason));
+            }
         }
 
         return true;

@@ -47,7 +47,7 @@ class WatchForPaymentUpdates implements ShouldQueue
 
         // Once the status is no longer 'processing', update the payment record
         Log::debug('updating payment');
-        Log::debug('updating payment', $gateway->getResponseData());
+        Log::debug('updating payment', $gateway->getResponseData() ?? []);
         $update = [
             'provider_response_data' => $gateway->getResponseData(),
             'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
