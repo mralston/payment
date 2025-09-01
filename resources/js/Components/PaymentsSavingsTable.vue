@@ -11,6 +11,8 @@ const props = defineProps({
     yearlyPayments: Array,
     apr: Number,
     systemSavings: Array,
+    // Optional fallback when yearlyPayments are missing/zero
+    monthlyPayment: Number,
     showTitle: {
         type: Boolean,
         default: true,
@@ -20,7 +22,11 @@ const props = defineProps({
 
 const paymentsBreakdown = computed(() => {
     let result = [];
-    const numberOfYears = props.term / 12;
+    const term = Number(props.term ?? 0) || 0;
+    const numberOfYears = Math.max(0, Math.floor(term / 12));
+
+    const yearlyPayments = Array.isArray(props.yearlyPayments) ? props.yearlyPayments : [];
+    const systemSavings = Array.isArray(props.systemSavings) ? props.systemSavings : [];
 
     for (let i = 0; i < numberOfYears; i++) {
         // Year
@@ -29,8 +35,8 @@ const paymentsBreakdown = computed(() => {
         };
 
         // Savings calculations remain the same
-        if (props.systemSavings[i]) {
-            datum.savings = props.systemSavings[i];
+        if (systemSavings[i]) {
+            datum.savings = Number(systemSavings[i]) || 0;
             datum.monthly = datum.savings / 12;
         } else {
             datum.legend = '*';
@@ -39,7 +45,12 @@ const paymentsBreakdown = computed(() => {
         }
 
         // Get the total payment for this year from our new prop
-        const yearlyPayment = props.yearlyPayments[i] ?? 0;
+        let yearlyPayment = Number(yearlyPayments[i] ?? 0) || 0;
+
+        // Fallback: if yearlyPayments missing/zero, derive from monthlyPayment prop
+        if ((!yearlyPayment || yearlyPayment === 0) && typeof props.monthlyPayment === 'number') {
+            yearlyPayment = props.monthlyPayment * 12;
+        }
 
         // Calculate the average monthly cost for this specific year
         datum.monthlyPayment = yearlyPayment / 12;
@@ -53,7 +64,10 @@ const paymentsBreakdown = computed(() => {
     return result;
 });
 
-const termInYears = computed(() => props.term / 12);
+const termInYears = computed(() => {
+    const term = Number(props.term ?? 0) || 0;
+    return Math.max(0, Math.floor(term / 12));
+});
 
 </script>
 

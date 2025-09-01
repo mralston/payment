@@ -68,10 +68,14 @@ class PaymentController
         }
 
         // If there's an active payment, go straight there
-        $this->redirectToActivePayment($parentModel);
+        if ($redirect = $this->redirectToActivePayment($parentModel)) {
+            return $redirect;
+        }
 
         // If an offer has been selected go there
-        $this->redirectToSelectedOffer($parentModel);
+        if ($redirect = $this->redirectToSelectedOffer($parentModel)) {
+            return $redirect;
+        }
 
         // If the survey has been filled in, go to the options page
         if ($parentModel->paymentSurvey?->basic_questions_completed) {

@@ -437,19 +437,21 @@ function resetPrequal()
     </MoreInfoModal>
 
     <MoreInfoModal ref="financeMoreInfoModal" title="More Info - Finance">
-        <FinanceMoreInfo :totalCost="makeNumeric(totalCost)"
+        <FinanceMoreInfo v-if="selectedFinanceOffer"
+                         :totalCost="makeNumeric(totalCost)"
                          :deposit="makeNumeric(survey.finance_deposit)"
                          :selected-offer="selectedFinanceOffer"
-                         :other-offers="financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id && offer.payment_provider_id === selectedFinanceOffer.payment_provider_id)"
+                         :other-offers="selectedFinanceOffer ? financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id && offer.payment_provider_id === selectedFinanceOffer.payment_provider_id) : []"
                          :system-savings="systemSavings"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
-        <LeaseMoreInfo :content="leaseMoreInfoContent"
+        <LeaseMoreInfo v-if="selectedLeaseOffer"
+                       :content="leaseMoreInfoContent"
                        :totalCost="makeNumeric(totalCost)"
                        :deposit="makeNumeric(survey.lease_deposit)"
                        :selected-offer="selectedLeaseOffer"
-                       :other-offers="leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id)"
+                       :other-offers="selectedLeaseOffer ? leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id) : []"
                        :system-savings="systemSavings"
         />
     </MoreInfoModal>

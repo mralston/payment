@@ -18,6 +18,7 @@ const props = defineProps({
 </script>
 
 <template>
+    <div v-if="selectedOffer">
     <div v-if="content" v-html="content" class="mb-4"/>
 
     <h2 class="text-2xl mb-4">Potential Savings</h2>
@@ -52,6 +53,7 @@ const props = defineProps({
                                        :deferred="makeNumeric(selectedOffer.deferred)"
                                        :upfront-payment="makeNumeric(selectedOffer.upfront_payment)"
                                        :yearly-payments="selectedOffer.yearly_payments"
+                                       :monthly-payment="makeNumeric(selectedOffer.monthly_payment)"
                                        :apr="makeNumeric(selectedOffer.apr)"
                                        :system-savings="systemSavings"
                                        class="bg-white mb-4"/>
@@ -80,15 +82,14 @@ const props = defineProps({
                                       :deferred="makeNumeric(offer.deferred)"
                                       :upfront-payment="makeNumeric(offer.upfront_payment)"
                                       :yearly-payments="offer.yearly_payments"
+                                      :monthly-payment="makeNumeric(offer.monthly_payment)"
                                       :apr="makeNumeric(offer.apr)"
                                       :system-savings="systemSavings"
                                       class="mb-4"/>
             </div>
         </div>
     </Card>
-
-
-
+    </div>
 
 </template>
 
