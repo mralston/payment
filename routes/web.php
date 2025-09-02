@@ -13,6 +13,15 @@ use Mralston\Payment\Http\Controllers\WebhookController;
 use Mralston\Payment\Http\Controllers\FinanceSigningLinkController;
 use Mralston\Payment\Http\Middleware\RedirectToActivePayment;
 
+/**
+ * Tandem webhook
+ */
+Route::post('webhook/tandem/{uuid}', [WebhookController::class, 'tandem'])
+    ->name('webhook.tandem');
+
+/**
+ * Hometree webhook
+ */
 Route::middleware('auth:sanctum')->group(function () {
     Route::post('webhook/hometree', [WebhookController::class, 'hometree'])
         ->name('webhook.hometree');
@@ -91,8 +100,5 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
             Route::get('finance/{payment}/signing-link', [FinanceSigningLinkController::class, 'show'])
                 ->name('finance.signing-link');
-
-            Route::post('webhook/tandem', [WebhookController::class, 'tandem'])
-                ->name('webhook.tandem');
     });
 });
