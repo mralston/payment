@@ -12,10 +12,12 @@ trait RedirectsOnActivePayment
         // Check to see whether the parent has an active payment
         if (!empty($parentModel->activePayment->paymentOffer)) {
 
+            $type = $parentModel->activePayment?->paymentOffer ?? $parentModel->activePayment->paymentProvider->paymentType->identifier;
+
             // Construct a URL to the payment show page
-            $url = route('payment.' . $parentModel->activePayment->paymentOffer->type . '.show', [
+            $url = route('payment.' . $type . '.show', [
                 'parent' => $parentModel,
-                $parentModel->activePayment->paymentOffer->type => $parentModel->activePayment->id,
+                $type => $parentModel->activePayment->id,
             ]);
 
             // Set the redirect header
