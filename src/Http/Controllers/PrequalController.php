@@ -28,7 +28,15 @@ class PrequalController extends Controller
 
         $survey = $parentModel->paymentSurvey;
 
-        $results = $this->prequalService->run($survey);
+        $totalCost = $request->float('totalCost');
+
+        if ($request->boolean('reset')) {
+            $parentModel
+                ->paymentOffers()
+                ->delete();
+        }
+
+        $results = $this->prequalService->run($survey, $totalCost);
 
         return response()
             ->json($results);

@@ -18,6 +18,12 @@ return new class extends Migration
             $table->string('description')->nullable();
             $table->string('identifier')->unique();
             $table->boolean('active')->default(false);
+            $table->boolean('processing')->default(false);
+            $table->boolean('referred')->default(false);
+            $table->boolean('decided')->default(false);
+            $table->boolean('error')->default(false);
+            $table->boolean('cancelled')->default(false);
+            $table->boolean('cancellable')->default(false);
             $table->timestamps();
         });
     }

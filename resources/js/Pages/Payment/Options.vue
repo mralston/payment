@@ -4,7 +4,8 @@ import {computed, onMounted, reactive, ref, watch} from "vue";
 import axios from "axios";
 import { useEcho } from '@laravel/echo-vue';
 import {formatCurrency} from "../../Helpers/Currency.js";
-import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+import {CheckCircleIcon, ExclamationTriangleIcon, ArrowPathIcon} from "@heroicons/vue/20/solid/index.js";
+import {PencilIcon} from "@heroicons/vue/24/outline/index.js";
 import MoreInfoModal from "../../Components/MoreInfoModal.vue";
 
 import LeaseMoreInfo from "../../Components/MoreInfo/Lease.vue";
@@ -19,16 +20,16 @@ import BulletPointsSkeleton from "../../Components/BulletPointsSkeleton.vue";
 import SkeletonItem from "../../Components/SkeletonItem.vue";
 import {makeNumeric} from "../../Helpers/Number.js";
 import {decompress} from "../../Helpers/Compression.js";
+import Modal from "../../Components/Modal.vue";
 
 const props = defineProps({
     parentModel: Object,
     survey: Object,
     customers: Array,
     totalCost: Number,
-    deposit: Number,
     leaseMoreInfoContent: String,
     paymentProviders: Array,
-    systemSavings: Object,
+    systemSavings: Array,
     prequalOnLoad: {
         type: Boolean,
         default: true,
@@ -41,6 +42,11 @@ const leaseMoreInfoModal = ref(null);
 const prequalErrorsModal = ref(null);
 const cashVsFinanceModal = ref(null);
 const financeVsLeaseModal = ref(null);
+const depositModal = ref(null);
+const errorModal = ref(null);
+
+const errorModalMessage = ref(null);
+let errorModalCallback = null;
 
 const prequalRunning = ref(false);
 
@@ -53,7 +59,14 @@ const gatewayErrors = reactive({
 
 const currentErrorsToDisplay = ref([]);
 
+const cashPaymentProvider = computed(() => {
+    return props.paymentProviders.find(paymentProvider => paymentProvider.identifier === 'cash');
+});
+
 const offers = ref([]);
+
+const newDeposit = ref(null);
+const newDepositType = ref(null);
 
 const financeOffers = computed (() => {
     return offers.value
@@ -212,7 +225,7 @@ useEcho(
     }
 );
 
-function initiatePrequal()
+function initiatePrequal(reset = false)
 {
     offers.value = [];
     selectedFinanceOffer.value = null;
@@ -220,7 +233,10 @@ function initiatePrequal()
     gatewayErrors.finance = null;
     gatewayErrors.lease = null;
 
-    axios.post(route('payment.prequal', {parent: props.parentModel}))
+    axios.post(route('payment.prequal', {parent: props.parentModel}), {
+        totalCost: props.totalCost,
+        reset: reset,
+    })
         .then(response => {
             // Populate pendingGateway array with those that have promised offers
             for (const offerPromise of response.data) {
@@ -228,7 +244,19 @@ function initiatePrequal()
             }
         })
         .catch(error => {
-            alert('There was a problem running starting prequalification process.');
+            console.log(error);
+
+            if (error.response.status === 419) {
+                errorModalMessage.value = 'Your session has expired. Press OK to refresh the page and try again.';
+                errorModalCallback = () => {
+                    window.location.reload();
+                };
+                errorModal.value.show();
+                return;
+            }
+
+            errorModalMessage.value = error.response.data.message ?? 'There was a problem running the prequalification process.';
+            errorModal.value.show();
         });
 }
 
@@ -291,7 +319,7 @@ function updateOffers(e) {
     pendingGateways.value = pendingGateways.value.filter((gateway) => gateway !== e.gateway);
 }
 
-function proceed(paymentType) {
+function selectOffer(paymentType) {
     let selectedOffer = null;
 
     if (paymentType === 'finance') {
@@ -300,13 +328,14 @@ function proceed(paymentType) {
         selectedOffer = selectedLeaseOffer.value;
     }
 
-    router.get(route('payment.' + paymentType + '.create', {
+    router.post(route('payment.select', {
         parent: props.parentModel,
-        offerId: selectedOffer?.id
+        offerId: selectedOffer?.id ?? 0, // 0 = cash
+        paymentType: paymentType,
     }));
 }
 
-function survey()
+function backToSurvey()
 {
     router.get(route('payment.surveys.create', {parent: props.parentModel}));
 }
@@ -324,16 +353,28 @@ const parseGatewayErrors = computed(() => (gatewayType) => {
     }
 
     try {
-        const errors = JSON.parse(errorData);
-        let messages = [];
+        const parsedResponse = JSON.parse(errorData);
 
-        for (const key in errors) {
-            if (Object.hasOwnProperty.call(errors, key)) {
-                messages = messages.concat(errors[key]);
+        // Check if the new `errors` object format exists.
+        if (parsedResponse.errors && typeof parsedResponse.errors === 'object') {
+            // Get all arrays of error objects (e.g., from 'savings', 'credit', etc.)
+            const errorGroups = Object.values(parsedResponse.errors);
+
+            // Flatten the groups and map each error object to its description.
+            const messages = errorGroups.flatMap(group =>
+                Array.isArray(group) ? group.map(error => error.description) : []
+            ).filter(Boolean); // Filter out any null or undefined descriptions.
+
+            if (messages.length > 0) {
+                return messages;
             }
         }
-        return messages;
+
+        // Fallback for unexpected structures or if parsing yields no messages.
+        return [errorData];
+
     } catch (e) {
+        // If the response is not valid JSON, return the raw string.
         return [
             errorData,
         ];
@@ -371,6 +412,33 @@ function financeVsLease()
     financeVsLeaseModal.value.show();
 }
 
+function changeDeposit(paymentType)
+{
+    newDepositType.value = paymentType;
+    newDeposit.value = props.survey[paymentType + '_deposit'];
+
+    depositModal.value.show();
+}
+
+function submitDepositChange()
+{
+    if (newDeposit.value === '') {
+        newDeposit.value = 0;
+    }
+
+    router.post(route('payment.change-deposit', {parent: props.parentModel, paymentType: newDepositType.value}), {
+        deposit: newDeposit.value,
+    }, {
+        onSuccess: () => {
+            initiatePrequal();
+        }
+    });
+}
+
+function resetPrequal()
+{
+    initiatePrequal(true);
+}
 
 </script>
 
@@ -381,23 +449,25 @@ function financeVsLease()
     </Head>
 
     <MoreInfoModal ref="cashMoreInfoModal" title="More Info - Cash">
-        <CashMoreInfo :totalCost="totalCost" :deposit="deposit"/>
+        <CashMoreInfo :totalCost="totalCost" :deposit="makeNumeric(survey.cash_deposit)"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="financeMoreInfoModal" title="More Info - Finance">
-        <FinanceMoreInfo :totalCost="makeNumeric(totalCost)"
-                         :deposit="makeNumeric(deposit)"
+        <FinanceMoreInfo v-if="selectedFinanceOffer"
+                         :totalCost="makeNumeric(totalCost)"
+                         :deposit="makeNumeric(survey.finance_deposit)"
                          :selected-offer="selectedFinanceOffer"
-                         :other-offers="financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id && offer.payment_provider_id === selectedFinanceOffer.payment_provider_id)"
+                         :other-offers="selectedFinanceOffer ? financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id && offer.payment_provider_id === selectedFinanceOffer.payment_provider_id) : []"
                          :system-savings="systemSavings"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
-        <LeaseMoreInfo :content="leaseMoreInfoContent"
+        <LeaseMoreInfo v-if="selectedLeaseOffer"
+                       :content="leaseMoreInfoContent"
                        :totalCost="makeNumeric(totalCost)"
-                       :deposit="makeNumeric(deposit)"
+                       :deposit="makeNumeric(survey.lease_deposit)"
                        :selected-offer="selectedLeaseOffer"
-                       :other-offers="leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id)"
+                       :other-offers="selectedLeaseOffer ? leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id) : []"
                        :system-savings="systemSavings"
         />
     </MoreInfoModal>
@@ -418,7 +488,41 @@ function financeVsLease()
         </ul>
     </MoreInfoModal>
 
+    <Modal ref="depositModal" :title="`Change ${newDepositType} deposit`" :buttons="['ok', 'cancel']" type="question" @ok="submitDepositChange">
+        <p class="mb-4">What deposit will the customer be paying for {{ newDepositType }}?</p>
+        <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
+            <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
+            <input type="number" step="0.01" v-model="newDeposit" :id="newDeposit" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+        </div>
+    </Modal>
+
+    <Modal ref="errorModal" title="Error" :buttons="['ok', 'cancel']" type="danger" @ok="if (errorModalCallback) { errorModalCallback(); }">
+        <p class="text-sm text-gray-500 mb-4">
+            There was a problem.
+        </p>
+        <p class="text-red-500 font-bold mb-4">
+            {{ errorModalMessage }}
+        </p>
+    </Modal>
+
     <div class="p-4">
+
+        <div class="float-end">
+            <button type="button"
+                    class="rounded bg-gray-600 px-2 py-1 mr-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    title="Refresh Offers"
+                    @click="resetPrequal">
+                <ArrowPathIcon :disabled="pendingGateways.length > 0"
+                               class="text-white h-4 w-4 inline"
+                               :class="{'animate-spin' : pendingGateways.length > 0}" aria-hidden="true"/>
+            </button>
+
+            <button type="button"
+                    class="rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    @click="backToSurvey">
+                Back to Survey
+            </button>
+        </div>
 
         <div v-if="!prequalOnLoad" class="mb-4 float-right">
             <div class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
@@ -460,74 +564,34 @@ function financeVsLease()
                                 <!-- Placeholder for dropdown -->
                             </div>
 
-                            <button @click="proceed('cash')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                Proceed
+                            <div class="mt-8">
+                                <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.cash_deposit)) }}
+                                <button type="button" class="float-right" @click="changeDeposit('cash')">
+                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                </button>
+                            </div>
+
+                            <button @click="selectOffer('cash')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                Select
                             </button>
 
                             <button @click="cashMoreInfoModal.show" class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 More Info
                             </button>
 
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Cash Purchase Option
-                            </p>
-
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Deposit: 25% upfront (paid upon booking)
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Balance: 75% on satisfactory completion
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Ownership: Immediate
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Interest: None
-                                </li>
-                            </ul>
-
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Why cash?
-                            </p>
-
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Lowest overall cost — no interest or fees
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Full system ownership from day one
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    No finance agreements or credit checks
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Straightforward and clean transaction
-                                </li>
-                            </ul>
-
-                            <p class="mt-10 text-sm/6 font-semibold text-gray-900">
-                                Best for
-                            </p>
-
-                            <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Customers with available savings
-                                </li>
-                                <li class="flex gap-x-3">
-                                    <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
-                                    Those focused on long-term value and maximum ROC
-                                </li>
-                            </ul>
+                            <div v-if="cashPaymentProvider?.selling_points"
+                                 v-for="sellingPoint in cashPaymentProvider.selling_points"
+                                 :key="sellingPoint.title">
+                                <p class="mt-10 text-sm/6 font-semibold text-gray-900">
+                                    {{ sellingPoint.title }}
+                                </p>
+                                <ul role="list" class="mt-6 space-y-3 text-sm/6 text-gray-600">
+                                    <li class="flex gap-x-3" v-for="bullet in sellingPoint.bullets" :key="bullet">
+                                        <CheckCircleIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                        {{ bullet }}
+                                    </li>
+                                </ul>
+                            </div>
 
                         </div>
 
@@ -541,7 +605,7 @@ function financeVsLease()
                                 <SkeletonItem v-else class="h-7 w-5/6"/>
                             </div>
 
-                            <button class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
+                            <button v-if="survey.addresses[0].uprn || survey.addresses[0].ufprn" class="absolute z-10 -right-7 top-16 bg-blue-600 hover:bg-blue-500 text-white text-2xl font-bold p-3 rounded-full"
                                     @click="financeVsLease"
                                     title="Compare Finance &amp; Lease">
                                 VS
@@ -568,10 +632,17 @@ function financeVsLease()
                                 </div>
                             </div>
 
-                            <button @click="proceed('finance')"
+                            <div class="mt-8">
+                                <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.finance_deposit)) }}
+                                <button type="button" class="float-right" @click="changeDeposit('finance')">
+                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
+                                </button>
+                            </div>
+
+                            <button @click="selectOffer('finance')"
                                     :disabled="selectedFinanceOffer === null"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                Proceed
+                                Select
                             </button>
 
                             <button @click="financeMoreInfoModal.show"
@@ -600,7 +671,7 @@ function financeVsLease()
                         </div>
 
                         <!-- Lease -->
-                        <div class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
+                        <div v-if="survey.addresses[0].uprn || survey.addresses[0].ufprn" class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
 
                             <div class="mb-4">
                                 <img v-if="selectedLeaseProvider?.logo" :src="selectedLeaseProvider.logo" class="max-w-1/3 h-7" :alt="selectedLeaseProvider.name">
@@ -629,14 +700,21 @@ function financeVsLease()
                                 </div>
                             </div>
 
-                            <button @click="proceed('lease')"
-                                    :disabled="selectedFinanceOffer === null"
+                            <div class="mt-8">
+                                <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.lease_deposit)) }}
+<!--                                <button type="button" class="float-right" @click="changeDeposit('lease')">-->
+<!--                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />-->
+<!--                                </button>-->
+                            </div>
+
+                            <button @click="selectOffer('lease')"
+                                    :disabled="selectedLeaseOffer === null"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
-                                Proceed
+                                Select
                             </button>
 
                             <button @click="leaseMoreInfoModal.show"
-                                    :disabled="selectedFinanceOffer === null"
+                                    :disabled="selectedLeaseOffer === null"
                                     class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 disabled:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 More Info
                             </button>
@@ -664,16 +742,6 @@ function financeVsLease()
                     </div>
                 </div>
             </div>
-        </div>
-
-
-
-        <div class="my-4">
-            <button type="button"
-                    class="rounded-md bg-gray-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                    @click="survey">
-                Back to Survey
-            </button>
         </div>
 
     </div>

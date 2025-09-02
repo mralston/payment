@@ -3,21 +3,27 @@
 namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
 use Mralston\Payment\Enums\LookupField;
+use Mralston\Payment\Enums\PaymentType as PaymentTypeEnum;
 use Mralston\Payment\Http\Requests\SubmitFinanceApplicationRequest;
+use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
+use Mralston\Payment\Jobs\WatchForPaymentUpdates;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentOffer;
+use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
+use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Models\PaymentSurvey;
+use Mralston\Payment\Models\PaymentType;
 use Mralston\Payment\Traits\BootstrapsPayment;
-use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class FinanceController
 {
     use BootstrapsPayment;
-    use RedirectsOnActivePayment;
 
     public function __construct(
         private PaymentHelper $helper,
@@ -29,8 +35,6 @@ class FinanceController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->redirectToActivePayment($parentModel);
-
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
         $survey = $parentModel->paymentSurvey;
 
@@ -41,12 +45,16 @@ class FinanceController
 
         return Inertia::render('Finance/Create', [
             'parentModel' => $parentModel,
-            'survey' => $parentModel->paymentSurvey,
-            'offer' => $offer,
+            'survey' => $survey,
+            'offer' => $offer->load('paymentProvider'),
             'totalCost' => $this->helper->getTotalCost(),
-            'deposit' => $this->helper->getDeposit(),
+            'deposit' => $survey->finance_deposit,
             'companyDetails' => $this->helper->getCompanyDetails(),
-            'lenders' => PaymentProvider::all(),
+            'paymentProviders' => PaymentProvider::query()
+                ->whereHas('paymentType', function ($query) {
+                    $query->whereIdentifier(PaymentTypeEnum::FINANCE->value);
+                })
+            ->get(),
             'maritalStatuses' => PaymentLookupField::byIdentifier(LookupField::MARITAL_STATUS)
                 ->paymentLookupValues,
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
@@ -55,6 +63,7 @@ class FinanceController
                 ->paymentLookupValues,
             'nationalities' => PaymentLookupField::byIdentifier(LookupField::NATIONALITY)
                 ->paymentLookupValues,
+            'canChangePaymentMethod' => $this->helper->canChangePaymentMethod(),
         ])
             ->withViewData($this->helper->getViewData());
     }
@@ -63,57 +72,105 @@ class FinanceController
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->redirectToActivePayment($parentModel);
-
         $survey = $parentModel->paymentSurvey;
         $offer = PaymentOffer::findOrFail($request->get('offerId'));
 
         // Update survey
-        $survey->setCustomerProperty(0, 'maritalStatus', $request->get('maritalStatus'));
-        $survey->setCustomerProperty(0, 'homeowner', $request->get('homeowner'));
-        $survey->setCustomerProperty(0, 'mortgage', $request->get('mortgage'));
-        $survey->setCustomerProperty(0, 'britishCitizen', $request->get('britishCitizen'));
-        $survey->save();
+        $survey
+            ->setCustomerProperty(0, 'maritalStatus', $request->get('maritalStatus'))
+            ->setCustomerProperty(0, 'homeowner', $request->get('homeowner'))
+            ->setCustomerProperty(0, 'mortgage', $request->get('mortgage'))
+            ->setCustomerProperty(0, 'britishCitizen', $request->get('britishCitizen'))
+            ->save();
 
-        // TODO: Store the product if it doesn't already exist
-        dump($request->all());
-
-        // TODO: Create payment
+        // Create payment
         $payment = Payment::make()
+            ->withPaymentType(PaymentType::byIdentifier(PaymentTypeEnum::FINANCE))
+            ->withPaymentProduct(PaymentProduct::find($offer->payment_product_id))
             ->withSurvey($survey)
             ->withOffer($offer)
             ->setParent($parentModel)
             ->fill([
-                'deposit' => $this->helper->getDeposit(),
+                'deposit' => $survey->finance_deposit,
                 'eligible' => $request->get('eligible'),
                 'gdpr_opt_in' => $request->get('gdprOptIn'),
                 'read_terms_conditions' => $request->get('readTermsConditions'),
-                'bank_account_number' => $request->get('accountNumber'),
-                'bank_account_sort_code' => $request->get('sortCode'),
-            ])
-            ->save();
+            ]);
+        $payment->save();
 
-        dd($payment);
+        $gateway = $payment->paymentProvider->gateway();
 
-        // TODO: Submit payment to provider
+        // Submit the application
+        $result = $this->submitApplication($gateway, $payment, $offer, $survey, $parent);
+
+        Log::debug('Submit Application Result: ', [$result ? 'success' : 'failure']);
+
+        // Watch the status in the background for a little while and see if it updates
+        if ($result) {
+            Log::debug('starting background watch for payment updates');
+            WatchForPaymentUpdates::dispatch($payment->id);
+            Log::debug('dispatched wait job');
+        } else {
+            Log::debug('not starting watch for payment updates');
+        }
 
         return redirect()
             ->route('payment.finance.show', [
                 'parent' => $parent,
-                'finance' => $payment
+                'finance' => $payment->id
             ]);
     }
 
     public function show(int $parent, Payment $finance)
     {
-        $payment = $finance;
-
         $parentModel = $this->bootstrap($parent, $this->helper);
+        $payment = $finance;
 
         return Inertia::render('Finance/Show', [
             'parentModel' => $parentModel,
-            'payment' => $payment,
+            'payment' => $payment->load([
+                'paymentProvider',
+                'paymentStatus',
+            ]),
+            'survey' => $payment->paymentOffer->paymentSurvey,
+            'offer' => $payment->paymentOffer,
+            'disableChangePaymentMethodAfterCancellation' => boolval($this->helper->disableChangePaymentMethodAfterCancellation()),
+            'disableChangePaymentMethodAfterCancellationReason' => strval($this->helper->disableChangePaymentMethodAfterCancellation()),
         ])
             ->withViewData($this->helper->getViewData());
+    }
+
+    private function submitApplication(FinanceGateway $gateway, Payment $payment, PaymentOffer $offer, PaymentSurvey $survey, int $parent): bool
+    {
+        try {
+            $payment = $gateway->apply($payment);
+        } catch (\Exception $e) {
+            Log::error('Error submitting application: ' . $e->getMessage());
+            $payment->update([
+                'provider_request_data' => $gateway->getRequestData(),
+                'provider_response_data' => $gateway->getResponseData(),
+                'submitted_at' => now(),
+                'payment_status_id' => PaymentStatus::byIdentifier('error')?->id,
+            ]);
+
+            return false;
+        }
+
+        if ($payment->paymentStatus->error) {
+            return false;
+        }
+
+        // Mark selected offer as submitted (cannot resubmit once an offer has been selected)
+        $offer->update([
+            'selected' => true,
+        ]);
+
+//        // Delete other offers
+//        $survey->paymentOffers()
+//            ->where('id', '!=', $offer->id)
+//            ->where('selected', false)
+//            ->delete();
+
+        return true;
     }
 }

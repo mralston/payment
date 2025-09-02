@@ -2,24 +2,29 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
+use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Str;
 use Inertia\Inertia;
+use Mralston\Payment\Data\CancellationData;
 use Mralston\Payment\Events\PaymentCancelled;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Models\PaymentSurvey;
+use Mralston\Payment\Services\PaymentService;
 use Mralston\Payment\Traits\BootstrapsPayment;
-use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class PaymentController
 {
     use BootstrapsPayment;
-    use RedirectsOnActivePayment;
 
     public function __construct(
         private PaymentHelper $helper,
+        private PaymentService $paymentService,
     ) {
         //
     }
@@ -43,69 +48,93 @@ class PaymentController
             ->withViewData($this->helper->getViewData());
     }
 
-    public function options(int $parent)
+    public function start(int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $this->redirectToActivePayment($parentModel);
+        // If the payment process is disabled, throw them out
+        if ($result = $this->helper->disablePaymentProcess()) {
 
-        $this->setDefaultDeposit($parentModel);
+            if (is_string($result)) {
+                $reason = $result;
+            } else {
+                $reason = 'Payment process is disabled';
+            }
 
-        $survey = $parentModel->paymentSurvey;
-
-        if (empty($survey)) {
-            $survey = $parentModel->paymentSurvey()->create([
-                'customers' => $this->helper->getCustomers(),
-                'addresses' => [$this->helper->getAddress()],
-            ]);
+            return Inertia::render('Payment/Disabled', [
+                'reason' => $reason,
+            ])->withViewData($this->helper->getViewData());
         }
 
-        return Inertia::render('Payment/Options', [
-            'parentModel' => $parentModel,
-            'survey' => $survey->load([
-                'paymentOffers' => fn ($query) => $query->where('selected', false),
-                'paymentOffers.paymentProvider',
-            ]),
-            'customers' => $this->helper->getCustomers(),
-            'totalCost' => $this->helper->getTotalCost(),
-            'deposit' => $this->helper->getDeposit(),
-            'leaseMoreInfoContent' => $this->helper->getLeaseContent(),
-            'paymentProviders' => PaymentProvider::all(),
-            'systemSavings' => $this->helper->getSystemSavings(),
+        // If the survey has been filled in, go to the options page
+        if ($parentModel->paymentSurvey?->basic_questions_completed) {
+            return redirect()
+                ->route('payment.options', ['parent' => $parent]);
+        }
+
+        // Go to the survey
+        return redirect()
+            ->route('payment.surveys.create', ['parent' => request()->route('parent')]);
+    }
+
+    public function cancel(Request $request, int $parent, Payment $payment)
+    {
+        $parentModel = $this->bootstrap($parent, $this->helper);
+
+        $this->paymentService->cancel(
+            new CancellationData(
+                paymentId: $payment->id,
+                paymentStatusIdentifier: $request->input('payment_status_identifier'),
+                reason: $request->input('cancellation_reason'),
+                source: $request->input('source'),
+                userId: Auth::id(),
+                disableChangePaymentMethodAfterCancellation: $request->boolean('disableChangePaymentMethodAfterCancellation'),
+            )
+        );
+
+        if ($request->input('redirect')) {
+            return redirect($request->input('redirect'));
+        }
+
+        return redirect(route('payments.show', $payment));
+    }
+
+    public function show(Payment $payment)
+    {
+        $survey = $payment->parentable->paymentSurvey;
+
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($payment->parentable);
+
+        return Inertia::render('Payment/Show', [
+            'payment' => $payment
+                ->load([
+                    'paymentProvider',
+                    'paymentStatus',
+                    'parentable',
+                    'parentable.user',
+                    'paymentCancellations',
+                    'paymentCancellations.user',
+                    'paymentOffer',
+                    'employmentStatus',
+                ]),
+            'products' => $helper->getBasketItems(),
         ])->withViewData($this->helper->getViewData());
     }
 
-    private function setDefaultDeposit(PaymentParentModel $parentModel)
-    {
-        if (empty($this->helper->getDeposit()) && !empty(config('payment.deposit'))) {
-
-            if (Str::of(config('payment.deposit'))->endsWith('%')) {
-                // Calculate deposit as percentage of total
-                $percentage = Str::of(config('payment.deposit'))->beforeLast('%')->__toString();
-                $deposit = floatval($percentage) / 100 * $this->helper->getTotalCost();
-
-
-            } else {
-                // Standard numeric deposit values
-                $deposit = config('payment.deposit');
-            }
-
-            // Set the deposit
-            return $this->helper->setDeposit($deposit);
-        }
-    }
-
-    public function cancel(int $parent, Payment $payment)
+    public function locked(Request $request, int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
-        $payment->update([
-            'payment_status_id' => PaymentStatus::byIdentifier('customer_cancelled')?->id,
-        ]);
+        $reason = 'You cannot start another payment.';
 
-        event(new PaymentCancelled($payment));
+        if (is_string($this->helper->disableChangePaymentMethodAfterCancellation())) {
+            $reason .= ' ' . $this->helper->disableChangePaymentMethodAfterCancellation();
+        }
 
-        return redirect()
-            ->route('payment.options', $parentModel);
+        return Inertia::render('Payment/Disabled', [
+            'reason' => $reason,
+        ])
+            ->withViewData($this->helper->getViewData());
     }
 }

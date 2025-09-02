@@ -2,10 +2,10 @@
 
 namespace Mralston\Payment\Traits;
 
-use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Relations\MorphMany;
 use Illuminate\Database\Eloquent\Relations\MorphOne;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentSurvey;
 
 trait HasPayments
@@ -15,9 +15,21 @@ trait HasPayments
         return $this->morphOne(PaymentSurvey::class, 'parentable');
     }
 
+    public function paymentOffers(): MorphMany
+    {
+        return $this->morphMany(PaymentOffer::class, 'parentable');
+    }
+
     public function payments(): MorphMany
     {
         return $this->morphMany(Payment::class, 'parentable');
+    }
+
+    public function selectedPaymentOffer(): MorphOne
+    {
+        return $this->morphOne(PaymentOffer::class, 'parentable')
+            ->where('selected', true)
+            ->latest();
     }
 
     public function activePayment(): MorphOne
@@ -27,5 +39,35 @@ trait HasPayments
                 $query->where('active', true);
             })
             ->latest();
+    }
+
+    public function paymentIsCash(): bool
+    {
+        return $this->selectedPaymentOffer?->type === 'cash';
+    }
+
+    public function paymentIsNotCash(): bool
+    {
+        return ! $this->paymentIsCash;
+    }
+
+    public function paymentIsLoan(): bool
+    {
+        return $this->selectedPaymentOffer?->type === 'finance';
+    }
+
+    public function paymentIsNotLoan(): bool
+    {
+        return ! $this->paymentIsLoan();
+    }
+
+    public function paymentIsLease(): bool
+    {
+        return $this->selectedPaymentOffer?->type === 'lease';
+    }
+
+    public function paymentIsNotLease(): bool
+    {
+        return ! $this->paymentIsLease();
     }
 }

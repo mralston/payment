@@ -8,8 +8,8 @@ use Spatie\LaravelData\Data;
 class AddressData extends Data
 {
     public function __construct(
-        public ?int $udprn = null,
-        public ?int $uprn = null,
+        public ?string $udprn = null,
+        public ?string $uprn = null,
         public ?string $houseNumber = null,
         public ?string $street = null,
         public ?string $address1 = null,
@@ -17,7 +17,8 @@ class AddressData extends Data
         public ?string $town = null,
         public ?string $county = null,
         public ?string $postCode = null,
-        public ?Carbon $dateMovedIn = null,
+        public ?string $dateMovedIn = null,
+        public bool $manual = false,
     ) {
         //
     }

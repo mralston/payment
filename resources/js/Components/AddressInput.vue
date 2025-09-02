@@ -2,6 +2,7 @@
 import { ref, watch, computed } from 'vue';
 import { MagnifyingGlassIcon } from '@heroicons/vue/16/solid';
 import Modal from "./Modal.vue";
+import axios from 'axios';
 
 defineOptions({
     inheritAttrs: false
@@ -70,6 +71,8 @@ const selectedAddress = ref();
 
 const addressesFound = computed(() => Object.keys(addresses.value).length > 0);
 
+const manualAddress = ref(props.allowManualEntry);
+
 function lookup()
 {
     axios.get(route('payment.address.lookup', addressModel.value.postCode))
@@ -79,7 +82,7 @@ function lookup()
         });
 }
 
-function selectAddress()
+function returnSelectedAddress()
 {
     if (selectedAddress.value === undefined) {
         return;
@@ -115,6 +118,12 @@ function selectAddress()
             addressModel.value.address1 = selectedAddress.value.address1;
             addressModel.value.address2 = selectedAddress.value.address2;
         }
+
+        // If the first line is missing, try pulling it from the second line
+        if (!addressModel.value.address1) {
+            addressModel.value.address1 = selectedAddress.value.address2;
+            addressModel.value.address2 = null;
+        }
     }
 
     // The remaining fields are easier to come by
@@ -122,35 +131,69 @@ function selectAddress()
     addressModel.value.county = selectedAddress.value.county;
     addressModel.value.postCode = selectedAddress.value.postCode;
     addressModel.value.uprn = selectedAddress.value.uprn;
+
+    addressLookupModal.value.hide();
+
+    addressModel.value.manual = false;
+}
+
+function selectAddress(address)
+{
+    selectedAddress.value = address;
+}
+
+function selectAddressAndClose(address)
+{
+    selectAddress(address);
+    returnSelectedAddress();
+}
+
+function notListed()
+{
+    addressModel.value.manual = true;
+    addressModel.value.uprn = null;
 }
 
 </script>
 
 <template>
 
-    <Modal ref="addressLookupModal" type="question" title="Select Address" class="w-1/2" :buttons="['ok', 'cancel']" @ok="selectAddress">
-        <select v-if="addressesFound > 0" v-model="selectedAddress" class="w-full rounded-lg" size="10">
-            <option v-for="address in addresses" :key="address.uprn" :value="address">
+    <Modal ref="addressLookupModal"
+           type="question"
+           title="Select Address"
+           class="w-1/2"
+           :buttons="['ok', 'cancel', 'custom1']"
+           custom1-text="Not Listed"
+           @ok="returnSelectedAddress"
+           @custom1="notListed">
+        <div v-if="addressesFound > 0" class="w-full border border-gray-300 rounded-lg max-h-[20rem] overflow-y-auto">
+            <button type="button"
+                    v-for="(address, index) in addresses"
+                    :key="address.uprn"
+                    class="w-full p-2 text-left"
+                    :class="{'bg-gray-100': index % 2 === 0 && address !== selectedAddress, 'bg-blue-500 text-white': address === selectedAddress}"
+                    @click="selectAddress(address)"
+                    @dblclick="selectAddressAndClose(address)">
                 {{ address.summary }}
-            </option>
-        </select>
+            </button>
+        </div>
         <div v-else>No addresses matched the post code.</div>
     </Modal>
 
-    <div v-bind="$attrs" class="border border-gray-300 rounded">
+    <div v-bind="$attrs" class="border border-gray-300 rounded bg-gray-50">
         <div v-if="showHouseNumber">
             <input type="text"
                    v-model="addressModel.houseNumber"
                    :id="'houseNumber.' + uniqueId"
                    placeholder="House"
-                   :disabled="!allowManualEntry"
+                   :disabled="!addressModel.manual"
                    class="w-[4rem] border-0 border-r-[1px] border-b-[1px] border-r-gray-300 border-b-gray-300 rounded-tl bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
 
             <input type="text"
                    v-model="addressModel.street"
                    :id="'street.' + uniqueId"
                    placeholder="Street"
-                   :disabled="!allowManualEntry"
+                   :disabled="!addressModel.manual"
                    class="w-[calc(100%-4rem)] border-0 border-b-[1px] border-b-gray-300 rounded-tr bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
         </div>
 
@@ -158,7 +201,7 @@ function selectAddress()
                type="text"
                v-model="addressModel.address1"
                :id="'address1.' + uniqueId"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                :placeholder="showHouseNumber ? 'Additional Line' : 'Line 1'"
                class="w-full rounded-t border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"
                :class="{'border-t-[1px]': showHouseNumber, 'rounded-t': !showHouseNumber}"/>
@@ -167,14 +210,14 @@ function selectAddress()
                type="text"
                v-model="addressModel.address2"
                :id="'address2.' + uniqueId"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                :placeholder="showHouseNumber ? 'Additional Line' : 'Line 2'"
                class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
         <input type="text"
                v-model="addressModel.town"
                :id="'town.' + uniqueId"
                placeholder="Town"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"
         />
 
@@ -182,7 +225,7 @@ function selectAddress()
                v-model="addressModel.county"
                :id="'county.' + uniqueId"
                placeholder="County"
-               :disabled="!allowManualEntry"
+               :disabled="!addressModel.manual"
                class="w-full border-0 border-b-[1px] border-b-gray-300 bg-white px-2 text-base text-gray-900 outline-1 -outline-offset-1 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6 disabled:bg-gray-50"/>
 
         <div class="flex items-center">

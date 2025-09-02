@@ -21,6 +21,6 @@ class NotifyPaymentProviderOfCancellation implements ShouldQueue
     {
         $gateway = $event->payment->paymentProvider->gateway();
 
-        $gateway->cancel($event->payment);
+        $gateway->cancel($event->payment, $event->reason);
     }
 }

@@ -17,6 +17,10 @@ return new class extends Migration {
             $table->json('addresses');
             $table->json('finance_responses')->nullable();
             $table->json('lease_responses')->nullable();
+            $table->decimal('cash_deposit', 8, 2)->nullable();
+            $table->decimal('finance_deposit', 8, 2)->nullable();
+            $table->decimal('lease_deposit', 8, 2)->nullable();
+            $table->boolean('credit_check_consent')->default(false);
             $table->timestamps();
         });
     }

@@ -45,4 +45,9 @@ class PaymentProvider extends Model
     {
         return $this->hasMany(PaymentProduct::class);
     }
+
+    public function paymentType()
+    {
+        return $this->belongsTo(PaymentType::class);
+    }
 }

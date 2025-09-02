@@ -21,6 +21,9 @@ class PaymentSurvey extends Model
         'finance_questions_completed',
         'finance_responses',
         'lease_responses',
+        'cash_deposit',
+        'finance_deposit',
+        'lease_deposit',
     ];
 
     protected $casts = [
@@ -61,12 +64,14 @@ class PaymentSurvey extends Model
         return $this->customers[$index][$property];
     }
 
-    public function setCustomerProperty(int $index, string $property, mixed $value): void
+    public function setCustomerProperty(int $index, string $property, mixed $value): static
     {
         $customers = $this->customers;
         $customer = $customers[$index];
         $customer[$property] = $value;
         $customers[$index] = $customer;
         $this->customers = $customers;
+
+        return $this;
     }
 }

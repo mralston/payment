@@ -17,6 +17,7 @@ return new class extends Migration
             $table->nullableMorphs('parentable');
             $table->string('uuid', 36)->index();
             $table->string('reference', 50)->nullable()->index();
+            $table->decimal('total_cost', 8, 2)->nullable();
             $table->decimal('amount', 8, 2)->nullable();
             $table->decimal('deposit', 8, 2)->nullable();
             $table->decimal('subsidy', 8, 2)->nullable();
@@ -39,7 +40,6 @@ return new class extends Migration
             $table->string('middle_name')->nullable();
             $table->string('last_name')->nullable();
             $table->string('marital_status')->nullable();
-            $table->tinyInteger('homeowner_status')->nullable();
             $table->string('residential_status')->nullable();
             $table->string('nationality')->nullable();
             $table->date('date_of_birth')->nullable();
@@ -79,6 +79,7 @@ return new class extends Migration
             $table->timestamp('signed_at')->nullable();
             $table->integer('sat_note_file_id')->nullable()->index();
             $table->integer('credit_agreement_file_id')->nullable()->index();
+            $table->tinyInteger('prevent_payment_changes')->default(false);
             $table->timestamps();
             $table->softDeletes();
         });

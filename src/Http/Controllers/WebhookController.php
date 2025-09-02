@@ -10,6 +10,11 @@ class WebhookController
     public function __construct(
         private HometreeService $hometreeService
     ) {}
+  
+    public function tandem()
+    {
+        //
+    }
 
     public function hometree(Request $request)
     {
@@ -18,4 +23,3 @@ class WebhookController
         return response()->json(['message' => 'success']);
     }
 }
-

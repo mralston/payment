@@ -21,7 +21,9 @@ return [
     // A helper class, provided by the parent application, which the Payment package can use to interface with the parent
     'helper' => env('PAYMENT_HELPER', null),
 
-    'deposit' => env('PAYMENT_DEPOSIT', 0),
+    'default_cash_deposit' => env('PAYMENT_CASH_DEPOSIT', 0),
+    'default_finance_deposit' => env('PAYMENT_FINANCE_DEPOSIT', 0),
+    'default_lease_deposit' => env('PAYMENT_LEASE_DEPOSIT', 0),
 
     /*
     |--------------------------------------------------------------------------
@@ -47,7 +49,7 @@ return [
     */
 
     'propensio' => [
-        'ibc_ref' => env('PROPENSIO_IBC_REF') ?? '',
+        'api_key' => env('PROPENSIO_API_KEY') ?? '',
         'endpoint' => env('PROPENSIO_ENDPOINT', config('app.env')),
     ],
 

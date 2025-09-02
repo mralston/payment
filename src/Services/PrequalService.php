@@ -6,6 +6,7 @@ use Illuminate\Support\Collection;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Data\Offers;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
@@ -16,16 +17,15 @@ class PrequalService
      * Returns a collection of immediate results and promises.
      * When promises resolve, they will fire a PrequalComplete event
      *
-     * @param PaymentSurvey $survey
-     * @return Collection<Offers|PrequalPromiseData>
+     * @return Collection<PaymentOffer|PrequalPromiseData>
      */
-    public function run(PaymentSurvey $survey): Collection
+    public function run(PaymentSurvey $survey, float $totalCost): Collection
     {
         // Loop through payment providers with a gateway
         return PaymentProvider::query()
             ->whereNotNull('gateway')
             ->get()
-            ->map(function (PaymentProvider $provider) use ($survey) {
+            ->map(function (PaymentProvider $provider) use ($survey, $totalCost) {
                 // Grab the gateway
                 $gateway = $provider->gateway();
 
@@ -35,7 +35,7 @@ class PrequalService
                 }
 
                 // Run the prequalification and return the result or promise
-                return $gateway->prequal($survey);
+                return $gateway->prequal($survey, $totalCost);
             })
             ->reject(fn ($result) => $result === null);
     }

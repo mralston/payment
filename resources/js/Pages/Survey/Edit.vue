@@ -14,6 +14,10 @@ const props = defineProps({
         type: String,
         default: 'Survey',
     },
+    allowSkip: {
+        type: Boolean,
+        default: true,
+    },
     showBasicQuestions: {
         type: Boolean,
         default: true,
@@ -25,6 +29,18 @@ const props = defineProps({
     showFinanceQuestions: {
         type: Boolean,
         default: false,
+    },
+    basicIntroText: {
+        type: String,
+        default: 'We need to ask you a few basic questions so that we can find out which payment methods are right for you.',
+    },
+    leaseIntroText: {
+        type: String,
+        default: 'We need to ask a few more questions for your lease application.',
+    },
+    financeIntroText: {
+        type: String,
+        default: 'We need to ask a few more questions for your finance application.',
     },
     redirect: String,
     financeResponses: Object,
@@ -43,6 +59,7 @@ const form = useForm({
     customers: props.paymentSurvey.customers,
     addresses: props.paymentSurvey.addresses,
     financeResponses: props.paymentSurvey.finance_responses,
+    creditCheckConsent: props.paymentSurvey.credit_check_consent ? true : false,
 });
 
 function addCustomer() {
@@ -122,7 +139,8 @@ function skip()
 
     <div class="p-4">
 
-        <button type="button"
+        <button v-if="allowSkip"
+                type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                 @click="skip">
             Skip
@@ -134,7 +152,7 @@ function skip()
 
         <section v-if="showBasicQuestions">
 
-            <p class="text-xl">We need to ask you a few basic questions so that we can find out which payment methods are right for you.</p>
+            <p class="mb-4">{{ basicIntroText }}</p>
 
             <h2 class="text-xl font-bold mb-4">Section 1: Customers</h2>
 
@@ -223,7 +241,7 @@ function skip()
                                 <ValidationWrapper :form="form" :field="`customers.${index}.grossAnnualIncome`">
                                     <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
                                         <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
-                                        <input type="number" v-model="customer.grossAnnualIncome" :id="`customers.${index}.grossAnnualIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                        <input type="number" step="0.01" v-model="customer.grossAnnualIncome" :id="`customers.${index}.grossAnnualIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
                                     </div>
                                 </ValidationWrapper>
                             </div>
@@ -233,7 +251,7 @@ function skip()
                                 <ValidationWrapper :form="form" :field="`customers.${index}.netMonthlyIncome`">
                                     <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
                                         <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
-                                        <input type="number" v-model="customer.netMonthlyIncome" :id="`customers.${index}.netMonthlyIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                        <input type="number" step="0.01" v-model="customer.netMonthlyIncome" :id="`customers.${index}.netMonthlyIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
                                     </div>
                                 </ValidationWrapper>
                             </div>
@@ -300,7 +318,7 @@ function skip()
                         </ValidationWrapper>
 
                         <div class="mb-4">
-                            <label :for="`addresses.${index}.dateMovedIn`" class="block text-sm/6 font-medium text-gray-900">Date moved in</label>
+                            <label :for="`addresses.${index}.dateMovedIn`" class="block text-sm/6 font-medium text-gray-900">Approximate Move in Date</label>
                             <ValidationWrapper :form="form" :field="`addresses.${index}.dateMovedIn`">
                                 <input type="date" v-model="address.dateMovedIn" :id="`addresses.${index}.dateMovedIn`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>
@@ -315,7 +333,7 @@ function skip()
 
         <section v-if="showFinanceQuestions" class="mb-4">
 
-            <p class="mb-4">We need to ask a few more questions for your finance application.</p>
+            <p class="mb-4">{{ financeIntroText }}</p>
 
             <div class="grid grid-cols-3 gap-6 mb-4">
 
@@ -374,6 +392,30 @@ function skip()
                             </ValidationWrapper>
                         </div>
 
+                        <div class="grid grid-cols-2 gap-6 mb-4">
+
+                            <div class="mb-4">
+                                <label :for="`financeResponses.monthlyMortgage`" class="block text-sm/6 font-medium text-gray-900">Monthly Mortgage</label>
+                                <ValidationWrapper :form="form" :field="`financeResponses.monthlyMortgage`">
+                                    <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
+                                        <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
+                                        <input type="number" step="0.01" v-model="form.financeResponses.monthlyMortgage" :id="`financeResponses.monthlyMortgage`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                    </div>
+                                </ValidationWrapper>
+                            </div>
+
+                            <div class="mb-4">
+                                <label :for="`financeResponses.monthlyRent`" class="block text-sm/6 font-medium text-gray-900">Monthly Rent</label>
+                                <ValidationWrapper :form="form" :field="`financeResponses.monthlyRent`">
+                                    <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
+                                        <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
+                                        <input type="number" step="0.01" v-model="form.financeResponses.monthlyRent" :id="`financeResponses.monthlyRent`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                    </div>
+                                </ValidationWrapper>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
 
@@ -411,13 +453,13 @@ function skip()
 
                         <div class="mb-4">
                             <label class="block text-sm/6 font-medium text-gray-900">Employer Address</label>
-                            <ValidationWrapper :form="form" :field="[/*'financeResponses.employerAddress.houseNumber', 'financeResponses.employerAddress.street', 'financeResponses.employerAddress.address1', 'financeResponses.employerAddress.address2', 'financeResponses.employerAddress.town', 'financeResponses.employerAddress.county',*/ 'financeResponses.employerAddress.postCode', 'financeResponses.employerAddress.uprn']" class="mt-2">
+                            <ValidationWrapper :form="form" :field="['financeResponses.employerAddress.houseNumber', 'financeResponses.employerAddress.street', 'financeResponses.employerAddress.address1', 'financeResponses.employerAddress.address2', 'financeResponses.employerAddress.town', 'financeResponses.employerAddress.county', 'financeResponses.employerAddress.postCode', 'financeResponses.employerAddress.uprn']" class="mt-2">
                                 <AddressInput v-model:address="form.financeResponses.employerAddress" :index="index" :showHouseNumber="false" class="mb-4"/>
                             </ValidationWrapper>
                         </div>
 
                         <div class="mb-4">
-                            <label for="dateStartedEmployment" class="block text-sm/6 font-medium text-gray-900">Date started</label>
+                            <label for="dateStartedEmployment" class="block text-sm/6 font-medium text-gray-900">Approximate Start Date</label>
                             <ValidationWrapper :form="form" field="financeResponses.dateStartedEmployment">
                                 <input type="date" v-model="form.financeResponses.dateStartedEmployment" id="dateStartedEmployment" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>
@@ -469,6 +511,21 @@ function skip()
 
         </section>
 
+        <section v-if="showBasicQuestions">
+
+            <p class="mb-4">
+                To check your eligibility, finance providers may run checks including confirming your identity and reviewing applicants' credit files and affordability.
+                These checks will not appear on your public credit file or affect your credit score. Automated processing may be used to make decisions during this process; you have the
+                right to request a manual review of any decision made this way. There is no obligation for you to proceed with any finance offers.
+            </p>
+
+            <div class="mb-4" :class="{ 'border-red-500 bg-red-100 border-2 rounded-lg p-2': form.errors.creditCheckConsent }">
+                <input type="checkbox" v-model="form.creditCheckConsent" id="creditCheckConsent" class="mr-2" value="1">
+                <label for="creditCheckConsent"><b>I agree to the above checks</b></label>
+                <div v-if="form.errors.creditCheckConsent" class="text-red-500">{{ form.errors.creditCheckConsent }}</div>
+            </div>
+
+        </section>
 
         <div class="my-4 text-end">
             <button type="button"
@@ -486,5 +543,9 @@ function skip()
 INPUT, SELECT, TEXTAREA
 {
     border-color: inherit;
+}
+
+SECTION {
+    min-height: auto;
 }
 </style>

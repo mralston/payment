@@ -22,9 +22,9 @@ class SubmitLeaseApplicationRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'eligible' => 'accepted',
+//            'eligible' => 'accepted',
             'gdprOptIn' => 'accepted',
-            'readTermsConditions' => 'accepted',
+//            'readTermsConditions' => 'accepted',
         ];
     }
 
