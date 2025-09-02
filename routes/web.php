@@ -9,9 +9,14 @@ use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\PaymentOptionsController;
 use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
-use Mralston\Payment\Http\Controllers\FinanceSigningLinkController;
 use Mralston\Payment\Http\Controllers\WebhookController;
+use Mralston\Payment\Http\Controllers\FinanceSigningLinkController;
 use Mralston\Payment\Http\Middleware\RedirectToActivePayment;
+
+Route::middleware('auth:sanctum')->group(function () {
+    Route::post('webhook/hometree', [WebhookController::class, 'hometree'])
+        ->name('webhook.hometree');
+});
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 
