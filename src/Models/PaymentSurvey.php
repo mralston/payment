@@ -56,7 +56,10 @@ class PaymentSurvey extends Model
 
     public function paymentOffers(): HasMany
     {
-        return $this->hasMany(PaymentOffer::class);
+        return $this->hasMany(PaymentOffer::class)
+            // Additional where clauses to help whilst testing in polluted DB
+            ->where('parentable_type', $this->parentable_type)
+            ->where('parentable_id', $this->parentable_id);
     }
 
     public function getCustomerProperty(int $index, string $property): mixed

@@ -9,7 +9,7 @@ use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Symfony\Component\HttpFoundation\Response;
 
-class RedirectToActivePayment
+class RedirectIfNewPaymentProhibited
 {
     use BootstrapsPayment;
 
@@ -28,30 +28,30 @@ class RedirectToActivePayment
     {
         $parentModel = $this->bootstrap($request->route('parent'), $this->helper);
 
-        if ($redirect = $this->redirectToActivePayment($request, $parentModel)) {
+        if ($redirect = $this->redirectIfNewPaymentProhibited($request, $parentModel)) {
             return redirect($redirect);
         }
 
         return $next($request);
     }
 
-    protected function redirectToActivePayment(Request $request, PaymentParentModel $parentModel): ?string
+
+    protected function redirectIfNewPaymentProhibited(Request $request, PaymentParentModel $parentModel): ?string
     {
-        // Check to see whether the parent has an active payment
-        if (!empty($parentModel->activePayment)) {
-
-            $type = $parentModel->activePayment?->paymentOffer->type ??
-                $parentModel->activePayment->paymentProvider->paymentType->identifier;
-
+        if (
+            $parentModel
+                ->payments()
+                ->where('prevent_payment_changes', true)
+                ->exists()
+        ) {
             // Prevent redirecting to the same page
-            if ($request->routeIs('payment.' . $type . '.show')) {
+            if ($request->routeIs('payment.locked')) {
                 return null;
             }
 
-            // Redirect to the payment show page
-            return route('payment.' . $type . '.show', [
-                'parent' => $parentModel,
-                $type => $parentModel->activePayment->id,
+            // Redirect to the locked page
+            return route('payment.locked', [
+                'parent' => $parentModel
             ]);
         }
 

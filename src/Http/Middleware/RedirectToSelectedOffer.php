@@ -9,7 +9,7 @@ use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Traits\BootstrapsPayment;
 use Symfony\Component\HttpFoundation\Response;
 
-class RedirectToActivePayment
+class RedirectToSelectedOffer
 {
     use BootstrapsPayment;
 
@@ -28,30 +28,26 @@ class RedirectToActivePayment
     {
         $parentModel = $this->bootstrap($request->route('parent'), $this->helper);
 
-        if ($redirect = $this->redirectToActivePayment($request, $parentModel)) {
+        if ($redirect = $this->redirectToSelectedOffer($request, $parentModel)) {
             return redirect($redirect);
         }
 
         return $next($request);
     }
 
-    protected function redirectToActivePayment(Request $request, PaymentParentModel $parentModel): ?string
+    protected function redirectToSelectedOffer(Request $request, PaymentParentModel $parentModel): ?string
     {
         // Check to see whether the parent has an active payment
-        if (!empty($parentModel->activePayment)) {
-
-            $type = $parentModel->activePayment?->paymentOffer->type ??
-                $parentModel->activePayment->paymentProvider->paymentType->identifier;
-
+        if (!empty($parentModel->selectedPaymentOffer)) {
             // Prevent redirecting to the same page
-            if ($request->routeIs('payment.' . $type . '.show')) {
+            if ($request->routeIs('payment.' . $parentModel->selectedPaymentOffer->type . '.create')) {
                 return null;
             }
 
-            // Redirect to the payment show page
-            return route('payment.' . $type . '.show', [
+            // Redirect to the payment create page
+            return route('payment.' . $parentModel->selectedPaymentOffer->type . '.create', [
                 'parent' => $parentModel,
-                $type => $parentModel->activePayment->id,
+                'offerId' => $parentModel->selectedPaymentOffer->id,
             ]);
         }
 

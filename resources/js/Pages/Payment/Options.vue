@@ -36,6 +36,8 @@ const props = defineProps({
     },
 });
 
+// console.log('initial ')
+
 const cashMoreInfoModal = ref(null);
 const financeMoreInfoModal = ref(null);
 const leaseMoreInfoModal = ref(null);
@@ -175,6 +177,9 @@ onMounted(() => {
     if (props.survey.payment_offers.length > 0) {
         // Load offers from props (if present)
         offers.value = props.survey.payment_offers;
+
+        console.log('offers from props', offers.value);
+
         selectBestOffers();
     } else if (props.prequalOnLoad) {
         // Otherwise fetch with AJAX
@@ -305,6 +310,8 @@ function updateOffers(e) {
             }
         }
     }
+
+    console.log('offers after update event', offers.value);
 
     // After the loop, if a selection was invalidated, pick the new best offer.
     // The `best...Offer` computed properties have already recalculated automatically.
