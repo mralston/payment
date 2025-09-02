@@ -11,6 +11,7 @@ use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
 use Mralston\Payment\Http\Controllers\FinanceSigningLinkController;
 use Mralston\Payment\Http\Controllers\WebhookController;
+use Mralston\Payment\Http\Middleware\RedirectToActivePayment;
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 
@@ -26,30 +27,40 @@ Route::group(['middleware' => ['web', 'auth']], function () {
              * application, which won't necessarily understand the inner workings of the payment journey's routes.
              */
             Route::get('{parent}', [PaymentController::class, 'start'])
+                ->middleware(RedirectToActivePayment::class)
                 ->name('start');
 
+            /**
+             * Shows a 'locked' page if the payment process is blocked for some reason
+             */
             Route::get('{parent}/locked', [PaymentController::class, 'locked'])
                 ->name('locked');
 
             Route::get('{parent}/surveys/{survey}/lease', [SurveyController::class, 'lease'])
+                ->middleware(RedirectToActivePayment::class)
                 ->name('surveys.lease');
 
             Route::get('{parent}/surveys/{survey}/finance', [SurveyController::class, 'finance'])
+                ->middleware(RedirectToActivePayment::class)
                 ->name('surveys.finance');
 
             Route::resource('{parent}/surveys', SurveyController::class)
+                ->middlewareFor(['create', 'store', 'edit', 'finance', 'update'], RedirectToActivePayment::class)
                 ->names('surveys');
 
             Route::get('{parent}/options', [PaymentOptionsController::class, 'options'])
+                ->middleware(RedirectToActivePayment::class)
                 ->name('options');
 
             Route::post('{parent}/change-desposit/{paymentType}', [PaymentOptionsController::class, 'changeDeposit'])
                 ->name('change-deposit');
 
             Route::post('{parent}/select', [PaymentOptionsController::class, 'select'])
+                ->middleware(RedirectToActivePayment::class)
                 ->name('select');
 
             Route::post('{parent}/unselect', [PaymentOptionsController::class, 'unselect'])
+                ->middleware(RedirectToActivePayment::class)
                 ->name('unselect');
 
             Route::post('{parent}/cancel/{payment}', [PaymentController::class, 'cancel'])
@@ -59,12 +70,15 @@ Route::group(['middleware' => ['web', 'auth']], function () {
                 ->name('prequal');
 
             Route::resource('{parent}/cash', CashController::class)
+                ->middlewareFor(['create'], RedirectToActivePayment::class)
                 ->names('cash');
 
             Route::resource('{parent}/finance', FinanceController::class)
+                ->middlewareFor(['store'], RedirectToActivePayment::class)
                 ->names('finance');
 
             Route::resource('{parent}/lease', LeaseController::class)
+                ->middlewareFor(['create', 'store'], RedirectToActivePayment::class)
                 ->names('lease');
 
             Route::get('address/lookup/{postCode}', [AddressLookupController::class, 'lookup'])

@@ -16,12 +16,10 @@ use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Services\PaymentService;
 use Mralston\Payment\Traits\BootstrapsPayment;
-use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class PaymentOptionsController
 {
     use BootstrapsPayment;
-    use RedirectsOnActivePayment;
 
     public function __construct(
         private PaymentHelper $helper,
@@ -33,10 +31,6 @@ class PaymentOptionsController
     public function options(int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
-
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectToSelectedOffer($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $survey = $parentModel->paymentSurvey ?? $parentModel->paymentSurvey()->create([
             'customers' => $this->helper->getCustomers(),
@@ -79,8 +73,6 @@ class PaymentOptionsController
     public function select(Request $request, int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
-
-        $this->redirectToActivePayment($parentModel);
 
         $survey = $parentModel->paymentSurvey;
 
@@ -130,8 +122,6 @@ class PaymentOptionsController
     public function unselect(Request $request, int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
-
-        $this->redirectToActivePayment($parentModel);
 
         // Unselect all offers
         $parentModel

@@ -17,12 +17,10 @@ use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Services\PaymentService;
 use Mralston\Payment\Traits\BootstrapsPayment;
-use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class PaymentController
 {
     use BootstrapsPayment;
-    use RedirectsOnActivePayment;
 
     public function __construct(
         private PaymentHelper $helper,
@@ -67,10 +65,6 @@ class PaymentController
                 'reason' => $reason,
             ])->withViewData($this->helper->getViewData());
         }
-
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectToSelectedOffer($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
 
         // If the survey has been filled in, go to the options page
         if ($parentModel->paymentSurvey?->basic_questions_completed) {

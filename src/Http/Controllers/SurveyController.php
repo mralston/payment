@@ -12,19 +12,14 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Traits\BootstrapsPayment;
-use Mralston\Payment\Traits\RedirectsOnActivePayment;
 
 class SurveyController
 {
     use BootstrapsPayment;
-    use RedirectsOnActivePayment;
 
     public function create(int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
-
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
 
         // If there is already a survey, redirect to the existing survey
         if (!empty($parentModel->paymentSurvey)) {
@@ -51,9 +46,6 @@ class SurveyController
     public function store(SubmitSurveyRequest $request, int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
-
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $parentModel->paymentSurvey()
             ->create([
@@ -82,9 +74,6 @@ class SurveyController
     {
         $parentModel = $this->bootstrap($parent, $helper);
 
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
-
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
             'paymentSurvey' => $survey,
@@ -98,9 +87,6 @@ class SurveyController
     public function lease(Request $request, int $parent, PaymentSurvey $survey, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
-
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
 
         return Inertia::render('Survey/Edit', [
             'parentModel' => $parentModel,
@@ -118,9 +104,6 @@ class SurveyController
     public function finance(Request $request, int $parent, PaymentSurvey $survey, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
-
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
 
         if (empty($survey->finance_responses)) {
             $survey->finance_responses = app(FinanceData::class);
@@ -151,9 +134,6 @@ class SurveyController
     public function update(SubmitSurveyRequest $request, int $parent, PaymentHelper $helper)
     {
         $parentModel = $this->bootstrap($parent, $helper);
-
-        $this->redirectToActivePayment($parentModel);
-        $this->redirectIfNewPaymentProhibited($parentModel);
 
         $survey = $parentModel->paymentSurvey;
 
