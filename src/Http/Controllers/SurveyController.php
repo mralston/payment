@@ -156,15 +156,15 @@ class SurveyController
                 'finance_responses' => $request->get('financeResponses'),
             ]);
 
+        if ($request->get('redirect')) {
+            return redirect($request->get('redirect'));
+        }
+
         // Clear offers if the survey was changed so that the options page is refreshed
         if ($survey->wasChanged()) {
             Log::debug('Clearing offers');
             $parentModel->paymentOffers()->delete();
             Log::debug('Offers cleared', ['offer_count' => $parentModel->paymentOffers()->count() ?? '0']);
-        }
-
-        if ($request->get('redirect')) {
-            return redirect($request->get('redirect'));
         }
 
         return redirect()

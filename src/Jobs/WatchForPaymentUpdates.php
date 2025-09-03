@@ -41,7 +41,7 @@ class WatchForPaymentUpdates implements ShouldQueue
             Log::debug('poll status result: ', $response);
 
             Log::debug('status currently: ', [$response['status']]);
-        } while ($response['status'] == 'processing'); // Repeat if still processing.
+        } while ($response['status'] == 'processing' || $response['status'] == 'pending'); // Repeat if still processing.
 
         Log::debug('status now: ', [$response['status']]);
 

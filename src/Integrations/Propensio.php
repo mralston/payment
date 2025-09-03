@@ -366,7 +366,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                     'QUOTATION_TARGET' => 'PAYMENT',
                     'DOC_FEE_COMPONENT' => 'ARRANGEMENT_FEE',
                     'SUBSIDY' => 0,
-                    'QUOTATION_CAMPAIGN_REF' => $payment->lender_product_code,
+                    'QUOTATION_CAMPAIGN_REF' => $payment->paymentProduct->provider_foreign_id,
                     'AMOUNT_FINANCED' => round($helper->getTotalCost() - $payment->deposit, 2),
                 ]
             ],
@@ -600,9 +600,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'provider_response_data' => $this->responseData
         ]);
 
-        if (!is_array($response) || !isset($response['response']['RETURN_MESSAGE']['STATUS_CODE'])) {
-            $status = 'error';
-        } elseif ($this->isStatusOk($response['response']['STATUS'])) {
+        Log::debug('response: ', $response);
+
+        if (isset($response['response']['RETURN_MESSAGE']['STATUS_CODE']) && $this->isStatusOk($response['response']['STATUS'])) {
             if (!empty($response['response']['RETURN_MESSAGE']['STATUS_CODE'])) {
                 $status = $this->convertStatusCode($response['response']['RETURN_MESSAGE']['STATUS_CODE']);
             }
@@ -647,8 +647,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             if ($response['response']['STATUS'] == 3) {
                 $status = 'pending';
             }
-        } else {
+        } elseif (isset($response['response']['STATUS'])) {
             $status = $this->convertStatus($response['response']['STATUS']);
+        } else {
+            $status = 'error';
         }
 
         return [
@@ -820,7 +822,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 [
                     'ADDRESS_ID' => $this->getNewRef(),
                     'IBC_REF' => $payment->ibcRef,
-                    'STREET1' => $address['street'] ?? '',
+                    'STREET1' => trim(($address['houseNumber'] ?? '') . ' ' . ($address['street'] ?? '')),
                     'STREET2' => $address['address2'] ?? '',
 //                    'DISTRICT' => $address['address3'] ?? '',
                     'POSTTOWN' => $address['town'] ?? '',
