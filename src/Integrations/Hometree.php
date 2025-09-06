@@ -64,7 +64,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
     }
 
     /**
-     * Creates an application returns lease offers
+     * Creates an application which returns lease offers
      *
      * @throws RequestException
      * @throws ConnectionException
@@ -79,8 +79,14 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ->setParentModel($survey->parentable);
 
         $firstCustomer = $survey->customers->first();
-        $firstAddress = $survey->addresses->first();
-        $previousAddress = $survey->addresses->get(1);
+
+        // Create a writeable clone of the survey addresses collection, as we need to modify it with the shift() method
+        $addresses = $survey->addresses;
+
+        // Extract the installation address, current home address an previous home address
+        $homeAddress = $addresses->where('homeAddress', true)->first();
+        $installationAddress = $addresses->shift();
+        $previousAddress = $addresses->where('homeAddress', false)->first();
 
         $payload = [
             'customer' => [
@@ -93,8 +99,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                 'last_name' => $firstCustomer['lastName'],
             ],
             'address' => [
-                ...(!empty($firstAddress['udprn']) ? ['udprn' => $firstAddress['udprn']] : []),
-                ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
+                'full' => $installationAddress,
+                ...(!empty($installationAddress['udprn']) ? ['udprn' => $installationAddress['udprn']] : []),
+                ...(!empty($installationAddress['uprn']) ? ['uprn' => $installationAddress['uprn']] : []),
             ],
             'order' => [
                 'lines' => $helper->getBasketItems(),
@@ -117,7 +124,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                 ($survey?->basic_questions_completed ?? false) ?
                     [
                         'applicants' => $survey->customers
-                            ->map(function ($customer) use ($survey, $firstAddress, $previousAddress) {
+                            ->map(function ($customer) use ($survey, $homeAddress, $previousAddress) {
                                 return [
                                     'first_name' => $customer['firstName'],
                                     ...(
@@ -130,13 +137,15 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                                     'mobile_phone_number' => $customer['mobile'],
                                     'dob' => $customer['dateOfBirth'],
                                     'address' => [
-                                        ...(!empty($firstAddress['udprn']) ? ['udprn' => $firstAddress['udprn']] : []),
-                                        ...(!empty($firstAddress['uprn']) ? ['uprn' => $firstAddress['uprn']] : []),
+                                        'fullAddress' => $homeAddress,
+                                        ...(!empty($homeAddress['udprn']) ? ['udprn' => $homeAddress['udprn']] : []),
+                                        ...(!empty($homeAddress['uprn']) ? ['uprn' => $homeAddress['uprn']] : []),
                                     ],
                                     ...(
                                     $previousAddress ?
                                         [
                                             'previous_address' => [
+                                                'fullAddress' => $previousAddress,
                                                 ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
                                                 ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
                                             ]

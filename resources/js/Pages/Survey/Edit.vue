@@ -62,6 +62,29 @@ const form = useForm({
     creditCheckConsent: props.paymentSurvey.credit_check_consent ? true : false,
 });
 
+// Ensure exactly one homeAddress is selected in addresses (default to first)
+if (props.showBasicQuestions && Array.isArray(form.addresses) && form.addresses.length > 0) {
+    const anySelected = form.addresses.some(a => a && a.homeAddress === true);
+    if (!anySelected) {
+        form.addresses = form.addresses.map((a, i) => ({...a, homeAddress: i === 0}));
+    } else {
+        // Normalize others to false if more than one is true
+        let found = false;
+        form.addresses = form.addresses.map((a) => {
+            if (a && a.homeAddress === true) {
+                if (found) return {...a, homeAddress: false};
+                found = true;
+                return a;
+            }
+            return {...a, homeAddress: false};
+        });
+    }
+}
+
+function selectHome(index) {
+    form.addresses = form.addresses.map((a, i) => ({...a, homeAddress: i === index}));
+}
+
 function addCustomer() {
     form.customers.push({
         firstName: null,
@@ -82,6 +105,9 @@ function removeCustomer(index) {
 }
 
 function addAddress() {
+    const idx = form.addresses.length;
+    const hasHomeAddress = form.addresses.some(address => address && address.homeAddress === true);
+
     form.addresses.push({
         houseNumber: null,
         street: null,
@@ -91,11 +117,16 @@ function addAddress() {
         county: null,
         postCode: null,
         dateMovedIn: null,
+        homeAddress: !hasHomeAddress,
     });
 }
 
 function removeAddress(index) {
     form.addresses.splice(index, 1);
+    // If the home address was removed, mark the first address as home address
+    if (form.addresses.length > 0 && !form.addresses.some(a => a && a.homeAddress === true)) {
+        form.addresses = form.addresses.map((a, i) => ({...a, homeAddress: i === 0}));
+    }
 }
 
 function submit()
@@ -288,7 +319,11 @@ function skip()
 
             <h2 class="text-xl font-bold mb-4">Section 2: Addresses</h2>
 
-            <p class="mb-4">Please tell us where you're living now, and if you've not long moved in, where you were before that.<br>We need a total of 3 years' address history.</p>
+            <p class="mb-4">
+                Please tell us where you're living now, and if you've not long moved in, where you were before that.<br>
+                We need a total of 3 years' address history.<br>
+                If your home address differs to where the system is being installed, be sure to include it here, marked as &quot;I live here&quot;.
+            </p>
 
             <ValidationWrapper :form="form" field="addresses" class="mb-4">
                 <button type="button"
@@ -300,10 +335,11 @@ function skip()
 
             <div class="grid grid-cols-3 gap-6 mb-4">
 
-                <div v-for="(address, index) in form.addresses" class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-white shadow">
+                <div v-for="(address, index) in form.addresses" class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-50 shadow">
                     <div class="px-3 py-2 font-bold bg-blue-50">
-                        <span v-if="index === 0">Current Address</span>
-                        <span v-else>Previous Address {{ index }}</span>
+                        <span v-if="index === 0">Installation Address</span>
+                        <span v-else-if="form.addresses[index].homeAddress">Home Address</span>
+                        <span v-else>Previous Address</span>
                         <button type="button"
                                 class="float-end rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                                 @click="removeAddress(index)">
@@ -311,7 +347,7 @@ function skip()
                         </button>
 
                     </div>
-                    <div class="bg-gray-50 p-4">
+                    <div class="p-4">
 
                         <ValidationWrapper :form="form" :field="[/*`addresses.${index}.houseNumber`, `addresses.${index}.street`, `addresses.${index}.address1`, `addresses.${index}.address2`, `addresses.${index}.town`, `addresses.${index}.county`,*/ `addresses.${index}.postcode`, `addresses.${index}.uprn`]" class="mb-4">
                             <AddressInput v-model:address="form.addresses[index]" :index="index"/>
@@ -322,6 +358,17 @@ function skip()
                             <ValidationWrapper :form="form" :field="`addresses.${index}.dateMovedIn`">
                                 <input type="date" v-model="address.dateMovedIn" :id="`addresses.${index}.dateMovedIn`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
                             </ValidationWrapper>
+                        </div>
+
+                        <div v-if="form.addresses.length > 1 && index <= 1" class="mb-2">
+                            <label class="inline-flex items-center font-normal">
+                                <input type="radio"
+                                       name="home-address"
+                                       :checked="address.homeAddress === true"
+                                       @change="selectHome(index)"
+                                />
+                                <span class="ml-2">I live here</span>
+                            </label>
                         </div>
 
                     </div>

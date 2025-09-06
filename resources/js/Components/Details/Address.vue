@@ -28,7 +28,7 @@ const props = defineProps({
                     'w-1/3': payment.addresses.length === 3,
                 }"
             >
-                <h2 v-if="key === 0" class="text-xl font-bold">Current Address</h2>
+                <h2 v-if="key === 0" class="text-xl font-bold">Installation Address</h2>
                 <h2 v-else class="text-xl font-bold">Previous Address</h2>
                 <DetailsRow
                     label="House"

@@ -34,7 +34,7 @@ class SurveyController
             'paymentSurvey' => new PaymentSurvey()
                 ->tap(function ($survey) use ($helper) {
                     $survey->customers = $helper->getCustomers();
-                    $survey->addresses = [$helper->getAddress()];
+                    $survey->addresses = $helper->getAddresses();
                 }),
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,

@@ -34,7 +34,7 @@ class PaymentOptionsController
 
         $survey = $parentModel->paymentSurvey ?? $parentModel->paymentSurvey()->create([
             'customers' => $this->helper->getCustomers(),
-            'addresses' => [$this->helper->getAddress()],
+            'addresses' => $this->helper->getAddresses(),
         ]);
 
         $survey = $this->setDefaultDeposits($survey, $parentModel);

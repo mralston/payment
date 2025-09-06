@@ -15,7 +15,10 @@ interface PaymentHelper
 
     public function getCustomers(): Collection;
 
-    public function getAddress(): AddressData;
+    /**
+     * @return Collection<AddressData>
+     */
+    public function getAddresses(): Collection;
 
     public function getParentRouteName(): string;
 

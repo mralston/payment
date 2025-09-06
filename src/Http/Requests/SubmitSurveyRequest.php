@@ -58,6 +58,7 @@ class SubmitSurveyRequest extends FormRequest
                     'addresses.*.postCode' => ['required', 'string', 'max:255'],
                     'addresses.*.dateMovedIn' => ['required', 'date'],
                     'addresses.*.uprn' => ['required_unless:addresses.*.manual,true'],
+                    'addresses.*.homeAddress' => ['nullable','boolean'],
 
                     'creditCheckConsent' => 'accepted',
                 ]
@@ -193,6 +194,12 @@ class SubmitSurveyRequest extends FormRequest
             // but it's a safe check before we proceed.
             if (!is_array($addresses) || empty($addresses)) {
                 return;
+            }
+
+            // Ensure exactly one homeAddress is selected
+            $homeCount = collect($addresses)->where('homeAddress', true)->count();
+            if ($homeCount !== 1) {
+                $validator->errors()->add('addresses', 'You must select exactly one home address.');
             }
 
             // Sort addresses by dateMovedIn to check them chronologically.

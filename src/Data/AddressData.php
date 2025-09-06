@@ -19,6 +19,7 @@ class AddressData extends Data
         public ?string $postCode = null,
         public ?string $dateMovedIn = null,
         public bool $manual = false,
+        public bool $homeAddress = false,
     ) {
         //
     }
