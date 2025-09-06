@@ -52,7 +52,7 @@ class OffersReceived implements ShouldBroadcast
 
             // Manually create an array with the only columns we need + the payment provider
             return [
-                ...collect($offer->getAttributes())
+                ...collect($offer->attributesToArray())
                     ->except([
                         'payment_survey_id',
                         'paymentProvider',
@@ -74,6 +74,8 @@ class OffersReceived implements ShouldBroadcast
             'surveyId' => $this->surveyId,
             'offers' => $offers,
         ];
+
+        Log::debug('broadcasting offers: ', $payload);
 
         return [
             'payload' => app(Compression::class)

@@ -51,7 +51,7 @@ class OffersUpdated extends Event implements ShouldBroadcast
 
             // Manually create an array with the only columns we need + the payment provider
             return [
-                ...collect($offer->getAttributes())
+                ...collect($offer->attributesToArray())
                     ->except([
                         'payment_survey_id',
                         'paymentProvider',

@@ -37,12 +37,10 @@ class PaymentOptionsController
             'addresses' => $this->helper->getAddresses(),
         ]);
 
-        $survey = $this->setDefaultDeposits($survey, $parentModel);
-
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
             'survey' => $survey->load([
-                'paymentOffers' => fn ($query) => $query->where('selected', false),
+                'paymentOffers',
                 'paymentOffers.paymentProvider',
             ]),
             'customers' => $this->helper->getCustomers(),

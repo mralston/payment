@@ -90,7 +90,7 @@ const termInYears = computed(() => {
             <thead>
                 <tr>
                     <th>Yr</th>
-                    <th>Avg. Monthly Payment</th>
+                    <th>Monthly Payment</th>
                     <th>Yearly Savings</th>
                     <th>Avg. Monthly Savings</th>
                     <th>Monthly Net Position</th>
