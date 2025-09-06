@@ -29,6 +29,8 @@ class Payment extends Model
 
     protected $fillable = [
         'uuid',
+        'parentable_type',
+        'parentable_id',
         'reference',
         'total_cost',
         'amount',

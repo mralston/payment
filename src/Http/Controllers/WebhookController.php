@@ -2,12 +2,8 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
-use App\FinanceApplication;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Artisan;
-use Illuminate\Support\Facades\Log;
-use Mralston\Payment\Models\Payment;
-use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Http\Requests\HometreeWebhookRequest;
 use Mralston\Payment\Services\HometreeService;
 use Mralston\Payment\Services\TandemService;
 
@@ -23,9 +19,9 @@ class WebhookController
         return $this->tandemService->handleWebhook($request, $uuid);
     }
 
-    public function hometree(Request $request)
+    public function hometree(HometreeWebhookRequest $request)
     {
-        $this->hometreeService->handleWebhook($request->collect());
+        $this->hometreeService->handleWebhook(collect($request->validated()));
 
         return response()->json(['message' => 'success']);
     }

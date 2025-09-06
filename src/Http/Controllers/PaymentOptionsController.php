@@ -40,7 +40,9 @@ class PaymentOptionsController
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
             'survey' => $survey->load([
-                'paymentOffers',
+                'paymentOffers' => function ($query) {
+                    $query->where('total_cost', $this->helper->getTotalCost());
+                },
                 'paymentOffers.paymentProvider',
             ]),
             'customers' => $this->helper->getCustomers(),

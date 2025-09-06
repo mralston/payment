@@ -14,6 +14,11 @@ class HometreeService
 {
     public function handleWebhook(Collection $records)
     {
+        if ($records->isEmpty()) {
+            // Nothing to process; likely validation rejected payload upstream.
+            return;
+        }
+
         $hometreeLender = PaymentProvider::firstWhere('identifier', 'hometree');
         $hometreePaymentType = PaymentType::firstWhere('identifier', 'finance');
 
@@ -26,6 +31,7 @@ class HometreeService
                     ], [
                         'uuid' => Str::uuid(),
                         'reference' => $record['client-application-reference'],
+                        'parentable_type' => config('payment.parent_model'),
                         'parentable_id' => $this->integerOrNull($record['client-application-reference']),
                         'payment_type_id' => $hometreePaymentType->id,
                         'first_name' => $this->extractFirstNameFromString($record['customer-full-name']),
@@ -51,8 +57,6 @@ class HometreeService
                         'created_at' => $record['application-created-timestamp'],
                         'was_referred' => false,
                     ])->forceFill([
-                        'created_at' => $record['application-created-timestamp'],
-                        'updated_at' => now(),
                         'decision_received_at' => $record['application-complete-timestamp'],
                         'status' => $this->translateStatus($record['application-status']),
                         'term' => !blank($record['account-term']) ? $record['account-term'] * 12 : null,
@@ -60,8 +64,9 @@ class HometreeService
                         'monthly_payment' => !blank($record['monthly-payment-amount']) ? Str::of($record['monthly-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
                         'total_payable' => !blank($record['total-payable']) ? Str::of($record['total-payable'])->replace([',', '£'], '')->toFloat() : null,
                         'payment_status_id' => PaymentStatus::firstWhere('identifier', $this->translateStatus($record['application-status']))->id,
-                        'created_at' => $record['application-created-timestamp'],
                         'was_referred' => $this->translateStatus($record['application-status']) == 'referred',
+                        'created_at' => $record['application-created-timestamp'],
+                        'updated_at' => now(),
                     ]);
 
                     if ($this->translateStatus($record['application-status']) == 'referred') {
