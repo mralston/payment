@@ -45,6 +45,7 @@ const props = defineProps({
     redirect: String,
     financeResponses: Object,
     employmentStatuses: Array,
+    currentAccountForBusinesses: Array,
     maritalStatuses: Array,
     residentialStatuses: Array,
     nationalities: Array,
@@ -312,6 +313,22 @@ function skip()
 
                         </div>
 
+                        <div v-if="form.customers[0].employmentStatus === 'self_employed'" class="grid grid-cols-2 gap-6 mb-4">
+
+                            <div class="mb-4">
+                                <label for="customers.0.currentAccountForBusiness" class="block text-sm/6 font-medium text-gray-900">Do you use your personal current account for business use?</label>
+                                <ValidationWrapper :form="form" field="customers.0.currentAccountForBusiness" class="mt-2">
+                                    <select v-model="form.customers[0].currentAccountForBusiness" :id="`customers.0.currentAccountForBusiness`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                        <option></option>
+                                        <option v-for="currentAccountForBusiness in currentAccountForBusinesses" :key="currentAccountForBusiness.id" :value="currentAccountForBusiness.value">
+                                            {{ currentAccountForBusiness.name }}
+                                        </option>
+                                    </select>
+                                </ValidationWrapper>
+                            </div>
+
+                        </div>
+
                     </div>
                 </div>
 
@@ -479,6 +496,18 @@ function skip()
                                     <option></option>
                                     <option v-for="employmentStatus in employmentStatuses" :key="employmentStatuses.id" :value="employmentStatus.value">
                                         {{ employmentStatus.name }}
+                                    </option>
+                                </select>
+                            </ValidationWrapper>
+                        </div>
+
+                        <div v-if="form.customers[0].employmentStatus === 'self_employed'" class="mb-4">
+                            <label for="customers.0.currentAccountForBusiness" class="block text-sm/6 font-medium text-gray-900">Do you use your personal current account for business use?</label>
+                            <ValidationWrapper :form="form" field="customers.0.currentAccountForBusiness" class="mt-2">
+                                <select v-model="form.customers[0].currentAccountForBusiness" :id="`customers.0.currentAccountForBusiness`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                    <option></option>
+                                    <option v-for="currentAccountForBusiness in currentAccountForBusinesses" :key="currentAccountForBusiness.id" :value="currentAccountForBusiness.value">
+                                        {{ currentAccountForBusiness.name }}
                                     </option>
                                 </select>
                             </ValidationWrapper>

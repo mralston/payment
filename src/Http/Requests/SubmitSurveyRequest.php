@@ -50,6 +50,11 @@ class SubmitSurveyRequest extends FormRequest
                             ?->paymentLookupValues
                             ?->pluck('value')
                     )],
+                    'customers.*.currentAccountForBusiness' => ['required_if:customers.*.employmentStatus,self_employed', Rule::in(
+                        PaymentLookupField::byIdentifier(LookupField::CURRENT_ACCOUNT_FOR_BUSINESS)
+                            ?->paymentLookupValues
+                            ?->pluck('value')
+                    )],
 
                     // Address validation rules
                     'addresses' => ['required', 'array', 'min:1'],
@@ -130,6 +135,8 @@ class SubmitSurveyRequest extends FormRequest
             'customers.*.netMonthlyIncome.numeric' => 'The net monthly income must be a number.',
             'customers.*.employmentStatus.required' => 'You must select an employment status.',
             'customers.*.employmentStatus.in' => 'The selected employment status is not valid.',
+            'customers.*.currentAccountForBusiness.required_if' => 'You must specify whether your personal current account is used for business.',
+            'customers.*.currentAccountForBusiness.in' => 'Current account usage is not valid.',
             'customers.*.dependants.required' => 'You must specify how many dependants you have.',
             'customers.*.dependants.numeric' => 'The number of dependants must be a number.',
             'customers.*.maritalStatus.required' => 'You must select your marital status.',

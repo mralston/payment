@@ -25,6 +25,7 @@ use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentLookupValue;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
@@ -158,6 +159,18 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                                             'gross_annual_income' => $this->stringifyDecimal($customer['grossAnnualIncome']),
                                             'dependants' => $customer['dependants'],
                                             'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
+                                            ...(
+                                                $customer['employmentStatus'] === 'self_employed' ?
+                                                    [
+                                                        'current_account_for_business' => boolval(
+                                                            PaymentLookupField::byIdentifier('current_account_for_business')
+                                                                ->paymentLookupValues()
+                                                                ->firstWhere('value', $customer['currentAccountForBusiness'])
+                                                                ->payment_provider_values['hometree']
+                                                        )
+                                                    ] :
+                                                    []
+                                            )
                                         ]
                                     ] : []
                                     ),

@@ -14,6 +14,8 @@ class PaymentLookupValue extends Model
         'name',
         'description',
         'identifier',
+        'value',
+        'payment_provider_values',
     ];
 
     public $casts = [

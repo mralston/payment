@@ -138,5 +138,18 @@ class PaymentLookupFieldTableSeeder extends Seeder
                     'propensio' => 0,
                 ]],
             ]);
+
+        PaymentLookupField::create([
+            'name' => 'Personal Current Account for Business',
+            'identifier' => 'current_account_for_business',
+        ])->paymentLookupValues()
+            ->createMany([
+                ['name' => 'Yes', 'value' => 'yes', 'payment_provider_values' => [
+                    'hometree' => 1,
+                ]],
+                ['name' => 'No', 'value' => 'no', 'payment_provider_values' => [
+                    'hometree' => 0,
+                ]],
+            ]);
     }
 }

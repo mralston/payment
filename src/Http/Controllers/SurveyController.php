@@ -38,6 +38,8 @@ class SurveyController
                 }),
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
+            'currentAccountForBusinesses' => PaymentLookupField::byIdentifier(LookupField::CURRENT_ACCOUNT_FOR_BUSINESS)
+                ->paymentLookupValues,
             'allowSkip' => true,
             'showBasicQuestions' => true,
         ])->withViewData($helper->getViewData());
@@ -78,6 +80,8 @@ class SurveyController
             'parentModel' => $parentModel,
             'paymentSurvey' => $survey,
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
+                ->paymentLookupValues,
+            'currentAccountForBusinesses' => PaymentLookupField::byIdentifier(LookupField::CURRENT_ACCOUNT_FOR_BUSINESS)
                 ->paymentLookupValues,
             'allowSkip' => true,
             'showBasicQuestions' => true,
