@@ -37,6 +37,8 @@ class PaymentOptionsController
             'addresses' => $this->helper->getAddresses(),
         ]);
 
+        $this->setDefaultDeposits($survey, $parentModel);
+
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
             'survey' => $survey->load([
