@@ -32,7 +32,7 @@ interface PaymentHelper
 
     public function getSem(): float;
 
-    public function getSystemSavings(): Collection;
+    public function getSystemSavings(string $paymentType = 'cash'): Collection;
 
     public function getSolarSavingsYear1(): float;
 

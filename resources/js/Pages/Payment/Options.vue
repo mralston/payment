@@ -29,7 +29,8 @@ const props = defineProps({
     totalCost: Number,
     leaseMoreInfoContent: String,
     paymentProviders: Array,
-    systemSavings: Array,
+    systemSavingsFinance: Array,
+    systemSavingsLease: Array,
     prequalOnLoad: {
         type: Boolean,
         default: true,
@@ -465,7 +466,7 @@ function resetPrequal()
                          :deposit="makeNumeric(survey.finance_deposit)"
                          :selected-offer="selectedFinanceOffer"
                          :other-offers="selectedFinanceOffer ? financeOffers.filter(offer => offer.id !== selectedFinanceOffer.id && offer.payment_provider_id === selectedFinanceOffer.payment_provider_id) : []"
-                         :system-savings="systemSavings"/>
+                         :system-savings="systemSavingsFinance"/>
     </MoreInfoModal>
 
     <MoreInfoModal ref="leaseMoreInfoModal" title="More Info - Lease">
@@ -475,7 +476,7 @@ function resetPrequal()
                        :deposit="makeNumeric(survey.lease_deposit)"
                        :selected-offer="selectedLeaseOffer"
                        :other-offers="selectedLeaseOffer ? leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id) : []"
-                       :system-savings="systemSavings"
+                       :system-savings="systemSavingsLease"
         />
     </MoreInfoModal>
 

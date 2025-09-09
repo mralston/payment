@@ -51,7 +51,8 @@ class PaymentOptionsController
             'totalCost' => $this->helper->getTotalCost(),
             'leaseMoreInfoContent' => $this->helper->getLeaseContent(),
             'paymentProviders' => PaymentProvider::all(),
-            'systemSavings' => $this->helper->getSystemSavings(),
+            'systemSavingsFinance' => $this->helper->getSystemSavings('finance'),
+            'systemSavingsLease' => $this->helper->getSystemSavings('lease'),
         ])->withViewData($this->helper->getViewData());
     }
 

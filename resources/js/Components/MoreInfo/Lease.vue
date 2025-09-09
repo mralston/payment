@@ -57,7 +57,6 @@ const props = defineProps({
                                        :apr="makeNumeric(selectedOffer.apr)"
                                        :system-savings="systemSavings"
                                        class="bg-white mb-4"/>
-                <p>The cost of replacing the battery at the end of its warranty may have been taken into account. This is not relevant for {{ selectedOffer.payment_provider.name }}, who will facilitate this replacement, if required, at their own expense.</p>
             </div>
             <div>
                 <p class="font-bold mb-4">Total Payable</p>
