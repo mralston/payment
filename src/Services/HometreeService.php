@@ -58,7 +58,6 @@ class HometreeService
                         'was_referred' => false,
                     ])->forceFill([
                         'decision_received_at' => $record['application-complete-timestamp'],
-                        'status' => $this->translateStatus($record['application-status']),
                         'term' => !blank($record['account-term']) ? $record['account-term'] * 12 : null,
                         'first_payment' => !blank($record['upfront-payment-amount']) ? Str::of($record['upfront-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
                         'monthly_payment' => !blank($record['monthly-payment-amount']) ? Str::of($record['monthly-payment-amount'])->replace([',', '£'], '')->toFloat() : null,

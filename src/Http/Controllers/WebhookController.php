@@ -3,6 +3,7 @@
 namespace Mralston\Payment\Http\Controllers;
 
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Log;
 use Mralston\Payment\Http\Requests\HometreeWebhookRequest;
 use Mralston\Payment\Services\HometreeService;
 use Mralston\Payment\Services\TandemService;
@@ -21,6 +22,10 @@ class WebhookController
 
     public function hometree(HometreeWebhookRequest $request)
     {
+        Log::debug('Hometree webhook received');
+        Log::debug('Headers:', $request->headers->all());
+        Log::debug('Body:', $request->all());
+
         $this->hometreeService->handleWebhook(collect($request->validated()));
 
         return response()->json(['message' => 'success']);
