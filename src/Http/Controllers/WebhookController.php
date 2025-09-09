@@ -25,6 +25,8 @@ class WebhookController
         Log::debug('Hometree webhook received');
         Log::debug('Headers:', $request->headers->all());
         Log::debug('Body:', $request->all());
+        Log::debug($request->getContent());
+
 
         $this->hometreeService->handleWebhook(collect($request->validated()));
 
