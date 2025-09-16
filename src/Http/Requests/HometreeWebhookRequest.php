@@ -48,7 +48,6 @@ class HometreeWebhookRequest extends FormRequest
 
             'records.*' => ['required', 'array'],
             'records.*.htf-quote-id' => ['required'],
-            'records.*.client-application-reference' => ['required'],
             'records.*.customer-full-name' => ['required', 'string'],
 
             'records.*.customer-address-line-1' => ['nullable', 'string'],
