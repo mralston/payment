@@ -20,7 +20,7 @@ class HometreeService
         }
 
         $hometreeLender = PaymentProvider::firstWhere('identifier', 'hometree');
-        $hometreePaymentType = PaymentType::firstWhere('identifier', 'finance');
+        $hometreePaymentType = PaymentType::firstWhere('identifier', 'lease');
 
         Payment::withoutEvents(function() use ($records, $hometreeLender, $hometreePaymentType) {
             Payment::withoutTimestamps(function () use ($hometreeLender, $records, $hometreePaymentType) {
@@ -31,7 +31,7 @@ class HometreeService
                     ], [
                         'uuid' => Str::uuid(),
                         'reference' => $record['client-application-reference'],
-                        'parentable_type' => config('payment.parent_model'),
+                        'parentable_type' => Str::of(config('payment.parent_model'))->ltrim('\\'),
                         'parentable_id' => $this->integerOrNull($record['client-application-reference']),
                         'payment_type_id' => $hometreePaymentType->id,
                         'first_name' => $this->extractFirstNameFromString($record['customer-full-name']),
