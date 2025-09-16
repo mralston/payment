@@ -269,6 +269,8 @@ function initiatePrequal(reset = false)
 function updateOffers(e) {
     e = decompress(e.payload);
 
+    console.log('updateOffers', e);
+
     let financeSelectionInvalidated = false;
     let leaseSelectionInvalidated = false;
 
