@@ -66,7 +66,7 @@ class OffersUpdated extends Event implements ShouldBroadcast
                     ->toArray(),
                 'payment_provider' => $offer->paymentProvider,
             ];
-        });
+        })->values();
 
         $payload = [
             'gateway' => $this->gateway,
