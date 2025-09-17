@@ -98,7 +98,7 @@ class HometreeService
         return last(explode(' ', $inputString));
     }
 
-    private function integerOrNull(string $inputString): ?int
+    private function integerOrNull(?string $inputString = null): ?int
     {
         return is_numeric($inputString) ? intval($inputString) : null;
     }
