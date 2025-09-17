@@ -30,9 +30,9 @@ class HometreeService
                         'provider_foreign_id' => $record['htf-quote-id'],
                     ], [
                         'uuid' => Str::uuid(),
-                        'reference' => $record['client-application-reference'],
+                        'reference' => $record['client-application-reference'] ?? null,
                         'parentable_type' => Str::of(config('payment.parent_model'))->ltrim('\\'),
-                        'parentable_id' => $this->integerOrNull($record['client-application-reference']),
+                        'parentable_id' => $this->integerOrNull($record['client-application-reference'] ?? null),
                         'payment_type_id' => $hometreePaymentType->id,
                         'first_name' => $this->extractFirstNameFromString($record['customer-full-name']),
                         'middle_name' => $this->extractMiddleNameFromString($record['customer-full-name']),
