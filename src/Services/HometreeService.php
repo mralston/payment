@@ -27,7 +27,7 @@ class HometreeService
                 $records->each(function($record) use ($hometreeLender, $hometreePaymentType) {
                     $payment = Payment::updateOrCreate([
                         'payment_provider_id' => $hometreeLender->id,
-                        'provider_foreign_id' => $record['htf-quote-id'],
+                        'provider_foreign_id' => $record['application-id'],
                     ], [
                         'uuid' => Str::uuid(),
                         'reference' => $record['client-application-reference'] ?? null,
