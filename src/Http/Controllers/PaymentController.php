@@ -40,7 +40,7 @@ class PaymentController
                     'parentable.user',
                     'paymentStatus',
                 ])
-                ->orderBy('updated_at', 'desc')
+                ->orderBy('created_at', 'desc')
                 ->paginate(10),
             'parentRouteName' => $this->helper->getParentRouteName(),
             'parentModelDescription' => config('payment.parent_model_description'),
