@@ -41,7 +41,7 @@ class HometreeService
                             'address1' => $record['customer-address-line-1'],
                             'address2' => $record['customer-address-line-2'],
                             'town' => $record['customer-address-line-3'],
-                            'postcode' => $record['customer-postcode'],
+                            'postCode' => $record['customer-postcode'],
                             'udprn' => $this->integerOrNull($record['customer-udprn']),
                             'uprn' => $this->integerOrNull($record['customer-uprn']),
                         ]],
