@@ -33,7 +33,9 @@ class PaymentController
     {
         return Inertia::render('Payment/Index', [
             'payments' => Payment::query()
-                ->where('payment_status_id', '!=', PaymentStatus::byIdentifier('new')?->id)
+                ->whereHas('paymentStatus', function ($query) {
+                    $query->where('unlisted', false);
+                })
                 ->with([
                     'parentable',
                     'paymentProvider',
