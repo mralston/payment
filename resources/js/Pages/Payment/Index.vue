@@ -54,13 +54,12 @@ const props = defineProps({
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ formatDate(payment.created_at, 'DD/MM/YYYY') }}</td>
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.reference }}</td>
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">
-<!--                            @if(!empty(payment.parentable?.id))-->
-<!--                                <a :href="route(parentRouteName, payment.parentable_id)" class="text-blue-600 hover:text-blue-900">-->
-<!--                                    {{ payment.parentable.id }}-->
-<!--                                </a>-->
-<!--                            @else-->
-                            {{ payment.parentable_id }}
-<!--                            @endif-->
+                            <a v-if="payment.parentable?.id" :href="route(parentRouteName, payment.parentable_id)" class="text-blue-600 hover:text-blue-900">
+                                {{ payment.parentable.id }}
+                            </a>
+                            <span v-else>
+                                {{ payment.parentable_id }}
+                            </span>
                         </td>
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">
                             {{ payment.first_name }} {{ payment.last_name }}
