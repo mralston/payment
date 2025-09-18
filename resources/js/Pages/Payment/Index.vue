@@ -65,7 +65,7 @@ const props = defineProps({
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">
                             {{ payment.first_name }} {{ payment.last_name }}
                         </td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.addresses ? payment.addresses[0]?.postCode ?? payment.addresses ? payment.addresses[0]?.postcode : '-' }}</td>
+                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.addresses ? (payment.addresses[0]?.postCode ?? payment.addresses) ? payment.addresses[0]?.postcode : '-' }}</td>
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ formatCurrency(payment.amount) }}</td>
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ formatCurrency(payment.deposit) }}</td>
                         <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.apr ? payment.apr + '%' : '-' }}</td>
