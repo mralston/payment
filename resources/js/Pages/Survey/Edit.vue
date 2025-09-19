@@ -20,6 +20,10 @@ const props = defineProps({
         type: Boolean,
         default: true,
     },
+    canChangePaymentMethod: {
+        type: Boolean,
+        default: false,
+    },
     showBasicQuestions: {
         type: Boolean,
         default: true,
@@ -65,7 +69,9 @@ const form = useForm({
     creditCheckConsent: props.paymentSurvey.credit_check_consent ? true : false,
 });
 
-const skipRunning = ref(false);
+const navigating = ref(false);
+const submitting = ref(false);
+const skipping = ref(false);
 
 // Ensure exactly one homeAddress is selected in addresses (default to first)
 if (props.showBasicQuestions && Array.isArray(form.addresses) && form.addresses.length > 0) {
@@ -144,7 +150,10 @@ function submit()
                 {
                     parent: props.parentModel,
                 }
-            )
+            ), {
+                onStart: () => navigating.value = submitting.value = true,
+                onFinish: () => navigating.value = submitting.value = false,
+            }
         );
     }
 
@@ -156,15 +165,27 @@ function submit()
                 parent: props.parentModel,
                 survey: props.paymentSurvey,
             }
-        )
+        ), {
+            onStart: () => navigating.value = submitting.value = true,
+            onFinish: () => navigating.value = submitting.value = false,
+        }
     );
 }
 
 function skip()
 {
     router.get(route('payment.options', {parent: props.parentModel}), {}, {
-        onStart: () => skipRunning.value = true,
-        onFinish: () => skipRunning.value = false,
+        onStart: () => navigating.value = skipping.value = true,
+        onFinish: () => navigating.value = skipping.value = false,
+    });
+}
+
+function unselectOffer() {
+    router.post(route('payment.unselect', {
+        parent: props.parentModel,
+    }), {}, {
+        onStart: () => navigating.value = skipping.value = true,
+        onFinish: () => navigating.value = skipping.value = false,
     });
 }
 
@@ -180,12 +201,22 @@ function skip()
 
         <button v-if="allowSkip"
                 type="button"
-                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 disabled:bg-gray-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
                 @click="skip"
-                :disabled="skipRunning">
-            <ArrowPathIcon v-if="skipRunning"
+                :disabled="navigating">
+            <ArrowPathIcon v-if="skipping"
                            class="h-4 w-4 inline animate-spin"/>
             <span v-else>Skip</span>
+        </button>
+
+        <button v-if="canChangePaymentMethod"
+                type="button"
+                class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                @click="unselectOffer"
+                :disabled="navigating">
+            <ArrowPathIcon v-if="skipping"
+                           class="h-4 w-4 inline animate-spin"/>
+            <span v-else>Change Payment Option</span>
         </button>
 
         <ValidationBanner :form="form" class="mr-16"/>
@@ -615,9 +646,12 @@ function skip()
 
         <div class="my-4 text-end">
             <button type="button"
-                    class="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
-                    @click="submit">
-                Continue
+                    class="rounded-md bg-blue-600 px-3.5 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-300 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
+                    @click="submit"
+                    :disabled="navigating">
+                <ArrowPathIcon v-if="submitting"
+                               class="h-4 w-4 inline animate-spin"/>
+                <span v-else>Continue</span>
             </button>
         </div>
 

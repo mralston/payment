@@ -97,11 +97,14 @@ class SurveyController
             'paymentSurvey' => $survey,
             'employmentStatuses' => PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                 ->paymentLookupValues,
+            'currentAccountForBusinesses' => PaymentLookupField::byIdentifier(LookupField::CURRENT_ACCOUNT_FOR_BUSINESS)
+                ->paymentLookupValues,
             'title' => 'Lease Survey',
             'allowSkip' => false,
             'showBasicQuestions' => true,
             'redirect' => route('payment.lease.create', ['parent' => $parent, 'offerId' => $request->get('offerId')]),
             'basicIntroText' => 'We need you to answer these questions for your lease application.',
+            'canChangePaymentMethod' => true,
         ])->withViewData($helper->getViewData());
     }
 
@@ -128,9 +131,12 @@ class SurveyController
                 ->paymentLookupValues,
             'bankruptOrIvas' => PaymentLookupField::byIdentifier(LookupField::BANKRUPT_OR_IVA)
                 ->paymentLookupValues,
+            'currentAccountForBusinesses' => PaymentLookupField::byIdentifier(LookupField::CURRENT_ACCOUNT_FOR_BUSINESS)
+                ->paymentLookupValues,
             'allowSkip' => false,
             'showBasicQuestions' => false,
             'showFinanceQuestions' => true,
+            'canChangePaymentMethod' => true,
             'redirect' => route('payment.finance.create', ['parent' => $parent, 'offerId' => $request->get('offerId')]),
         ])->withViewData($helper->getViewData());
     }

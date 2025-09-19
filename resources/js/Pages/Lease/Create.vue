@@ -32,6 +32,8 @@ const form = useForm({
     creditCheckConsent: false,
 });
 
+const changingPaymentMethod = ref(false);
+
 function submit()
 {
     form.post(route('payment.lease.store', {
@@ -42,7 +44,10 @@ function submit()
 function unselectOffer() {
     router.post(route('payment.unselect', {
         parent: props.parentModel,
-    }));
+    }), {} , {
+        onStart: () => changingPaymentMethod.value = true,
+        onFinish: () => changingPaymentMethod.value = false,
+    });
 }
 
 </script>
@@ -60,8 +65,10 @@ function unselectOffer() {
         <button v-if="canChangePaymentMethod"
                 type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                :disabled="form.processing || changingPaymentMethod"
                 @click="unselectOffer">
-            Change Payment Option
+            <ArrowPathIcon v-if="changingPaymentMethod" class="h-4 w-4 inline animate-spin" aria-hidden="true"/>
+            <span v-else>Change Payment Option</span>
         </button>
 
         <h1 class="text-4xl font-bold mb-6">
@@ -247,7 +254,7 @@ function unselectOffer() {
 
         <div class="text-right">
             <button @click="submit"
-                    :disabled="form.processing"
+                    :disabled="form.processing || changingPaymentMethod"
                     class="mt-10 rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                 <ArrowPathIcon v-if="form.processing" class="text-white h-4 w-4 inline animate-spin" aria-hidden="true"/>
                 <span v-else>Submit Lease Application</span>

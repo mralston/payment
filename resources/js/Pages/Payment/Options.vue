@@ -56,6 +56,8 @@ const prequalRunning = ref(false);
 
 const pendingGateways = ref([]);
 
+const navigating = ref(false);
+
 const gatewayErrors = reactive({
     finance: null,
     lease: null,
@@ -349,7 +351,10 @@ function selectOffer(paymentType) {
         parent: props.parentModel,
         offerId: selectedOffer?.id ?? 0, // 0 = cash
         paymentType: paymentType,
-    }));
+    }), {}, {
+        onStart: () => navigating.value = true,
+        onFinish: () => navigating.value = false,
+    });
 }
 
 function backToSurvey()
@@ -600,7 +605,9 @@ function submitSurvey()
                                 </button>
                             </div>
 
-                            <button @click="selectOffer('cash')" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <button @click="selectOffer('cash')"
+                                    :disabled="navigating"
+                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Select
                             </button>
 
@@ -669,7 +676,7 @@ function submitSurvey()
                             </div>
 
                             <button @click="selectOffer('finance')"
-                                    :disabled="selectedFinanceOffer === null"
+                                    :disabled="selectedFinanceOffer === null || navigating"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Select
                             </button>
@@ -737,7 +744,7 @@ function submitSurvey()
                             </div>
 
                             <button @click="selectOffer('lease')"
-                                    :disabled="selectedLeaseOffer === null"
+                                    :disabled="selectedLeaseOffer === null || navigating"
                                     class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Select
                             </button>
