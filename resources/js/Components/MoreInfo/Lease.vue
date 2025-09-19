@@ -67,7 +67,7 @@ const props = defineProps({
 
     <Card header-class="bg-gray-100" :collapsed="true">
         <template v-slot:header>
-            <span class="text-2xl">Other options</span>
+            <span class="text-2xl"><b>Other options</b> (with same upfront payment)</span>
         </template>
         <div class="grid grid-cols-2 gap-4">
             <div v-for="offer in otherOffers" :key="offer.id">
@@ -86,6 +86,9 @@ const props = defineProps({
                                       :apr="makeNumeric(offer.apr)"
                                       :system-savings="systemSavings"
                                       class="mb-4"/>
+            </div>
+            <div v-if="otherOffers.length === 0">
+                There are no other options with the same upfront payment.
             </div>
         </div>
     </Card>

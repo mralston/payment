@@ -477,7 +477,7 @@ function resetPrequal()
                        :totalCost="makeNumeric(totalCost)"
                        :deposit="makeNumeric(survey.lease_deposit)"
                        :selected-offer="selectedLeaseOffer"
-                       :other-offers="selectedLeaseOffer ? leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id) : []"
+                       :other-offers="selectedLeaseOffer ? leaseOffers.filter(offer => offer.id !== selectedLeaseOffer.id && offer.upfront_payment === selectedLeaseOffer.upfront_payment) : []"
                        :system-savings="systemSavingsLease"
         />
     </MoreInfoModal>
