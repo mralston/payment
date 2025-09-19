@@ -6,6 +6,8 @@ import { Head } from '@inertiajs/vue3'
 import AddressInput from "../../Components/AddressInput.vue";
 import ValidationBanner from "../../Components/ValidationBanner.vue";
 import ValidationWrapper from "../../Components/ValidationWrapper.vue";
+import {ref} from "vue";
+import {ArrowPathIcon} from "@heroicons/vue/20/solid/index.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -62,6 +64,8 @@ const form = useForm({
     financeResponses: props.paymentSurvey.finance_responses,
     creditCheckConsent: props.paymentSurvey.credit_check_consent ? true : false,
 });
+
+const skipRunning = ref(false);
 
 // Ensure exactly one homeAddress is selected in addresses (default to first)
 if (props.showBasicQuestions && Array.isArray(form.addresses) && form.addresses.length > 0) {
@@ -158,7 +162,10 @@ function submit()
 
 function skip()
 {
-    router.get(route('payment.options', {parent: props.parentModel}));
+    router.get(route('payment.options', {parent: props.parentModel}), {}, {
+        onStart: () => skipRunning.value = true,
+        onFinish: () => skipRunning.value = false,
+    });
 }
 
 </script>
@@ -174,8 +181,11 @@ function skip()
         <button v-if="allowSkip"
                 type="button"
                 class="float-end rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                @click="skip">
-            Skip
+                @click="skip"
+                :disabled="skipRunning">
+            <ArrowPathIcon v-if="skipRunning"
+                           class="h-4 w-4 inline animate-spin"/>
+            <span v-else>Skip</span>
         </button>
 
         <ValidationBanner :form="form" class="mr-16"/>

@@ -558,8 +558,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         Log::debug('status: ' . $this->responseData['status']);
 
-//        Log::debug($this->requestData);
-//        Log::debug($this->responseData);
+        Log::debug($this->requestData);
+        Log::debug($this->responseData);
 
         $response->throw();
 
