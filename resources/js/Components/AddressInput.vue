@@ -3,6 +3,7 @@ import { ref, watch, computed } from 'vue';
 import { MagnifyingGlassIcon } from '@heroicons/vue/16/solid';
 import Modal from "./Modal.vue";
 import axios from 'axios';
+import {ArrowPathIcon} from "@heroicons/vue/20/solid/index.js";
 
 defineOptions({
     inheritAttrs: false
@@ -73,10 +74,15 @@ const addressesFound = computed(() => Object.keys(addresses.value).length > 0);
 
 const manualAddress = ref(props.allowManualEntry);
 
+const lookupRunning = ref(false);
+
 function lookup()
 {
+    lookupRunning.value = true;
+
     axios.get(route('payment.address.lookup', addressModel.value.postCode))
         .then(response => {
+            lookupRunning.value = false;
             addresses.value = response.data;
             addressLookupModal.value.show();
         });
@@ -135,6 +141,8 @@ function returnSelectedAddress()
     addressLookupModal.value.hide();
 
     addressModel.value.manual = false;
+
+    emit('update:address', addressModel.value);
 }
 
 function selectAddress(address)
@@ -238,8 +246,10 @@ function notListed()
             <button type="button"
                     class="flex-shrink-0 self-stretch rounded-br border-l-[1px] border-l-gray-300 bg-gray-50 disabled:bg-gray-50 px-3 hover:bg-gray-100 disabled:bg-inherit focus:outline-2 focus:outline-offset-2 focus:outline-blue-600"
                     @click="lookup"
-                    :disabled="!addressModel.postCode">
-                <MagnifyingGlassIcon class="h-4 w-4 text-gray-600" aria-hidden="true"/>
+                    :disabled="!addressModel.postCode || lookupRunning">
+                <ArrowPathIcon v-if="lookupRunning"
+                               class="h-4 w-4 inline animate-spin"/>
+                <MagnifyingGlassIcon v-else class="h-4 w-4 text-gray-600" aria-hidden="true"/>
             </button>
         </div>
     </div>

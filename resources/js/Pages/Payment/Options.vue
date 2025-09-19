@@ -1,5 +1,5 @@
 <script setup>
-import {Head, router} from "@inertiajs/vue3";
+import {Head, router, useForm} from "@inertiajs/vue3";
 import {computed, onMounted, reactive, ref, watch} from "vue";
 import axios from "axios";
 import { useEcho } from '@laravel/echo-vue';
@@ -21,6 +21,8 @@ import SkeletonItem from "../../Components/SkeletonItem.vue";
 import {makeNumeric} from "../../Helpers/Number.js";
 import {decompress} from "../../Helpers/Compression.js";
 import Modal from "../../Components/Modal.vue";
+import AddressInput from "../../Components/AddressInput.vue";
+import {MagnifyingGlassIcon} from "@heroicons/vue/16/solid/index.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -37,8 +39,6 @@ const props = defineProps({
     },
 });
 
-// console.log('initial ')
-
 const cashMoreInfoModal = ref(null);
 const financeMoreInfoModal = ref(null);
 const leaseMoreInfoModal = ref(null);
@@ -47,6 +47,7 @@ const cashVsFinanceModal = ref(null);
 const financeVsLeaseModal = ref(null);
 const depositModal = ref(null);
 const errorModal = ref(null);
+const addressLookupModal = ref(null);
 
 const errorModalMessage = ref(null);
 let errorModalCallback = null;
@@ -70,6 +71,12 @@ const offers = ref([]);
 
 const newDeposit = ref(null);
 const newDepositType = ref(null);
+
+const showAddressLookup = ref(false);
+
+const surveyForm = useForm({
+    addresses: props.survey.addresses,
+});
 
 const financeOffers = computed (() => {
     return offers.value
@@ -450,6 +457,18 @@ function resetPrequal()
     initiatePrequal(true);
 }
 
+function lookupAddress()
+{
+    showAddressLookup.value = true;
+}
+
+function submitSurvey()
+{
+    surveyForm.patch(route('payment.surveys.update', {parent: props.parentModel, survey: props.survey.id}), {
+        onSuccess: () => resetPrequal(),
+    });
+}
+
 </script>
 
 <template>
@@ -681,7 +700,7 @@ function resetPrequal()
                         </div>
 
                         <!-- Lease -->
-                        <div v-if="survey.addresses[0].uprn || survey.addresses[0].ufprn" class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
+                        <div v-if="survey.addresses[0].uprn || survey.addresses[0].udprn" class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
 
                             <div class="mb-4">
                                 <img v-if="selectedLeaseProvider?.logo" :src="selectedLeaseProvider.logo" class="max-w-1/3 h-7" :alt="selectedLeaseProvider.name">
@@ -744,6 +763,42 @@ function resetPrequal()
                                         {{ bullet }}
                                     </li>
                                 </ul>
+                            </div>
+
+                        </div>
+                        <div v-else class="pt-16 lg:px-8 lg:pt-0 xl:px-14 relative">
+
+                            <h3 class="text-3xl font-semibold text-blue-800 mb-8">Lease</h3>
+
+                            <div v-if="showAddressLookup">
+
+                                <p class="mb-4">
+                                    Provide the post code below, press the
+                                    <MagnifyingGlassIcon class="h-4 w-4 text-gray-600 inline" aria-hidden="true"/>
+                                    button and select the appropriate address from the list.
+                                </p>
+
+                                <AddressInput v-model:address="surveyForm.addresses[0]" @update:address="submitSurvey"/>
+
+                                <button @click="showAddressLookup = false" class="mt-10 w-full rounded-md bg-gray-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600">
+                                    Cancel
+                                </button>
+
+                            </div>
+                            <div v-else>
+
+                                <p class="mb-4 font-bold">
+                                    A fully verified address is required in order to apply for a lease.
+                                </p>
+
+                                <p class="mb-12">
+                                    Use the button below to select an address.
+                                </p>
+
+                                <button @click="lookupAddress" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                    Lookup Address
+                                </button>
+
                             </div>
 
                         </div>
