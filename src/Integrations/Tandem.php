@@ -646,7 +646,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                             'deposit' => $deposit,
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
-                            'deferred' => $product['deferredPayments'],
+                            'deferred' => $product['deferredPayments'] > 0 ? $product['deferredPayments'] : null,
                             'deferred_type' => $product['deferredPayments'] > 0 ? 'payments' : null,
                             'first_payment' => $payments['RepaymentDetails']['FirstRepaymentAmount'],
                             'monthly_payment' => $payments['RepaymentDetails']['MonthlyRepayment'],
