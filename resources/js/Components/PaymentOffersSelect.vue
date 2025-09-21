@@ -66,28 +66,30 @@ if (props.modelValue) {
 
                                     <div class="flex items-center gap-2">
                                         <div>{{ offer.payment_provider.name }}</div>
-                                        <div v-if="offer.apr">{{ offer.apr }}%</div>
+                                        <div v-if="offer.apr > 0">{{ offer.apr }}%</div>
                                         <div :class="[active ? 'text-white' : 'text-blue-500', 'flex-1 text-right']">
                                             {{ formatCurrency(offer.monthly_payment, 0) }}/month
                                         </div>
                                     </div>
 
                                     <div>
-                                        {{ offer.term / 12 }} years
+                                        {{ offer.term / 12 }}
+                                        <span v-if="offer.term / 12 === 1">year</span>
+                                        <span v-else>years</span>
                                         <span v-if="offer.deferred">
                                             -
                                             <span v-if="offer.deferred_type === 'payments'">{{ offer.deferred + 1 }}</span>
                                             <span v-else>{{ offer.deferred }}</span>
-                                            months
+                                            <span v-if="offer.deferred / 12 === 1">&nbsp;month</span>
+                                            <span v-else>&nbsp;months</span>
                                             deferred
                                         </span>
+                                        <span v-if="offer.apr == 0 && offer.type === 'finance'">&nbsp;- interest free credit</span>
                                     </div>
 
                                     <div v-if="offer.upfront_payment > 0" class="inline">
                                         {{ formatCurrency(offer.upfront_payment, 0) }} up front
                                     </div>
-
-
 
                                     <span class="sr-only"> is {{ offer.status == 'preapproved' ? 'Pre-approved' : 'Tentative' }}</span>
                                 </span>
