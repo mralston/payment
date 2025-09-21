@@ -19,7 +19,7 @@ use Mralston\Payment\Http\Middleware\RedirectToSelectedOffer;
  * Tandem webhook
  */
 Route::post('webhook/tandem/{uuid}', [WebhookController::class, 'tandem'])
-    ->name('webhook.tandem');
+    ->name('payment.webhook.tandem');
 
 /**
  * Hometree webhook

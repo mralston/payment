@@ -658,4 +658,24 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         return true;
     }
+
+    public function cancelOffer(PaymentOffer $paymentOffer): void
+    {
+        $this->requestData = [
+            'reason' => 'customer.unknown',
+        ];
+
+        Log::debug('Cancelling Hometree offer ' . $paymentOffer->id);
+        Log::debug('POST /applications/' . $paymentOffer->provider_offer_id . '/abandon');
+        Log::debug('token: ' . $this->key);
+
+        $response = Http::baseUrl($this->endpoint)
+            ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
+            ->withToken($this->key, 'Token')
+            ->post('/applications/' . $paymentOffer->provider_offer_id . '/abandon', $this->requestData);
+
+        Log::debug('HT offer cancellation response status: ' . $response->status());
+        Log::debug('HT offer cancellation response status code: ' . $response->getStatusCode());
+        Log::debug('HT offer cancellation response body: ' . $response->body());
+    }
 }

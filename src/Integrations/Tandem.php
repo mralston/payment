@@ -28,6 +28,7 @@ use Mralston\Payment\Interfaces\WantsEpvs;
 use Mralston\Payment\Interfaces\WantsSatNote;
 use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentSurvey;
@@ -109,9 +110,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                 'apr' => $payment->apr,
                 'deposit' => $payment->deposit ?? 0,
                 'depositTakenExternally' => true,
-                // API expects the number of deferred payments, not the number of months deferred for.
-                // 4 months deferred = 3 deferred payments, therefore we subtract 1.
-                'deferredPayments' => !empty($payment->deferred) ? $payment->deferred - 1 : 0,
+                'deferredPayments' => intval($payment->deferred),
             ],
             'applicants' => [
                 'primaryApplicant' => [
@@ -469,9 +468,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     'principal' => $loanAmount,
                     'termMonths' => $loanTerm,
                     'apr' => $apr,
-                    // API expects the number of deferred payments, not the number of months deferred for.
-                    // 4 months deferred = 3 deferred payments. Therefore we subtract 1.
-                    'deferredPayments' => !empty($deferredPeriod) ? $deferredPeriod - 1 : 0,
+                    'deferredPayments' => intval($deferredPeriod),
                 ];
 
 //                Log::channel('finance')->info(print_r($data, true));
@@ -598,9 +595,11 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                         return null;
                     }
 
-                    $productName = $paymentProvider->name . ' ' . $product['apr'] . '% ' .
-                        ($product['termMonths'] / 12) . ' years' .
-                        ($product['deferredPayments'] > 0 ? ' ' . $product['deferredPayments'] . ' months deferred' : '');
+                    $productName = $paymentProvider->name . ' ' .
+                        ($product['apr'] > 0 ? $product['apr'] . '% ' : '') .
+                        ($product['termMonths'] / 12) . ' year' . ($product['termMonths'] / 12 == 1 ? '' : 's') .
+                        (intval($product['apr']) === 0 ? ' interest free' : '') .
+                        ($product['deferredPayments'] > 0 ? ', ' . ($product['deferredPayments'] + 1) . ' months deferred' : ''); // +1 because Tandem quote deferred payments, not deferred months
 
 //                    Log::channel('finance')->debug('Creating Tandem Product', [
 //                        'payment_provider_id' => $paymentProvider->id,
@@ -622,6 +621,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'] > 0 ? $product['deferredPayments'] : null,
+                            'deferred_type' => $product['deferredPayments'] > 0 ? 'payments' : null,
                         ]);
 
                     // If the product has been soft deleted, don't store the offer
@@ -647,6 +647,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'],
+                            'deferred_type' => $product['deferredPayments'] > 0 ? 'payments' : null,
                             'first_payment' => $payments['RepaymentDetails']['FirstRepaymentAmount'],
                             'monthly_payment' => $payments['RepaymentDetails']['MonthlyRepayment'],
                             'final_payment' => $payments['RepaymentDetails']['FinalRepaymentAmount'],
@@ -680,5 +681,10 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     return new ErrorData($key, $value[0]);
                 })
         );
+    }
+
+    public function cancelOffer(PaymentOffer $paymentOffer): void
+    {
+        // Stub to satisfy interface, no action required.
     }
 }

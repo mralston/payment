@@ -19,6 +19,7 @@ class PaymentProduct extends Model
         'apr',
         'term',
         'deferred',
+        'deferred_type',
         'sort_order',
     ];
 }

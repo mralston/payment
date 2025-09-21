@@ -21,6 +21,7 @@ use Mralston\Payment\Interfaces\Signable;
 use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Mail\SatNoteUpload;
 use Mralston\Payment\Models\Payment;
+use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentSurvey;
@@ -1005,6 +1006,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                             'apr' => $product->apr,
                             'term' => $product->term,
                             'deferred' => $product->deferred,
+                            'deferred_type' => $product->deferred_type,
                             'first_payment' => $payments['firstPayment'],
                             'monthly_payment' => $payments['monthlyPayment'],
                             'final_payment' => $payments['finalPayment'],
@@ -1035,5 +1037,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
     public function financeProducts(): Collection
     {
         // TODO: Implement financeProducts() method.
+    }
+
+    public function cancelOffer(PaymentOffer $paymentOffer): void
+    {
+        // Stub to satisfy interface, no action required.
     }
 }

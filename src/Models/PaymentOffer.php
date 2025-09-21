@@ -2,13 +2,20 @@
 
 namespace Mralston\Payment\Models;
 
+use Illuminate\Database\Eloquent\Attributes\ObservedBy;
 use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\SoftDeletes;
+use Mralston\Payment\Observers\PaymentOfferObserver;
 
+
+#[ObservedBy(PaymentOfferObserver::class)]
 class PaymentOffer extends Model
 {
+    use SoftDeletes;
+
     protected $fillable = [
         'payment_survey_id',
         'name',
@@ -22,6 +29,7 @@ class PaymentOffer extends Model
         'apr',
         'term',
         'deferred',
+        'deferred_type',
         'upfront_payment',
         'first_payment',
         'monthly_payment',
