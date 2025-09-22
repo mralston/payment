@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Console\Commands;
+namespace Mralston\Payment\Console\Commands;
 
 use Mralston\Payment\Models\Payment;
 use Illuminate\Console\Command;

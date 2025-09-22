@@ -516,10 +516,18 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
     protected function upsertPaymentOffer(PaymentParentModel $parent, array $data): PaymentOffer
     {
-        // TODO: Should be able to use updateOrCreate now the odder IDs are fixed in the API
-        $paymentOffer = PaymentOffer::firstWhere('provider_offer_id', $data['provider_offer_id']);
+        $paymentOffer = PaymentOffer::query()
+            ->where('provider_offer_id', $data['provider_offer_id'] ?? null)
+            ->where('provider_application_id', $data['provider_application_id'] ?? null)
+            ->when(!empty($data['payment_survey_id']), function ($query) use ($data) {
+                $query->where('payment_survey_id', $data['payment_survey_id']);
+            })
+            ->first();
 
         if ($paymentOffer) {
+            // Ensure the offer is attached to the correct parent (fixes a bug where upserted offers were being attached to the wrong parent)
+            $paymentOffer->parentable()->associate($parent);
+
             $paymentOffer->update($data);
             return $paymentOffer;
         }

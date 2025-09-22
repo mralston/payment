@@ -2,15 +2,16 @@
 
 namespace Mralston\Payment;
 
+use Mralston\Payment\Console\Commands\PollPaymentStatus;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Sanctum\Sanctum;
+use Mralston\Payment\Console\Commands\RepairPaymentOffers;
 use Mralston\Payment\Integrations\Hometree;
 use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
 use Mralston\Payment\Interfaces\PaymentAddressLookup;
 use Mralston\Payment\Interfaces\PaymentHelper;
-use Mralston\Payment\Interfaces\PaymentParentModel;
 use Mralston\Payment\Models\PersonalAccessToken;
 use Mralston\Payment\Providers\EventServiceProvider;
 use Mralston\Payment\Services\MugService;
@@ -59,6 +60,11 @@ class PaymentServiceProvider extends ServiceProvider
         $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'payment');
 
         $this->app->register(EventServiceProvider::class);
+
+        $this->commands([
+            PollPaymentStatus::class,
+            RepairPaymentOffers::class,
+        ]);
 
         $this->app->singleton(PaymentHelper::class, function ($app) {
             return app(config('payment.helper'));
