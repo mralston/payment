@@ -42,8 +42,9 @@ class PaymentOptionsController
         return Inertia::render('Payment/Options', [
             'parentModel' => $parentModel,
             'survey' => $survey->load([
-                'paymentOffers' => function ($query) {
-                    $query->where('total_cost', $this->helper->getTotalCost());
+                'paymentOffers' => function ($query) use ($parentModel) {
+                    $query->where('total_cost', $this->helper->getTotalCost())
+                        ->where('parentable_id', $parentModel->id); // There's a bug where offers for different parent models are linked to the same survey. Possibly in the Hometree integration.
                 },
                 'paymentOffers.paymentProvider',
             ]),
