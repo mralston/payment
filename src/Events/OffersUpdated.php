@@ -24,6 +24,7 @@ class OffersUpdated extends Event implements ShouldBroadcast
      */
     public function __construct(
         public string $gateway,
+        public string $type,
         public int $surveyId,
         public Collection $offers,
     ) {
@@ -70,6 +71,7 @@ class OffersUpdated extends Event implements ShouldBroadcast
 
         $payload = [
             'gateway' => $this->gateway,
+            'type' => $this->type,
             'surveyId' => $this->surveyId,
             'offers' => $offers,
         ];

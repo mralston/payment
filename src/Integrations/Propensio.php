@@ -1018,6 +1018,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
             event(new OffersReceived(
                 gateway: static::class,
+                type: 'finance',
                 surveyId: $survey->id,
                 offers: $offers,
             ));
@@ -1025,6 +1026,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
         return new PrequalPromiseData(
             gateway: static::class,
+            type: 'finance',
             surveyId: $survey->id,
         );
     }

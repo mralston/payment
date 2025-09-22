@@ -65,6 +65,9 @@ const gatewayErrors = reactive({
 
 const currentErrorsToDisplay = ref([]);
 
+const pendingFinanceGateways = computed(() => pendingGateways.value.filter(offerPromise => offerPromise.type === 'finance'));
+const pendingLeaseGateways = computed(() => pendingGateways.value.filter(offerPromise => offerPromise.type === 'lease'));
+
 const cashPaymentProvider = computed(() => {
     return props.paymentProviders.find(paymentProvider => paymentProvider.identifier === 'cash');
 });
@@ -188,7 +191,7 @@ onMounted(() => {
         // Load offers from props (if present)
         offers.value = props.survey.payment_offers;
 
-        console.log('offers from props', offers.value);
+        // console.log('offers from props', offers.value);
 
         selectBestOffers();
     } else if (props.prequalOnLoad) {
@@ -204,11 +207,13 @@ watch(pendingGateways, () => {
 
 function selectBestOffers()
 {
-    if (pendingGateways.value.length === 0 && offers.value.length > 0) {
+    if (pendingFinanceGateways.value.length === 0 && offers.value.length > 0) {
         if (selectedFinanceOffer.value == null && bestFinanceOffer.value != null) {
             selectedFinanceOffer.value = bestFinanceOffer.value;
         }
+    }
 
+    if (pendingLeaseGateways.value.length === 0 && offers.value.length > 0) {
         if (selectedLeaseOffer.value == null && bestLeaseOffer.value != null) {
             selectedLeaseOffer.value = bestLeaseOffer.value;
         }
@@ -232,7 +237,7 @@ useEcho(
     'PrequalError',
     (e) => {
         // Remove gateways that have replied from the pendingGateways array
-        pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise !== e.gateway);
+        pendingGateways.value = pendingGateways.value.filter((offerPromise) => offerPromise.gateway !== e.gateway);
 
         // Store the error
         gatewayErrors[e.type] = e;
@@ -255,7 +260,8 @@ function initiatePrequal(reset = false)
         .then(response => {
             // Populate pendingGateway array with those that have promised offers
             for (const offerPromise of response.data) {
-                pendingGateways.value.push(offerPromise.gateway);
+                console.log('offerPromise', offerPromise);
+                pendingGateways.value.push(offerPromise);
             }
         })
         .catch(error => {
@@ -323,7 +329,7 @@ function updateOffers(e) {
         }
     }
 
-    console.log('offers after update event', offers.value);
+    // console.log('offers after update event', offers.value);
 
     // After the loop, if a selection was invalidated, pick the new best offer.
     // The `best...Offer` computed properties have already recalculated automatically.
@@ -335,7 +341,7 @@ function updateOffers(e) {
     }
 
     // Remove gateways that have replied from the pendingGateways array
-    pendingGateways.value = pendingGateways.value.filter((gateway) => gateway !== e.gateway);
+    pendingGateways.value = pendingGateways.value.filter((gateway) => gateway.gateway !== e.gateway);
 }
 
 function selectOffer(paymentType) {
@@ -637,7 +643,7 @@ function submitSurvey()
                             <div class="mb-4">
                                 <img v-if="selectedFinanceProvider?.logo" :src="selectedFinanceProvider.logo" class="max-w-1/3 h-7" :alt="selectedFinanceProvider.name">
                                 <h3 v-else-if="selectedFinanceProvider" class="text-3xl font-semibold text-blue-800">{{ selectedFinanceProvider.name }}</h3>
-                                <h3 v-else-if="pendingGateways.length === 0" class="text-3xl font-semibold text-blue-800">Finance</h3>
+                                <h3 v-else-if="pendingFinanceGateways.length === 0" class="text-3xl font-semibold text-blue-800">Finance</h3>
                                 <SkeletonItem v-else class="h-7 w-5/6"/>
                             </div>
 
@@ -648,7 +654,7 @@ function submitSurvey()
                             </button>
 
                             <div class="mt-8 h-10">
-                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
+                                <SkeletonItem v-if="pendingFinanceGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
                                 <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
                                     <OfferStatusBadge :offer="selectedFinanceOffer" :best-offer="bestFinanceOffer"/>
 
@@ -659,7 +665,7 @@ function submitSurvey()
 
                             <div class="mt-8 h-10">
 
-                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
+                                <SkeletonItem v-if="pendingFinanceGateways.length > 0 && financeOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
 
                                 <PaymentOffersSelect v-if="financeOffers.length > 0" :offers="financeOffers" v-model="selectedFinanceOffer"/>
 
@@ -687,8 +693,8 @@ function submitSurvey()
                                 More Info
                             </button>
 
-                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
-                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
+                            <BulletPointsSkeleton v-if="pendingFinanceGateways.length > 0 && financeOffers.length === 0"/>
+                            <BulletPointsSkeleton v-if="pendingFinanceGateways.length > 0 && financeOffers.length === 0"/>
 
                             <div v-if="selectedFinanceProvider?.selling_points"
                                  v-for="sellingPoint in selectedFinanceProvider.selling_points"
@@ -712,12 +718,12 @@ function submitSurvey()
                             <div class="mb-4">
                                 <img v-if="selectedLeaseProvider?.logo" :src="selectedLeaseProvider.logo" class="max-w-1/3 h-7" :alt="selectedLeaseProvider.name">
                                 <h3 v-else-if="selectedLeaseProvider" class="text-3xl font-semibold text-blue-800">{{ selectedLeaseProvider.name }}</h3>
-                                <h3 v-else-if="pendingGateways.length === 0" class="text-3xl font-semibold text-blue-800">Lease Purchase</h3>
+                                <h3 v-else-if="pendingLeaseGateways.length === 0" class="text-3xl font-semibold text-blue-800">Lease Purchase</h3>
                                 <SkeletonItem v-else class="h-7 w-5/6"/>
                             </div>
 
                             <div class="mt-8 h-10">
-                                <SkeletonItem v-if="pendingGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
+                                <SkeletonItem v-if="pendingLeaseGateways.length > 0 && financeOffers.length === 0" class="rounded-md h-10 w-3/4"/>
                                 <p v-else class="mt-6 flex items-baseline gap-x-1 relative">
                                     <OfferStatusBadge :offer="selectedLeaseOffer" :best-offer="bestLeaseOffer"/>
 
@@ -727,7 +733,7 @@ function submitSurvey()
                             </div>
 
                             <div class="mt-8 h-10">
-                                <SkeletonItem v-if="pendingGateways.length > 0 && leaseOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
+                                <SkeletonItem v-if="pendingLeaseGateways.length > 0 && leaseOffers.length === 0" class="mt-8 rounded-md h-10 w-full"/>
 
                                 <PaymentOffersSelect v-if="leaseOffers.length > 0" :offers="leaseOffers" v-model="selectedLeaseOffer"/>
 
@@ -755,8 +761,8 @@ function submitSurvey()
                                 More Info
                             </button>
 
-                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
-                            <BulletPointsSkeleton v-if="pendingGateways.length > 0 && financeOffers.length === 0"/>
+                            <BulletPointsSkeleton v-if="pendingLeaseGateways.length > 0 && financeOffers.length === 0"/>
+                            <BulletPointsSkeleton v-if="pendingLeaseGateways.length > 0 && financeOffers.length === 0"/>
 
                             <div v-if="selectedLeaseProvider?.selling_points"
                                  v-for="sellingPoint in selectedLeaseProvider.selling_points"

@@ -358,7 +358,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
                     $offers = collect($response['offers'])
                         ->map(function ($offer) use ($survey, $paymentProvider, $response, $totalCost, $amount, $deposit) {
-                            $productName = $paymentProvider->name . ' ' . $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years' .
+                            $productName = /*$paymentProvider->name . ' ' .*/ $offer['name'] . ' ' . ($offer['params']['term'] / 12) . ' years' .
                                 (
                                     $offer['params']['upfront_payment_gross'] > 0 ?
                                         ' (' . Number::currency($offer['params']['upfront_payment_gross'], 'GBP', precision: 0)  . ' up front)' :
@@ -434,6 +434,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             // Broadcast the offers
             event(new OffersReceived(
                 gateway: static::class,
+                type: 'lease',
                 surveyId: $survey->id,
                 offers: $offers,
             ));
@@ -443,6 +444,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         return new PrequalPromiseData(
             gateway: static::class,
+            type: 'lease',
             surveyId: $survey->id,
         );
     }
@@ -500,6 +502,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
                 event(new OffersUpdated(
                     gateway: static::class,
+                    type: 'lease',
                     surveyId: $surveyId,
                     offers: $offers,
                 ));
