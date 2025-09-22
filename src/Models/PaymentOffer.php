@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Casts\Attribute;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasOne;
+use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Mralston\Payment\Observers\PaymentOfferObserver;
 
@@ -59,6 +60,11 @@ class PaymentOffer extends Model
         return [
             'minimum_payments' => 'collection',
         ];
+    }
+
+    public function parentable(): MorphTo
+    {
+        return $this->morphTo();
     }
 
     public function paymentProvider(): BelongsTo

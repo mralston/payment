@@ -30,6 +30,7 @@ class RepairPaymentOffers extends Command
         PaymentOffer::query()
             ->with(['paymentSurvey'])
             ->whereNotNull('payment_survey_id')
+            ->where('parentable_id', '!=', 5124622)
             ->orderBy('id')
             ->chunkById(1000, function ($offers) use (&$fixed, &$skipped, $dry, $fixReference) {
                 foreach ($offers as $offer) {
