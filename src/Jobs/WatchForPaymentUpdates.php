@@ -49,14 +49,10 @@ class WatchForPaymentUpdates implements ShouldQueue
         Log::debug('updating payment');
         Log::debug('updating payment', $gateway->getResponseData() ?? []);
         $update = [
-            'provider_response_data' => $gateway->getResponseData(),
+            'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
+            'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data,
             'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
         ];
-
-        // Only overwrite provider_request_data if the gateway supplies new request data
-        if (!is_null($gateway->getRequestData())) {
-            $update['provider_request_data'] = $gateway->getRequestData();
-        }
 
         $result = $payment->update($update);
         Log::debug('payment updated: ' . $result ? 'success' : 'failure');

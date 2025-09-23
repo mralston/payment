@@ -249,8 +249,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             $paymentStatus = PaymentStatus::byIdentifier('error');
             $payment->update([
                 'payment_status_id' => $paymentStatus?->id,
-                'provider_request_data' => $this->requestData,
-                'provider_response_data' => $this->responseData,
+                'provider_request_data' => $this->requestData ?? $payment->provider_request_data,
+                'provider_response_data' => $this->responseData ?? $payment->provider_response_data,
             ]);
 
             return $payment;
@@ -263,8 +263,8 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             'provider_foreign_id' => $this->responseData['applicationId'],
             'payment_status_id' => $paymentStatus?->id,
             'offer_expiration_date' => $this->responseData['offerExpirationDate'],
-            'provider_request_data' => $this->requestData,
-            'provider_response_data' => $this->responseData,
+            'provider_request_data' => $this->requestData ?? $payment->provider_request_data,
+            'provider_response_data' => $this->responseData ?? $payment->provider_response_data,
             'submitted_at' => $submitted_at,
             ...(
                 $paymentStatus->decided ?

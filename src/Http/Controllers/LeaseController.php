@@ -97,8 +97,8 @@ class LeaseController
                 $response = $gateway->updateApplication($survey, $offer->provider_application_id);
 
                 $result = $payment->update([
-                    'provider_request_data' => $gateway->getRequestData(),
-                    'provider_response_data' => $gateway->getResponseData(),
+                    'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
+                    'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data,
                     'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
                 ]);
 
@@ -106,8 +106,8 @@ class LeaseController
             }
         } catch (\Exception $e) {
             $payment->update([
-                'provider_request_data' => $gateway->getRequestData(),
-                'provider_response_data' => $gateway->getResponseData(),
+                'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
+                'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data,
                 'submitted_at' => now(),
                 'payment_status_id' => PaymentStatus::byIdentifier('error')?->id,
             ]);

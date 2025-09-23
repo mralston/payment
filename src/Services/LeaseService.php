@@ -19,8 +19,8 @@ class LeaseService
         } catch (\Exception $e) {
             Log::error('Error submitting application: ' . $e->getMessage());
             $payment->update([
-                'provider_request_data' => $gateway->getRequestData(),
-                'provider_response_data' => $gateway->getResponseData(),
+                'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
+                'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data,
                 'submitted_at' => now(),
                 'payment_status_id' => PaymentStatus::byIdentifier('error')?->id,
             ]);
@@ -30,8 +30,8 @@ class LeaseService
 
         // Update payment with response
         $result = $payment->update([
-            'provider_request_data' => $gateway->getRequestData(),
-            'provider_response_data' => $gateway->getResponseData(),
+            'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
+            'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data,
             'submitted_at' => now(),
             'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
             ...(
