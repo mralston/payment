@@ -100,7 +100,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                 'last_name' => $firstCustomer['lastName'],
             ],
             'address' => [
-                'full' => $installationAddress,
                 ...(!empty($installationAddress['udprn']) ? ['udprn' => $installationAddress['udprn']] : []),
                 ...(!empty($installationAddress['uprn']) ? ['uprn' => $installationAddress['uprn']] : []),
             ],
@@ -146,7 +145,6 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                                     $previousAddress ?
                                         [
                                             'previous_address' => [
-                                                'fullAddress' => $previousAddress,
                                                 ...(!empty($previousAddress['udprn']) ? ['udprn' => $previousAddress['udprn']] : []),
                                                 ...(!empty($previousAddress['uprn']) ? ['uprn' => $previousAddress['uprn']] : []),
                                             ]
