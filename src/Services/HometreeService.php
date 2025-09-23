@@ -20,43 +20,50 @@ class HometreeService
         }
 
         $hometreeLender = PaymentProvider::firstWhere('identifier', 'hometree');
-        $hometreePaymentType = PaymentType::firstWhere('identifier', 'lease');
+        $hometreePaymentType = PaymentType::firstWhere('i dentifier', 'lease');
 
         Payment::withoutEvents(function() use ($records, $hometreeLender, $hometreePaymentType) {
             Payment::withoutTimestamps(function () use ($hometreeLender, $records, $hometreePaymentType) {
                 $records->each(function($record) use ($hometreeLender, $hometreePaymentType) {
-                    $payment = Payment::updateOrCreate([
+                    $payment = Payment::firstOrNew([
                         'payment_provider_id' => $hometreeLender->id,
                         'provider_foreign_id' => $record['application-id'],
-                    ], [
-                        'uuid' => Str::uuid(),
-                        'reference' => $record['client-application-reference'] ?? null,
-                        'parentable_type' => Str::of(config('payment.parent_model'))->ltrim('\\'),
-                        'parentable_id' => $this->integerOrNull($record['client-application-reference'] ?? null),
-                        'payment_type_id' => $hometreePaymentType->id,
-                        'first_name' => $this->extractFirstNameFromString($record['customer-full-name']),
-                        'middle_name' => $this->extractMiddleNameFromString($record['customer-full-name']),
-                        'last_name' => $this->extractLastNameFromString($record['customer-full-name']),
-                        'addresses' => [[
-                            'address1' => $record['customer-address-line-1'],
-                            'address2' => $record['customer-address-line-2'],
-                            'town' => $record['customer-address-line-3'],
-                            'postCode' => $record['customer-postcode'],
-                            'udprn' => $this->integerOrNull($record['customer-udprn']),
-                            'uprn' => $this->integerOrNull($record['customer-uprn']),
-                        ]],
-                        'submitted_at' => $record['application-submitted-timestamp'],
-                        'decision_received_at' => $record['application-complete-timestamp'],
-                        'amount' => !blank($record['application-price']) ? Str::of($record['application-price'])->replace([',', '£'], '')->toFloat() : null,
-                        'payment_provider_id' => $hometreeLender->id,
-                        'first_payment' => !blank($record['upfront-payment-amount']) ? Str::of($record['upfront-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
-                        'monthly_payment' => !blank($record['monthly-payment-amount']) ? Str::of($record['monthly-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
-                        'term' => !blank($record['account-term']) ? $record['account-term'] * 12 : null,
-                        'total_payable' => !blank($record['total-payable']) ? Str::of($record['total-payable'])->replace([',', '£'], '')->toFloat() : null,
-                        'payment_status_id' => PaymentStatus::firstWhere('identifier', $this->translateStatus($record['application-status']))->id,
-                        'created_at' => $record['application-created-timestamp'],
-                        'was_referred' => false,
-                    ])->forceFill([
+                    ]);
+
+                    $payment->uuid = $payment->uuid ?? Str::uuid();
+                    $payment->reference = $record['client-application-reference'] ?? null;
+                    $payment->parentable_type = Str::of(config('payment.parent_model'))->ltrim('\\');
+
+                    if (! $payment->exists || is_null($payment->parentable_id)) {
+                        $payment->parentable_id = $this->integerOrNull($record['client-application-reference'] ?? null);
+                    }
+
+                    $payment->payment_type_id = $hometreePaymentType->id;
+                    $payment->first_name = $this->extractFirstNameFromString($record['customer-full-name']);
+                    $payment->middle_name = $this->extractMiddleNameFromString($record['customer-full-name']);
+                    $payment->last_name = $this->extractLastNameFromString($record['customer-full-name']);
+                    $payment->addresses = [[
+                        'address1' => $record['customer-address-line-1'],
+                        'address2' => $record['customer-address-line-2'],
+                        'town' => $record['customer-address-line-3'],
+                        'postCode' => $record['customer-postcode'],
+                        'udprn' => $this->integerOrNull($record['customer-udprn']),
+                        'uprn' => $this->integerOrNull($record['customer-uprn']),
+                    ]];
+                    $payment->submitted_at = $record['application-submitted-timestamp'];
+                    $payment->decision_received_at = $record['application-complete-timestamp'];
+                    $payment->amount = !blank($record['application-price']) ? Str::of($record['application-price'])->replace([',', '£'], '')->toFloat() : null;
+                    $payment->payment_provider_id = $hometreeLender->id;
+                    $payment->first_payment = !blank($record['upfront-payment-amount']) ? Str::of($record['upfront-payment-amount'])->replace([',', '£'], '')->toFloat() : null;
+                    $payment->monthly_payment = !blank($record['monthly-payment-amount']) ? Str::of($record['monthly-payment-amount'])->replace([',', '£'], '')->toFloat() : null;
+                    $payment->term = !blank($record['account-term']) ? $record['account-term'] * 12 : null;
+                    $payment->total_payable = !blank($record['total-payable']) ? Str::of($record['total-payable'])->replace([',', '£'], '')->toFloat() : null;
+                    $payment->payment_status_id = PaymentStatus::firstWhere('identifier', $this->translateStatus($record['application-status']))->id;
+                    $payment->created_at = $record['application-created-timestamp'];
+                    $payment->was_referred = false;
+
+                    // Force-fill fields that should always be refreshed on each webhook
+                    $payment->forceFill([
                         'decision_received_at' => $record['application-complete-timestamp'],
                         'term' => !blank($record['account-term']) ? $record['account-term'] * 12 : null,
                         'first_payment' => !blank($record['upfront-payment-amount']) ? Str::of($record['upfront-payment-amount'])->replace([',', '£'], '')->toFloat() : null,
@@ -65,7 +72,6 @@ class HometreeService
                         'payment_status_id' => PaymentStatus::firstWhere('identifier', $this->translateStatus($record['application-status']))->id,
                         'was_referred' => $this->translateStatus($record['application-status']) == 'referred',
                         'created_at' => $record['application-created-timestamp'],
-                        'updated_at' => now(),
                     ]);
 
                     if ($this->translateStatus($record['application-status']) == 'referred') {
