@@ -20,7 +20,7 @@ class HometreeService
         }
 
         $hometreeLender = PaymentProvider::firstWhere('identifier', 'hometree');
-        $hometreePaymentType = PaymentType::firstWhere('i dentifier', 'lease');
+        $hometreePaymentType = PaymentType::firstWhere('identifier', 'lease');
 
         Payment::withoutEvents(function() use ($records, $hometreeLender, $hometreePaymentType) {
             Payment::withoutTimestamps(function () use ($hometreeLender, $records, $hometreePaymentType) {
