@@ -151,19 +151,14 @@ class LeaseController
         $parentModel = $this->bootstrap($parent, $this->helper);
         $payment = $lease;
 
-        // In testing there have been some payments where the offer has been deleted
-        // This has likely been introduced by careless manipulation of the database, but a 404 is an appropriate response
-        if (empty($payment->paymentOffer)) {
-            abort(404, 'Payment offer not found');
-        }
-
         return Inertia::render('Lease/Show', [
             'parentModel' => $parentModel,
             'payment' => $payment->load([
                 'paymentProvider',
                 'paymentStatus',
+                'paymentProduct',
             ]),
-            'survey' => $payment->paymentOffer->paymentSurvey,
+            'survey' => $payment->paymentOffer?->paymentSurvey,
             'offer' => $payment->paymentOffer,
             'disableChangePaymentMethodAfterCancellation' => boolval($this->helper->disableChangePaymentMethodAfterCancellation()),
             'disableChangePaymentMethodAfterCancellationReason' => strval($this->helper->disableChangePaymentMethodAfterCancellation()),
