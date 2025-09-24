@@ -81,11 +81,11 @@ class SubmitSurveyRequest extends FormRequest
         if ($this->boolean('financeQuestionsCompleted')) {
             $rules = [
                 ...[
-                    'customers.*.maritalStatus' => 'required',
-                    'customers.*.residentialStatus' => 'required',
-                    'customers.*.nationality' => 'required',
-                    'customers.*.bankruptOrIva' => 'required',
-                    'customers.*.employmentStatus' => ['required', Rule::in(
+                    'customers.0.maritalStatus' => 'required',
+                    'customers.0.residentialStatus' => 'required',
+                    'customers.0.nationality' => 'required',
+                    'customers.0.bankruptOrIva' => 'required',
+                    'customers.0.employmentStatus' => ['required', Rule::in(
                         PaymentLookupField::byIdentifier(LookupField::EMPLOYMENT_STATUS)
                             ?->paymentLookupValues
                             ?->pluck('value')
