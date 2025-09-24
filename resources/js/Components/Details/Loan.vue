@@ -4,6 +4,7 @@ import moment from 'moment';
 import DetailsRow from './DetailsRow.vue';
 import Card from '../Card.vue';
 import { Icon } from '@iconify/vue';
+import {makeNumeric} from "../../Helpers/Number.js";
 
 const props = defineProps({
     payment: {
@@ -42,7 +43,7 @@ const props = defineProps({
                     />
                     <DetailsRow
                         label="Cash price"
-                        :value="formatCurrency(payment.amount)"
+                        :value="formatCurrency(payment.total_cost ?? (makeNumeric(payment.amount) + makeNumeric(payment.deposit)))"
                     />
                     <DetailsRow
                         label="Deposit"

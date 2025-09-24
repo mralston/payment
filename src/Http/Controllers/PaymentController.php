@@ -156,10 +156,11 @@ class PaymentController
 
     public function show(Payment $payment)
     {
-        $survey = $payment->parentable->paymentSurvey;
+        $helper = app(PaymentHelper::class);
 
-        $helper = app(PaymentHelper::class)
-            ->setParentModel($payment->parentable);
+        if (!empty($payment->parentable)) {
+            $helper->setParentModel($payment->parentable);
+        }
 
         return Inertia::render('Payment/Show', [
             'payment' => $payment
@@ -172,8 +173,9 @@ class PaymentController
                     'paymentCancellations.user',
                     'paymentOffer',
                     'employmentStatus',
+                    'nationalityValue',
                 ]),
-            'products' => $helper->getBasketItems(),
+            'products' => !empty($payment->parentable) ? $helper->getBasketItems() : [],
         ])->withViewData($this->helper->getViewData());
     }
 

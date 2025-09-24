@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue';
 import DetailsRow from './DetailsRow.vue';
 import Card from '../Card.vue';
 import moment from 'moment';
+import {titleCase} from "../../Helpers/Strings.js";
 
 const props = defineProps({
     payment: {
@@ -26,12 +27,12 @@ const props = defineProps({
                     :value="moment(payment.date_of_birth).isBefore(moment().subtract(21, 'years')) ? 'Yes' : 'No'"
                 />
                 <DetailsRow
-                    label="Is UK resident?"
-                    :value="payment.british_citizen ? 'Yes' : 'No'"
+                    label="Nationality"
+                    :value="payment.nationality_value?.name"
                 />
                 <DetailsRow
-                    label="Owns own property?"
-                    :value="payment.homeowner_status ? 'Yes' : 'No'"
+                    label="Residential Status"
+                    :value="titleCase(payment.residential_status)"
                 />
                 <DetailsRow
                     label="Has a UK bank account"

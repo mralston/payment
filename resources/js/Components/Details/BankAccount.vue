@@ -21,8 +21,8 @@ const props = defineProps({
         <div class="flex flex-row gap-4 max-md:flex-col">
             <div class="w-1/2 max-md:w-full">
                 <DetailsRow label="Account Holder" :value="payment.bank_account_holder_name" />
-                <DetailsRow label="Sort code" :value="payment.bank_sort_code" />
-                <DetailsRow label="Account Number" :value="payment.bank_account_number" />
+                <DetailsRow label="Sort code" :value="payment.bank_account_sort_code" />
+                <DetailsRow label="Account Number" :value="payment.bank_account_number.substring(0, 2) + '****' + payment.bank_account_number.substring(6, 8)" />
             </div>
             <div class="w-1/2 max-md:w-full">
                 <DetailsRow label="Bank name" :value="payment.bank_name" />

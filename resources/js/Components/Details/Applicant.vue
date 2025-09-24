@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue';
 import DetailsRow from './DetailsRow.vue';
 import Card from '../Card.vue';
 import moment from 'moment';
+import {titleCase} from "../../Helpers/Strings.js";
 
 const props = defineProps({
     payment: {
@@ -57,7 +58,7 @@ const props = defineProps({
                 />
                 <DetailsRow
                     label="Marital status"
-                    :value="payment.marital_status"
+                    :value="titleCase(payment.marital_status)"
                 />
                 <DetailsRow
                     label="Number of dependents"

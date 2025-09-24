@@ -32,27 +32,27 @@ const props = defineProps({
                 <h2 v-else class="text-xl font-bold">Previous Address</h2>
                 <DetailsRow
                     label="House"
-                    :value="address.house_number"
+                    :value="payment.addresses[0]?.house_number"
                 />
                 <DetailsRow
                     label="Line 1"
-                    :value="address.address1"
+                    :value="payment.addresses[0]?.address1"
                 />
                 <DetailsRow
                     label="Line 2"
-                    :value="address.address2"
+                    :value="payment.addresses[0]?.address2"
                 />
                 <DetailsRow
                     label="Town"
-                    :value="address.town"
+                    :value="payment.addresses[0]?.town"
                 />
                 <DetailsRow
                     label="County"
-                    :value="address.county"
+                    :value="payment.addresses[0]?.county"
                 />
                 <DetailsRow
-                    label="Post code"
-                    :value="address.postcode"
+                    label="Post Code"
+                    :value="payment.addresses[0]?.postCode"
                 />
             </div>
         </div>
