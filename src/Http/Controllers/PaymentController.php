@@ -56,7 +56,10 @@ class PaymentController
                         ->orWhere('payments.parentable_id', $request->input('search'))
                         ->orWhere('payments.first_name', 'LIKE', '%' . $request->input('search') . '%')
                         ->orWhere('payments.last_name', 'LIKE', '%' . $request->input('search') . '%')
-                        ->orWhereRaw('addresses->>\'$[0].postCode\' LIKE ?', '%' . $request->input('search') . '%')
+                        ->orWhereRaw(
+                            "LOWER(addresses->>'$[0].postCode') LIKE LOWER(?)",
+                            ['%' . $request->input('search') . '%']
+                        )
                         ->orWhere('payment_statuses.name', 'LIKE', '%' . $request->input('search') . '%')
                         ->orWhere('payment_providers.name', 'LIKE', '%' . $request->input('search') . '%')
                         ->orWhere($userTable . '.name', 'LIKE', '%' . $request->input('search') . '%')
