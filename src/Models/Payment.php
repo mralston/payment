@@ -155,6 +155,18 @@ class Payment extends Model
         'payment_status_id' => 1
     ];
 
+    /**
+     * Ensure route model binding uses a fully-qualified column name,
+     * avoiding ambiguous "id" when global scopes add joins.
+     */
+    public function resolveRouteBindingQuery($query, $value, $field = null)
+    {
+        $field = $field ?: $this->getRouteKeyName(); // default 'id' unless customized
+
+        // qualifyColumn('id') -> 'payments.id'
+        return $query->where($this->qualifyColumn($field), $value);
+    }
+
     public function parentable(): MorphTo
     {
         return $this->morphTo();
