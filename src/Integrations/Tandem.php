@@ -286,19 +286,20 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         return 'online';
     }
 
-    public function getSigningUrl(Payment $payment): string
+    public function getSigningUrl(Payment $payment, ?string $returnUrl = null): string
     {
+        $data = [
+            'returnURL' => $returnUrl
+        ];
+
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
-            ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationSigningLink', [])
-            ->throw();
+            ->post($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationSigningLink', $data)
+            ->throw()
+            ->json();
 
-        $json = $response->json();
-        // Work around for dev API bug. Hopefully due to be fixed upstream
-        $json['signingLink'] = str_replace('honeycombexternal.com', 'alliummoney.co.uk', $json['signingLink']);
-
-        return $json['signingLink'];
+        return $response['signingLink'];
     }
 
     /**

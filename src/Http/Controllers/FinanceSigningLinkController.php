@@ -2,19 +2,14 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
-use Mralston\Payment\Interfaces\Signable;
+use Exception;
+use Illuminate\Http\Client\RequestException;
 use Mralston\Payment\Models\Payment;
 
 class FinanceSigningLinkController
 {
     public function show(Payment $payment)
     {
-//        //test
-//        return [
-//            'success' => true,
-//            'error' => null,
-//            'url' => 'https://www.google.com'
-//        ];
         try {
             return [
                 'success' => true,
@@ -23,7 +18,13 @@ class FinanceSigningLinkController
                     ->gateway()
                     ->getSigningUrl($payment)
             ];
-        } catch (\Exception $e) {
+        } catch (RequestException $e) {
+            return response()->json([
+                'success' => false,
+                'error' => $e->response->body(),
+                'url' => null,
+            ]);
+        } catch (Exception $e) {
             return response()->json([
                 'success' => false,
                 'error' => $e->getMessage(),
