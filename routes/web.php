@@ -25,8 +25,8 @@ Route::post('webhook/tandem/{uuid}', [WebhookController::class, 'tandem'])
  * Hometree webhook
  */
 Route::middleware('auth:sanctum')->group(function () {
-    Route::post('webhook/hometree', [WebhookController::class, 'hometree'])
-        ->name('webhook.hometree');
+    Route::post('payments/webhook/hometree', [WebhookController::class, 'hometree'])
+        ->name('payment.webhook.hometree');
 });
 
 Route::group(['middleware' => ['web', 'auth']], function () {
