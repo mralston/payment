@@ -212,7 +212,7 @@ class Payment extends Model
     public function residentialStatus(): BelongsTo
     {
         return $this->belongsTo(PaymentLookupValue::class, 'residential_status', 'value')
-            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::RESIDENTIAL_STATUS)->id)->dd();
+            ->where('payment_lookup_field_id', PaymentLookupField::byIdentifier(LookupField::RESIDENTIAL_STATUS)->id);
     }
 
     public function employmentStatus(): BelongsTo
