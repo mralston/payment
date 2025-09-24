@@ -103,6 +103,8 @@ class SurveyController
                 ->paymentLookupValues,
             'currentAccountForBusinesses' => PaymentLookupField::byIdentifier(LookupField::CURRENT_ACCOUNT_FOR_BUSINESS)
                 ->paymentLookupValues,
+            'titles' => PaymentLookupField::byIdentifier(LookupField::TITLE)
+                ->paymentLookupValues,
             'title' => 'Lease Survey',
             'allowSkip' => false,
             'showBasicQuestions' => true,
@@ -136,6 +138,8 @@ class SurveyController
             'bankruptOrIvas' => PaymentLookupField::byIdentifier(LookupField::BANKRUPT_OR_IVA)
                 ->paymentLookupValues,
             'currentAccountForBusinesses' => PaymentLookupField::byIdentifier(LookupField::CURRENT_ACCOUNT_FOR_BUSINESS)
+                ->paymentLookupValues,
+            'titles' => PaymentLookupField::byIdentifier(LookupField::TITLE)
                 ->paymentLookupValues,
             'allowSkip' => false,
             'showBasicQuestions' => false,
