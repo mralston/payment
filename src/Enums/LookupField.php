@@ -9,6 +9,6 @@ enum LookupField: string
     case EMPLOYMENT_STATUS = 'employment_status';
     case NATIONALITY = 'nationality';
     case BANKRUPT_OR_IVA = 'bankrupt_or_iva';
-
     case CURRENT_ACCOUNT_FOR_BUSINESS = 'current_account_for_business';
+    case TITLE = 'title';
 }

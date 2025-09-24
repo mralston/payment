@@ -35,6 +35,11 @@ class SubmitSurveyRequest extends FormRequest
                 ...[
                     // Customer validation rules
                     'customers' => ['required', 'array', 'min:1'],
+                    'customers.*.title' => ['required', Rule::in(
+                        PaymentLookupField::byIdentifier(LookupField::TITLE)
+                            ?->paymentLookupValues
+                            ?->pluck('value')
+                    )],
                     'customers.*.firstName' => ['required', 'string', 'max:255'],
                     'customers.*.middleName' => ['nullable', 'string', 'max:255'],
                     'customers.*.lastName' => ['required', 'string', 'max:255'],
@@ -119,6 +124,7 @@ class SubmitSurveyRequest extends FormRequest
     {
         return [
             'customers.required' => 'You must enter at least one customer.',
+            'customers.*.title.required' => 'You must enter a title.',
             'customers.*.firstName.required' => 'You must enter a first name.',
             'customers.*.lastName.required' => 'You must enter a last name.',
             'customers.*.email.required' => 'You must enter an email address.',

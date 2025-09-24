@@ -34,7 +34,7 @@ class PaymentLookupFieldTableSeeder extends Seeder
                     'propensio' => 'W',
                 ]],
                 ['name' => 'Cohabiting', 'value' => 'cohabiting', 'payment_provider_values' => [
-                    'tandem' => 'cohabiting',
+                    'tandem' => 'living_together',
                     'propensio' => 'N',
                 ]],
                 ['name' => 'Separated', 'value' => 'separated', 'payment_provider_values' => [
@@ -150,6 +150,24 @@ class PaymentLookupFieldTableSeeder extends Seeder
                 ['name' => 'No', 'value' => 'no', 'payment_provider_values' => [
                     'hometree' => 0,
                 ]],
+            ]);
+
+        PaymentLookupField::create([
+            'name' => 'Title',
+            'identifier' => 'title',
+        ])->paymentLookupValues()
+            ->createMany([
+                ['name' => 'Mr', 'value' => 'Mr'],
+                ['name' => 'Mrs', 'value' => 'Mrs'],
+                ['name' => 'Ms', 'value' => 'Ms'],
+                ['name' => 'Miss', 'value' => 'Miss'],
+                ['name' => 'Mx', 'value' => 'Mx'],
+                ['name' => 'Dr', 'value' => 'Dr'],
+                ['name' => 'Lady', 'value' => 'Lady'],
+                ['name' => 'Prof', 'value' => 'Prof'],
+                ['name' => 'Rev', 'value' => 'Rev'],
+                ['name' => 'Sir', 'value' => 'Sir'],
+                ['name' => 'Prefer not to say', 'value' => 'Other'],
             ]);
     }
 }

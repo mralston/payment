@@ -56,6 +56,7 @@ const props = defineProps({
     residentialStatuses: Array,
     nationalities: Array,
     bankruptOrIvas: Array,
+    titles: Array,
 });
 
 const form = useForm({
@@ -98,6 +99,7 @@ function selectHome(index) {
 
 function addCustomer() {
     form.customers.push({
+        title: null,
         firstName: null,
         middleName: null,
         lastName: null,
@@ -253,7 +255,19 @@ function unselectOffer() {
                     </div>
                     <div class="bg-gray-50 p-4">
 
-                        <div class="grid grid-cols-3 gap-6 mb-4">
+                        <div class="grid grid-cols-4 gap-6 mb-4">
+
+                            <div class="mb-4">
+                                <label :for="`customers.${index}.title`" class="block text-sm/6 font-medium text-gray-900">Title</label>
+                                <ValidationWrapper :form="form" :field="`customers.${index}.title`">
+                                    <select v-model="customer.title" :id="`customers.${index}.title`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                        <option></option>
+                                        <option v-for="title in titles" :key="title.id" :value="title.value">
+                                            {{ title.name }}
+                                        </option>
+                                    </select>
+                                </ValidationWrapper>
+                            </div>
 
                             <div class="mb-4">
                                 <label :for="`customers.${index}.firstName`" class="block text-sm/6 font-medium text-gray-900">First name</label>
