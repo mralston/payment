@@ -25,6 +25,14 @@ class HometreeService
         Payment::withoutEvents(function() use ($records, $hometreeLender, $hometreePaymentType) {
             Payment::withoutTimestamps(function () use ($hometreeLender, $records, $hometreePaymentType) {
                 $records->each(function($record) use ($hometreeLender, $hometreePaymentType) {
+                    // Skip unselected applications (we don't want to create payments for these)
+                    if (
+                        $record['application-status'] == 'pending-applicants' ||
+                        $record['application-status'] == 'pending-customer-choice'
+                    ) {
+                        return;
+                    }
+
                     $payment = Payment::firstOrNew([
                         'payment_provider_id' => $hometreeLender->id,
                         'provider_foreign_id' => $record['application-id'],
