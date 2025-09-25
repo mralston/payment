@@ -29,7 +29,7 @@ trait HasPayments
     {
         return $this->morphOne(PaymentOffer::class, 'parentable')
             ->where('selected', true)
-            ->latest();
+            ->latest('payment_offers.created_at');
     }
 
     public function activePayment(): MorphOne
