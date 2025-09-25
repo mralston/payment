@@ -77,6 +77,7 @@ class SubmitSurveyRequest extends FormRequest
 
         if ($this->boolean('leaseQuestionsCompleted')) {
             $rules = [
+                ...$rules,
                 ...[
 
                 ]
@@ -85,6 +86,7 @@ class SubmitSurveyRequest extends FormRequest
 
         if ($this->boolean('financeQuestionsCompleted')) {
             $rules = [
+                ...$rules,
                 ...[
                     'customers.0.maritalStatus' => 'required',
                     'customers.0.residentialStatus' => 'required',

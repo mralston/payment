@@ -142,7 +142,7 @@ class SurveyController
             'titles' => PaymentLookupField::byIdentifier(LookupField::TITLE)
                 ->paymentLookupValues,
             'allowSkip' => false,
-            'showBasicQuestions' => false,
+            'showBasicQuestions' => ! $survey->basic_questions_completed,
             'showFinanceQuestions' => true,
             'canChangePaymentMethod' => true,
             'redirect' => route('payment.finance.create', ['parent' => $parent, 'offerId' => $request->get('offerId')]),

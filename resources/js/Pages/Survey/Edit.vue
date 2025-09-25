@@ -221,7 +221,7 @@ function unselectOffer() {
             <span v-else>Change Payment Option</span>
         </button>
 
-        <ValidationBanner :form="form" class="mr-16"/>
+        <ValidationBanner :form="form" :class="{ 'mr-16': !canChangePaymentMethod, 'mr-48': canChangePaymentMethod }"/>
 
         <h1 class="text-4xl font-bold mb-4">{{ title }}</h1>
 
@@ -451,6 +451,8 @@ function unselectOffer() {
         </section>
 
         <section v-if="showFinanceQuestions" class="mb-4">
+
+            <h2 class="text-xl font-bold mb-4">Section 3: Financial Information</h2>
 
             <p class="mb-4">{{ financeIntroText }}</p>
 
