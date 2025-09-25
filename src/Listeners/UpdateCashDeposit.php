@@ -33,6 +33,10 @@ class UpdateCashDeposit implements ShouldQueue
             return;
         }
 
+        if (empty($survey)) {
+            return;
+        }
+
         $defaultDeposit = config('payment.default_cash_deposit');
 
         if (Str::of($defaultDeposit)->endsWith('%')) {
