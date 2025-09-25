@@ -11,6 +11,7 @@ use Mralston\Payment\Data\CancellationData;
 use Mralston\Payment\Events\PaymentCancelled;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
+use Mralston\Payment\Interfaces\Signable;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
@@ -179,6 +180,9 @@ class PaymentController
                     'nationalityValue',
                 ]),
             'products' => !empty($payment->parentable) ? $helper->getBasketItems() : [],
+            'paymentProviderSupportsRemoteSigning' => $payment
+                ->paymentProvider
+                ->gateway() instanceof Signable,
         ])->withViewData($this->helper->getViewData());
     }
 

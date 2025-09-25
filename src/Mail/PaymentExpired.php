@@ -3,24 +3,24 @@
 namespace Mralston\Payment\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
 use Mralston\Payment\Models\Payment;
 
-class CancelManually extends Mailable implements ShouldQueue
+class PaymentExpired extends Mailable
 {
     use Queueable;
     use SerializesModels;
 
     /**
      * Create a new message instance.
+     *
+     * @return void
      */
     public function __construct(
-        public Payment $payment,
-        public ?string $reason = null,
+        public Payment $payment
     ) {
         //
     }
@@ -31,7 +31,7 @@ class CancelManually extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Cancellation',
+            subject: 'Payment Expired',
         );
     }
 
@@ -41,17 +41,11 @@ class CancelManually extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'payment::mail.cancel_manually',
+            markdown: 'payment::mail.payment_expired',
+            with: [
+                'parent' => $this->payment->parentable,
+                'rep' => $this->payment->parentable->user ?? null,
+            ]
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }

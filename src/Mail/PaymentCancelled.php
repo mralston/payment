@@ -3,26 +3,29 @@
 namespace Mralston\Payment\Mail;
 
 use Illuminate\Bus\Queueable;
-use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\Payment;
 
-class CancelManually extends Mailable implements ShouldQueue
+class PaymentCancelled extends Mailable
 {
     use Queueable;
     use SerializesModels;
 
+    protected PaymentHelper $helper;
+
     /**
      * Create a new message instance.
+     *
+     * @return void
      */
     public function __construct(
         public Payment $payment,
-        public ?string $reason = null,
     ) {
-        //
+        $this->helper = app(PaymentHelper::class);
     }
 
     /**
@@ -31,7 +34,7 @@ class CancelManually extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Cancellation',
+            subject: 'Payment Cancelled',
         );
     }
 
@@ -41,17 +44,14 @@ class CancelManually extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'payment::mail.cancel_manually',
+            markdown: 'payment::mail.payment_cancelled',
+            with: [
+                'cancellation' => $this->payment->last_cancellation,
+                'parent' => $this->payment->parentable,
+                'rep' => $this->payment->parentable->user ?? null,
+                'parentModelDescription' => config('payment.parent_model_description'),
+                'parentRouteName' => $this->helper->getParentRouteName(),
+            ]
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }

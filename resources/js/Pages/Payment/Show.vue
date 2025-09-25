@@ -17,6 +17,7 @@ import { PaymentProvider } from '../../Enums/PaymentProvider';
 const props = defineProps({
     payment: Object,
     products: Array,
+    paymentProviderSupportsRemoteSigning: Boolean,
 });
 
 const crumbs = ref([
@@ -70,6 +71,7 @@ const paymentType = computed(() => {
             <Summary
                 :payment="payment"
                 :paymentType="paymentType"
+                :payment-provider-supports-remote-signing="paymentProviderSupportsRemoteSigning"
             />
 
         </div>

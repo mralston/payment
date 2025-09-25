@@ -7,6 +7,7 @@ use Mralston\Payment\Http\Controllers\FinanceController;
 use Mralston\Payment\Http\Controllers\LeaseController;
 use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\PaymentOptionsController;
+use Mralston\Payment\Http\Controllers\RemoteSignController;
 use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
 use Mralston\Payment\Http\Controllers\WebhookController;
@@ -28,6 +29,12 @@ Route::middleware('auth:sanctum')->group(function () {
     Route::post('payments/webhook/hometree', [WebhookController::class, 'hometree'])
         ->name('payment.webhook.hometree');
 });
+
+/**
+ * Remote sign
+ */
+Route::get('payments/remote-sign/{payment}', [RemoteSignController::class, 'remoteSign'])
+    ->name('payment.remote-sign');
 
 Route::group(['middleware' => ['web', 'auth']], function () {
 
@@ -102,5 +109,8 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
             Route::get('finance/{payment}/signing-link', [FinanceSigningLinkController::class, 'show'])
                 ->name('finance.signing-link');
+
+            Route::post('payments/send-remote-sign-link/{payment}', [RemoteSignController::class, 'sendRemoteSignLink'])
+                ->name('send-remote-sign-link');
     });
 });

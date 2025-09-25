@@ -6,7 +6,6 @@ use Mralston\Payment\Console\Commands\PollPaymentStatus;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Sanctum\Sanctum;
-use Mralston\Payment\Console\Commands\RepairPaymentOffers;
 use Mralston\Payment\Integrations\Hometree;
 use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
@@ -63,7 +62,6 @@ class PaymentServiceProvider extends ServiceProvider
 
         $this->commands([
             PollPaymentStatus::class,
-            RepairPaymentOffers::class,
         ]);
 
         $this->app->singleton(PaymentHelper::class, function ($app) {
@@ -119,8 +117,8 @@ class PaymentServiceProvider extends ServiceProvider
                 'sanctum.guard' => ['web'],
                 'sanctum.expiration' => null,
                 'sanctum.middleware' => [
-                    'verify_csrf_token' => App\Http\Middleware\VerifyCsrfToken::class,
-                    'encrypt_cookies' => App\Http\Middleware\EncryptCookies::class,
+                    'verify_csrf_token' => \App\Http\Middleware\VerifyCsrfToken::class,
+                    'encrypt_cookies' => \App\Http\Middleware\EncryptCookies::class,
                 ],
             ]);
         }

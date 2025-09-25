@@ -8,19 +8,21 @@ use Illuminate\Mail\Mailable;
 use Illuminate\Mail\Mailables\Content;
 use Illuminate\Mail\Mailables\Envelope;
 use Illuminate\Queue\SerializesModels;
+use Mralston\Payment\Interfaces\Signable;
 use Mralston\Payment\Models\Payment;
 
-class CancelManually extends Mailable implements ShouldQueue
+class PaymentAccepted extends Mailable implements ShouldQueue
 {
     use Queueable;
     use SerializesModels;
 
     /**
      * Create a new message instance.
+     *
+     * @return void
      */
     public function __construct(
-        public Payment $payment,
-        public ?string $reason = null,
+        public Payment $payment
     ) {
         //
     }
@@ -31,7 +33,7 @@ class CancelManually extends Mailable implements ShouldQueue
     public function envelope(): Envelope
     {
         return new Envelope(
-            subject: 'Cancellation',
+            subject: 'Payment Accepted',
         );
     }
 
@@ -41,17 +43,13 @@ class CancelManually extends Mailable implements ShouldQueue
     public function content(): Content
     {
         return new Content(
-            markdown: 'payment::mail.cancel_manually',
+            markdown: 'payment::mail.payment_accepted',
+            with: [
+                'rep' => $this->payment->parentable->user ?? null,
+                'signingMethod' => $this->payment->paymentProvider->gateway() instanceof Signable ?
+                    $this->payment->paymentProvider->gateway()->signingMethod() :
+                    null,
+            ]
         );
-    }
-
-    /**
-     * Get the attachments for the message.
-     *
-     * @return array<int, \Illuminate\Mail\Mailables\Attachment>
-     */
-    public function attachments(): array
-    {
-        return [];
     }
 }

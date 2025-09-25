@@ -13,6 +13,7 @@ const props = defineProps({
         type: String,
         required: true,
     },
+    paymentProviderSupportsRemoteSigning: Boolean,
 });
 </script>
 
@@ -20,7 +21,7 @@ const props = defineProps({
     <div class="p-10 bg-white border border-[#ed6058] rounded-lg">
         <h1 class="text-xl font-bold flex flex-row gap-2 items-center"><Icon icon="fa6-solid:file-invoice" /> Summary</h1>
         <div class="mt-10 flex flex-col gap-8">
-            <SigningLink :payment="payment" />
+            <SigningLink v-if="paymentProviderSupportsRemoteSigning" :payment="payment" />
             <DetailsRow
                 icon="fa6-solid:file-invoice"
                 :stack="true"

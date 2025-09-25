@@ -2,6 +2,7 @@
 import Button from './Button.vue';
 import Modal from './Modal.vue';
 import { ref } from 'vue';
+import axios from "axios";
 
 const props = defineProps({
     payment: {
@@ -13,7 +14,8 @@ const props = defineProps({
 const isGettingSigningLink = ref(false);
 const signingLink = ref({ success: null, url: '' });
 const signingLinkModal = ref(null);
-const copyStatus = ref('');
+const copyStatus = ref(null);
+const sendStatus = ref(null);
 const error = ref(null);
 
 function getSigningLink()
@@ -62,6 +64,20 @@ async function copyToClipboard(text) {
         }, 2000);
     }
 }
+
+function send()
+{
+    sendStatus.value = 'Sending...';
+
+    axios.post(route('payment.send-remote-sign-link', props.payment))
+        .then(response => {
+            sendStatus.value = 'Sent';
+        })
+        .catch(error => {
+            sendStatus.value = 'Failed';
+        });
+}
+
 </script>
 
 <template>
@@ -73,7 +89,7 @@ async function copyToClipboard(text) {
 
     <Modal
         ref="signingLinkModal"
-        type="question"
+        type="info"
         title="Signing Link"
         class=""
         :buttons="['ok']"
@@ -88,6 +104,14 @@ async function copyToClipboard(text) {
                     size="sm"
                     @click="copyToClipboard(signingLink.url)">
                     {{ copyStatus || 'Copy' }}
+                </Button>
+                <Button
+                    class="bg-green-500 text-white"
+                    type="secondary"
+                    size="sm"
+                    @click="send"
+                    :disabled="sendStatus === 'Sent'">
+                    {{ sendStatus || 'Send' }}
                 </Button>
             </div>
             <div v-else>

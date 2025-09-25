@@ -11,6 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Str;
 use Mralston\Payment\Enums\LookupField;
 use Mralston\Payment\Events\PaymentUpdated;
@@ -190,6 +191,17 @@ class Payment extends Model
     public function paymentCancellations(): HasMany
     {
         return $this->hasMany(PaymentCancellation::class);
+    }
+
+    public function lastCancellation(): Attribute
+    {
+        return Attribute::get(function () {
+            return Cache::remember('payment-' . ($this->id ?? 0) . '-last_cancellation', 1, function () {
+                return $this->paymentCancellations()
+                    ->orderBy('created_at', 'DESC')
+                    ->first();
+            });
+        });
     }
 
     public function paymentOffer(): BelongsTo
