@@ -7,6 +7,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
+use Mralston\Epvs\Models\FinanceLender as EpvsFinanceLender;
 
 class PaymentProvider extends Model
 {
@@ -49,5 +50,10 @@ class PaymentProvider extends Model
     public function paymentType()
     {
         return $this->belongsTo(PaymentType::class);
+    }
+
+    public function epvsFinanceLender()
+    {
+        return $this->belongsTo(EpvsFinanceLender::class);
     }
 }
