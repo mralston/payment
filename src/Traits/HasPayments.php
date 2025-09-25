@@ -54,7 +54,7 @@ trait HasPayments
     public function paymentIsLoan(): bool
     {
         return $this->activePayment?->paymentProvider?->paymentType?->identifier === 'finance' ||
-            $this->selectedPaymentOffer()?->type === 'finance';
+            $this->selectedPaymentOffer?->type === 'finance';
     }
 
     public function paymentIsNotLoan(): bool
@@ -65,7 +65,7 @@ trait HasPayments
     public function paymentIsLease(): bool
     {
         return $this->activePayment?->paymentProvider?->paymentType?->identifier === 'lease' ||
-            $this->selectedPaymentOffer()?->type === 'lease';
+            $this->selectedPaymentOffer?->type === 'lease';
     }
 
     public function paymentIsNotLease(): bool
