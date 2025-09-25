@@ -52,19 +52,22 @@ class PaymentController
                 ->join($parentTable, 'payments.parentable_id', '=', $parentTable . '.id')
                 ->join($userTable, $parentTable . '.user_id', '=', $userTable . '.id')
                 ->where(function ($query) use ($request, $userTable) {
-                    $query->where('payments.id', $request->input('search'))
-                        ->orWhere('payments.reference', 'LIKE', '%' . $request->input('search') . '%')
-                        ->orWhere('payments.parentable_id', $request->input('search'))
-                        ->orWhere('payments.first_name', 'LIKE', '%' . $request->input('search') . '%')
-                        ->orWhere('payments.last_name', 'LIKE', '%' . $request->input('search') . '%')
-                        ->orWhereRaw(
-                            "LOWER(addresses->>'$[0].postCode') LIKE LOWER(?)",
-                            ['%' . $request->input('search') . '%']
-                        )
-                        ->orWhere('payment_statuses.name', 'LIKE', '%' . $request->input('search') . '%')
-                        ->orWhere('payment_providers.name', 'LIKE', '%' . $request->input('search') . '%')
-                        ->orWhere($userTable . '.name', 'LIKE', '%' . $request->input('search') . '%')
-                    ;
+                    $query
+                        ->when(!empty($request->input('search.id')), fn($query) => $query->where('payments.id', $request->input('search.id')))
+                        ->when(!empty($request->input('search.created_at')), fn($query) => $query->where('payments.created_at', 'like', $request->input('search.created_at') . '%'))
+                        ->when(!empty($request->input('search.reference')), fn($query) => $query->where('payments.reference', 'like', '%' . $request->input('search.reference') . '%'))
+                        ->when(!empty($request->input('search.parentable_id')), fn($query) => $query->where('payments.parentable_id', $request->input('search.parentable_id')))
+                        ->when(!empty($request->input('search.customer')), fn($query) => $query->whereRaw('CONCAT(payments.first_name, \' \', payments.last_name) LIKE ?', ['%' . $request->input('search.customer') . '%']))
+                        ->when(!empty($request->input('search.post_code')), fn($query) => $query->whereRaw('LOWER(addresses->>\'$[0].postCode\') LIKE LOWER(?)', ['%' . $request->input('search.post_code') . '%']))
+                        ->when(!empty($request->input('search.amount')), fn($query) => $query->where('payments.amount', $request->input('search.amount')))
+                        ->when(!empty($request->input('search.deposit')), fn($query) => $query->where('payments.deposit', $request->input('search.deposit')))
+                        ->when(!empty($request->input('search.apr')), fn($query) => $query->where('payments.apr', $request->input('search.apr')))
+                        ->when(!empty($request->input('search.term')), fn($query) => $query->where('payments.term', $request->input('search.term')))
+                        ->when(!empty($request->input('search.deferred')), fn($query) => $query->where('payments.deferred', $request->input('search.deferred')))
+                        ->when(!empty($request->input('search.status')), fn($query) => $query->where('payment_statuses.name', 'like', '%' . $request->input('search.status') . '%'))
+                        ->when(!empty($request->input('search.gateway')), fn($query) => $query->where('payment_providers.name', 'like', '%' . $request->input('search.gateway') . '%'))
+                        ->when(!empty($request->input('search.subsidy')), fn($query) => $query->where('payments.subsidy', $request->input('search.subsidy')))
+                        ->when(!empty($request->input('search.user')), fn($query) => $query->where($userTable . '.name', 'like', '%' . $request->input('search.user') . '%'));
                 })
                 ->when($request->filled('sort'), function ($query) use ($request, $userTable) {
                     $dir = strtolower($request->input('direction', 'asc')) === 'desc' ? 'desc' : 'asc';
@@ -92,17 +95,17 @@ class PaymentController
                 }, function ($query) {
                     $query->orderBy('payments.created_at', 'desc');
                 })
-                ->paginate($request->input('per_page', 10))
+                ->paginate($request->input('per_page', 20))
                 ->appends([
                     'search' => $request->input('search'),
-                    'sort' => $request->input('sort'),
-                    'direction' => $request->input('direction'),
+                    'sort' => $request->input('sort', 'created_at'),
+                    'direction' => $request->input('direction', 'desc'),
                 ]),
             'parentRouteName' => $this->helper->getParentRouteName(),
             'parentModelDescription' => config('payment.parent_model_description'),
             'search' => $request->input('search'),
-            'sort' => $request->input('sort'),
-            'direction' => $request->input('direction', 'asc'),
+            'sort' => $request->input('sort', 'created_at'),
+            'direction' => $request->input('direction', 'desc'),
         ])
             ->withViewData($this->helper->getViewData());
     }

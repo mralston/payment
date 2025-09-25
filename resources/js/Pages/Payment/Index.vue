@@ -15,14 +15,30 @@ const props = defineProps({
         type: String,
         default: 'Parent Model',
     },
-    search: String,
+    search: Object,
     sort: String,
     direction: String,
 });
 
 const form = useForm({
     perPage: props.payments.per_page,
-    search: props.search,
+    search: props.search ?? {
+        id: null,
+        created_at: null,
+        reference: null,
+        parentable_id: null,
+        customer: null,
+        post_code: null,
+        amount: null,
+        deposit: null,
+        apr: null,
+        term: null,
+        deferred: null,
+        status: null,
+        gateway: null,
+        subsidy: null,
+        user: null,
+    },
     sort: props.sort ?? 'created_at',
     direction: props.direction ?? 'desc',
 });
@@ -41,20 +57,17 @@ watch(() => form.perPage, () => {
     }));
 }, {deep: true});
 
-watch(() => form.search, () => {
-    clearTimeout(searchTimeout);
-    searchTimeout = setTimeout(() => {
-        router.get(route('payments.index'), {
-            search: form.search,
-            per_page: form.perPage,
-            sort: form.sort,
-            direction: form.direction
-        }, {
-            preserveState: true,
-            replace: true,
-        });
-    }, 300); // 300ms delay
-});
+function search() {
+    router.get(route('payments.index'), {
+        search: form.search,
+        per_page: form.perPage,
+        sort: form.sort,
+        direction: form.direction
+    }, {
+        preserveState: true,
+        replace: true,
+    });
+}
 
 function toggleSort(field) {
     if (form.sort === field) {
@@ -92,26 +105,26 @@ function dataTableSortClass(field) {
     <div class="p-10">
         <h1 class="text-4xl font-bold mb-4">Payments</h1>
 
-        <div class="grid grid-cols-2">
-            <div>
-                <label class="block text-sm/6 font-medium text-gray-900 dark:text-white">
-                    Show
-                    <select v-model="form.perPage" class="rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:*:bg-gray-800 dark:focus-visible:outline-indigo-500">
-                        <option value="10">10</option>
-                        <option value="25">25</option>
-                        <option value="50">50</option>
-                        <option value="100">100</option>
-                    </select>
-                    entries
-                </label>
-            </div>
-            <div class="text-right">
-                <label>
-                    Search:
-                    <input type="search" class="rounded-md bg-white text-sm font-normal" placeholder="" v-model="form.search">
-                </label>
-            </div>
-        </div>
+<!--        <div class="grid grid-cols-2">-->
+<!--            <div>-->
+<!--                <label class="block text-sm/6 font-medium text-gray-900 dark:text-white">-->
+<!--                    Show-->
+<!--                    <select v-model="form.perPage" class="rounded-md bg-white py-1.5 pr-8 pl-3 text-base text-gray-900 outline-1 -outline-offset-1 outline-gray-300 focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-indigo-600 sm:text-sm/6 dark:bg-white/5 dark:text-white dark:outline-white/10 dark:*:bg-gray-800 dark:focus-visible:outline-indigo-500">-->
+<!--                        <option value="10">10</option>-->
+<!--                        <option value="25">25</option>-->
+<!--                        <option value="50">50</option>-->
+<!--                        <option value="100">100</option>-->
+<!--                    </select>-->
+<!--                    entries-->
+<!--                </label>-->
+<!--            </div>-->
+<!--            <div class="text-right">-->
+<!--                <label>-->
+<!--                    Search:-->
+<!--                    <input type="search" class="rounded-md bg-white text-sm font-normal" placeholder="" v-model="form.search">-->
+<!--                </label>-->
+<!--            </div>-->
+<!--        </div>-->
 
 
 
@@ -126,7 +139,7 @@ function dataTableSortClass(field) {
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('reference')" @click="toggleSort('reference')" role="button" :aria-sort="form.sort === 'reference' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Ref</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('parent')" @click="toggleSort('parent')" role="button" :aria-sort="form.sort === 'parent' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">{{ parentModelDescription }}</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('customer')" @click="toggleSort('customer')" role="button" :aria-sort="form.sort === 'customer' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Customer</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('post_code')" @click="toggleSort('post_code')" role="button" :aria-sort="form.sort === 'post_code' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Post Code</th>
+                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap" :class="dataTableSortClass('post_code')" @click="toggleSort('post_code')" role="button" :aria-sort="form.sort === 'post_code' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Post Code</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('amount')" @click="toggleSort('amount')" role="button" :aria-sort="form.sort === 'amount' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Amount</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('deposit')" @click="toggleSort('deposit')" role="button" :aria-sort="form.sort === 'deposit' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Deposit</th>
                         <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('apr')" @click="toggleSort('apr')" role="button" :aria-sort="form.sort === 'apr' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">APR</th>
@@ -140,11 +153,61 @@ function dataTableSortClass(field) {
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
-                    <tr v-for="payment in payments.data" :key="payment.id">
-                        <td class="whitespace-nowrap py-4 pl-4 pr-4 text-sm font-medium text-gray-500 sm:pl-0">{{ payment.id }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ formatDate(payment.created_at, 'DD/MM/YYYY') }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.reference }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">
+                    <tr>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.id" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="date" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.created_at" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.reference" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.parentable_id" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.customer" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.post_code" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.amount" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.deposit" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.apr" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.term" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.deferred" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.status" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.gateway" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.subsidy" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <input type="text" class="border rounded border-gray-300 text-sm p-1 w-full" v-model="form.search.user" @keyup.enter="search">
+                        </td>
+                        <td class="p-1">
+                            <button class="bg-green-500 hover:bg-green-300 text-white px-2 py-1 rounded text-sm" @click="search">Search</button>
+                        </td>
+                    </tr>
+                    <tr v-for="(payment, index) in payments.data" :key="payment.id">
+                        <td class="whitespace-nowrap p-2 text-sm font-medium text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.id }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatDate(payment.created_at, 'DD/MM/YYYY') }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.reference }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">
                             <a v-if="payment.parentable?.id" :href="route(parentRouteName, payment.parentable_id)" class="text-blue-600 hover:text-blue-900">
                                 {{ payment.parentable.id }}
                             </a>
@@ -152,21 +215,21 @@ function dataTableSortClass(field) {
                                 {{ payment.parentable_id }}
                             </span>
                         </td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">
+                        <td class="whitespace-nowrap p-4 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">
                             {{ payment.first_name }} {{ payment.last_name }}
                         </td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.addresses ? payment.addresses[0]?.postCode : '-' }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ formatCurrency(payment.amount) }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ formatCurrency(payment.deposit) }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.apr ? payment.apr + '%' : '-' }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.term }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.deferred ?? '-' }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.payment_status?.name }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.payment_provider?.name }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ formatCurrency(payment.subsidy) }}</td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500">{{ payment.parentable?.user?.name }}</td>
-                        <td class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-0">
-                            <Link :href="route('payments.show', {payment: payment})" class="text-blue-600 hover:text-blue-900">
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.addresses ? payment.addresses[0]?.postCode : '-' }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.amount) }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.deposit) }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.apr ? payment.apr + '%' : '-' }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.term }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.deferred ?? '-' }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_status?.name }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_provider?.name }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.subsidy) }}</td>
+                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.parentable?.user?.name }}</td>
+                        <td class="relative whitespace-nowrap p-2 text-right text-sm font-medium" :class="{ 'bg-gray-100': index % 2 === 0 }">
+                            <Link :href="route('payments.show', {payment: payment})" class="bg-blue-500 hover:bg-blue-300 text-white px-2 py-1 rounded text-sm">
                                 Show
                                 <span class="sr-only">, {{ payment.reference }}</span>
                             </Link>
@@ -202,7 +265,7 @@ th.sorting, th.sorting_asc, th.sorting_desc
 
 th.sorting_asc:after
 {
-    content: "▼" / "";
+    content: "▲" / "";
     position: absolute;
     right: 10px;
     font-size: 10px;
@@ -210,7 +273,7 @@ th.sorting_asc:after
 
 th.sorting_desc:after
 {
-    content: "▲" / "";
+    content: "▼" / "";
     position: absolute;
     right: 10px;
     font-size: 10px;

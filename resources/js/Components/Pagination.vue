@@ -36,21 +36,22 @@ const props = defineProps({
         </div>
         <div class="hidden md:flex sm:flex-1 md:items-center md:justify-between">
             <div>
-                <p class="text-sm text-gray-700 mr-2">
+                <p v-if="records.total > 0" class="text-sm text-gray-700 mr-2">
                     Showing
                     {{ ' ' }}
-                    <span class="font-medium">{{ records.from }}</span>
+                    <span class="font-medium">{{ records.from ?? 0}}</span>
                     {{ ' ' }}
                     to
                     {{ ' ' }}
-                    <span class="font-medium">{{ records.to }}</span>
+                    <span class="font-medium">{{ records.to ?? 0 }}</span>
                     {{ ' ' }}
                     of
                     {{ ' ' }}
                     <span class="font-medium">{{ formatNumber(records.total) }}</span>
                     {{ ' ' }}
-                    results
+                    records
                 </p>
+                <p v-else class="text-sm text-gray-700 mr-2">Zero records</p>
             </div>
             <div>
                 <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
