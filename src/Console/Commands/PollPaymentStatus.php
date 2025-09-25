@@ -6,6 +6,8 @@ use Mralston\Payment\Models\Payment;
 use Illuminate\Console\Command;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Log;
+use Mralston\Payment\Enums\PaymentStatus as PaymentStatusEnum;
+use Mralston\Payment\Models\PaymentStatus;
 
 class PollPaymentStatus extends Command
 {
@@ -70,15 +72,14 @@ class PollPaymentStatus extends Command
         // but non-declines cannot be trashed
         Payment::withTrashed()
             ->where(function ($query) {
-                $query->whereIn('status', [
-                    'pending',
-                    'referred',
-                    'accepted',
-                    'conditional_accept',
-                    'parked'
-                ])->whereNull('deleted_at');
+                $query->whereIn(
+                    'payment_status_id',
+                    PaymentStatus::where('poll', true)
+                        ->get()
+                        ->pluck('id')
+                )->whereNull('deleted_at');
             })->orWhere(function ($query) {
-                $query->where('status', 'declined')
+                $query->where('payment_status_id', PaymentStatus::byIdentifier(PaymentStatusEnum::DECLINED->value)->id)
                     ->where('decision_received_at', '>', Carbon::now()->subtract(14, 'days'));
             })->chunk(10, function ($payments) {
                 $payments->map(function (Payment $payment) {
