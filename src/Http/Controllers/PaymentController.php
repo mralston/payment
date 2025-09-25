@@ -103,7 +103,7 @@ class PaymentController
                 ]),
             'parentRouteName' => $this->helper->getParentRouteName(),
             'parentModelDescription' => config('payment.parent_model_description'),
-            'search' => $request->input('search'),
+            'search' => $request->input('search') == '' ? null : $request->input('search'),
             'sort' => $request->input('sort', 'created_at'),
             'direction' => $request->input('direction', 'desc'),
         ])
