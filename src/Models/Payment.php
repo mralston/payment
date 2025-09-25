@@ -2,6 +2,7 @@
 
 namespace Mralston\Payment\Models;
 
+use App\File;
 use Carbon\Carbon;
 use GregoryDuckworth\Encryptable\EncryptableTrait;
 use Illuminate\Database\Eloquent\Attributes\ObservedBy;
@@ -348,5 +349,11 @@ class Payment extends Model
 
             return null;
         });
+    }
+
+    public function satNoteFile()
+    {
+        // TODO: Make the class dynamic
+        return $this->hasOne(File::class, 'id', 'sat_note_file_id');
     }
 }

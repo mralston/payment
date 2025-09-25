@@ -3,6 +3,7 @@ import { Icon } from '@iconify/vue';
 import DetailsRow from './DetailsRow.vue';
 import SigningLink from '../SigningLink.vue';
 import Cancel from '../Cancel.vue';
+import SatNote from "../SatNote.vue";
 
 const props = defineProps({
     payment: {
@@ -22,6 +23,9 @@ const props = defineProps({
         <h1 class="text-xl font-bold flex flex-row gap-2 items-center"><Icon icon="fa6-solid:file-invoice" /> Summary</h1>
         <div class="mt-10 flex flex-col gap-8">
             <SigningLink v-if="paymentProviderSupportsRemoteSigning" :payment="payment" />
+
+            <SatNote :payment="payment"/>
+
             <DetailsRow
                 icon="fa6-solid:file-invoice"
                 :stack="true"

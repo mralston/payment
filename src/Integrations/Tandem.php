@@ -404,7 +404,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
     public function sendSatNote(Payment $payment): bool
     {
         $data = [
-            'cancellationReason' => 'Customer Withdrawn',
+            'cancellationReason' => 'Customer Withdrawn', // Why is this here???
         ];
 
         try {

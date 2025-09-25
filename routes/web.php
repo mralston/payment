@@ -8,6 +8,7 @@ use Mralston\Payment\Http\Controllers\LeaseController;
 use Mralston\Payment\Http\Controllers\PaymentController;
 use Mralston\Payment\Http\Controllers\PaymentOptionsController;
 use Mralston\Payment\Http\Controllers\RemoteSignController;
+use Mralston\Payment\Http\Controllers\SatNoteController;
 use Mralston\Payment\Http\Controllers\SurveyController;
 use Mralston\Payment\Http\Controllers\PrequalController;
 use Mralston\Payment\Http\Controllers\WebhookController;
@@ -37,6 +38,14 @@ Route::get('payments/remote-sign/{payment}', [RemoteSignController::class, 'remo
     ->name('payment.remote-sign');
 
 Route::group(['middleware' => ['web', 'auth']], function () {
+
+    Route::post(
+        'payments/{payment}/upload-sat-note',
+        [SatNoteController::class, 'uploadSatNote']
+    )->name('payments.upload_sat_note');
+
+    Route::post('payments/send-remote-sign-link/{payment}', [RemoteSignController::class, 'sendRemoteSignLink'])
+        ->name('send-remote-sign-link');
 
     Route::resource('payments', PaymentController::class);
 
@@ -109,8 +118,5 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
             Route::get('finance/{payment}/signing-link', [FinanceSigningLinkController::class, 'show'])
                 ->name('finance.signing-link');
-
-            Route::post('payments/send-remote-sign-link/{payment}', [RemoteSignController::class, 'sendRemoteSignLink'])
-                ->name('send-remote-sign-link');
     });
 });

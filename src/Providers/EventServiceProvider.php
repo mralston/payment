@@ -10,12 +10,14 @@ use Mralston\Payment\Events\PaymentDeclined;
 use Mralston\Payment\Events\PaymentExpired;
 use Mralston\Payment\Events\PaymentParked;
 use Mralston\Payment\Events\PriceChanged;
+use Mralston\Payment\Events\SatNoteUploaded;
 use Mralston\Payment\Listeners\NotifyPaymentProviderOfCancellation;
 use Mralston\Payment\Listeners\SendPaymentAcceptedNotifications;
 use Mralston\Payment\Listeners\SendPaymentCancelledNotifications;
 use Mralston\Payment\Listeners\SendPaymentDeclinedNotifications;
 use Mralston\Payment\Listeners\SendPaymentExpiredNotifications;
 use Mralston\Payment\Listeners\SendPaymentParkedNotifications;
+use Mralston\Payment\Listeners\SendSatNoteToPaymentProvider;
 use Mralston\Payment\Listeners\UpdateCashDeposit;
 
 class EventServiceProvider extends ServiceProvider
@@ -44,6 +46,9 @@ class EventServiceProvider extends ServiceProvider
         ],
         PaymentParked::class => [
             SendPaymentParkedNotifications::class,
+        ],
+        SatNoteUploaded::class => [
+            SendSatNoteToPaymentProvider::class,
         ],
 
     ];

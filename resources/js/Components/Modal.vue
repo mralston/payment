@@ -34,6 +34,7 @@ const props = defineProps({
 const emit = defineEmits([
     'ok',
     'cancel',
+    'close',
     'yes',
     'no',
     'send',
@@ -83,6 +84,12 @@ function cancel()
 {
     open.value = false;
     emit('cancel');
+}
+
+function close()
+{
+    open.value = false;
+    emit('close');
 }
 
 function yes()
@@ -173,6 +180,7 @@ defineExpose({
 
                                 <div class="mt-3 flex sm:mt-0 sm:flex-row-reverse">
                                     <button v-if="buttons.includes('cancel')" type="button" class="inline-flex xw-full justify-center rounded-md bg-stone-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-stone-500 disabled:bg-stone-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-600 sm:col-start-2 ml-1 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed" :disabled="disabledButtons.includes('cancel')" @click="cancel">Cancel</button>
+                                    <button v-if="buttons.includes('close')" type="button" class="inline-flex xw-full justify-center rounded-md bg-stone-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-stone-500 disabled:bg-stone-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-stone-600 sm:col-start-2 ml-1 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed" :disabled="disabledButtons.includes('close')" @click="close">Close</button>
                                     <button v-if="buttons.includes('ok')" type="button" class="inline-flex xw-full justify-center rounded-md bg-sky-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-sky-500 disabled:bg-sky-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-sky-600 sm:col-start-2 ml-1 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed" :disabled="disabledButtons.includes('ok')" @click="ok">OK</button>
                                     <button v-if="buttons.includes('no')" type="button" class="inline-flex xw-full justify-center rounded-md bg-red-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-red-500 disabled:bg-red-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-red-600 sm:col-start-2 ml-1 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed" :disabled="disabledButtons.includes('no')" @click="no">No</button>
                                     <button v-if="buttons.includes('yes')" type="button" class="inline-flex xw-full justify-center rounded-md bg-emerald-600 px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-emerald-500 disabled:bg-emerald-600 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-emerald-600 sm:col-start-2 ml-1 disabled:tw-opacity-50 disabled:tw-cursor-not-allowed" :disabled="disabledButtons.includes('yes')" @click="yes">Yes</button>

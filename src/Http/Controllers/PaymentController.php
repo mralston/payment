@@ -181,6 +181,7 @@ class PaymentController
                     'paymentOffer',
                     'employmentStatus',
                     'nationalityValue',
+                    'satNoteFile',
                 ]),
             'products' => !empty($payment->parentable) ? $helper->getBasketItems() : [],
             'paymentProviderSupportsRemoteSigning' => $payment
