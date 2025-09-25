@@ -134,22 +134,22 @@ function dataTableSortClass(field) {
             <table class="min-w-full divide-y divide-gray-300">
                 <thead>
                     <tr>
-                        <th scope="col" class="py-3.5 pl-4 pr-4 text-left text-sm font-semibold text-gray-900 sm:pl-0":class="dataTableSortClass('id')" @click="toggleSort('id')" role="button" :aria-sort="form.sort === 'id' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">ID</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('created_at')" @click="toggleSort('created_at')" role="button" :aria-sort="form.sort === 'created_at' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Date</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('reference')" @click="toggleSort('reference')" role="button" :aria-sort="form.sort === 'reference' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Ref</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('parent')" @click="toggleSort('parent')" role="button" :aria-sort="form.sort === 'parent' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">{{ parentModelDescription }}</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('customer')" @click="toggleSort('customer')" role="button" :aria-sort="form.sort === 'customer' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Customer</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900 whitespace-nowrap" :class="dataTableSortClass('post_code')" @click="toggleSort('post_code')" role="button" :aria-sort="form.sort === 'post_code' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Post Code</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('amount')" @click="toggleSort('amount')" role="button" :aria-sort="form.sort === 'amount' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Amount</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('deposit')" @click="toggleSort('deposit')" role="button" :aria-sort="form.sort === 'deposit' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Deposit</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('apr')" @click="toggleSort('apr')" role="button" :aria-sort="form.sort === 'apr' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">APR</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('term')" @click="toggleSort('term')" role="button" :aria-sort="form.sort === 'term' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Term</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('deferred')" @click="toggleSort('deferred')" role="button" :aria-sort="form.sort === 'deferred' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Deferred</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('status')" @click="toggleSort('status')" role="button" :aria-sort="form.sort === 'status' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Status</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('gateway')" @click="toggleSort('gateway')" role="button" :aria-sort="form.sort === 'gateway' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Gateway</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('subsidy')" @click="toggleSort('subsidy')" role="button" :aria-sort="form.sort === 'subsidy' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Subsidy</th>
-                        <th scope="col" class="px-4 py-3.5 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('user')" @click="toggleSort('user')" role="button" :aria-sort="form.sort === 'user' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">User</th>
-                        <th scope="col" class="py-3.5 pl-4 pr-4 text-left text-sm font-semibold text-gray-900 sm:pr-0">&nbsp;</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900 sm:pl-0":class="dataTableSortClass('id')" @click="toggleSort('id')" role="button" :aria-sort="form.sort === 'id' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">ID</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('created_at')" @click="toggleSort('created_at')" role="button" :aria-sort="form.sort === 'created_at' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Date</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('reference')" @click="toggleSort('reference')" role="button" :aria-sort="form.sort === 'reference' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Ref</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('parent')" @click="toggleSort('parent')" role="button" :aria-sort="form.sort === 'parent' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">{{ parentModelDescription }}</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('customer')" @click="toggleSort('customer')" role="button" :aria-sort="form.sort === 'customer' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Customer</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900 whitespace-nowrap" :class="dataTableSortClass('post_code')" @click="toggleSort('post_code')" role="button" :aria-sort="form.sort === 'post_code' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Post Code</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('amount')" @click="toggleSort('amount')" role="button" :aria-sort="form.sort === 'amount' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Amount</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('deposit')" @click="toggleSort('deposit')" role="button" :aria-sort="form.sort === 'deposit' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Deposit</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('apr')" @click="toggleSort('apr')" role="button" :aria-sort="form.sort === 'apr' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">APR</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('term')" @click="toggleSort('term')" role="button" :aria-sort="form.sort === 'term' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Term</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('deferred')" @click="toggleSort('deferred')" role="button" :aria-sort="form.sort === 'deferred' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Deferred</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('status')" @click="toggleSort('status')" role="button" :aria-sort="form.sort === 'status' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Status</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('gateway')" @click="toggleSort('gateway')" role="button" :aria-sort="form.sort === 'gateway' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Gateway</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('subsidy')" @click="toggleSort('subsidy')" role="button" :aria-sort="form.sort === 'subsidy' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">Subsidy</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900" :class="dataTableSortClass('user')" @click="toggleSort('user')" role="button" :aria-sort="form.sort === 'user' ? (form.direction === 'asc' ? 'ascending' : 'descending') : 'none'">User</th>
+                        <th scope="col" class="p-2 text-left text-sm font-semibold text-gray-900 sm:pr-0">&nbsp;</th>
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-gray-200 bg-white">
@@ -204,10 +204,10 @@ function dataTableSortClass(field) {
                         </td>
                     </tr>
                     <tr v-for="(payment, index) in payments.data" :key="payment.id">
-                        <td class="whitespace-nowrap p-2 text-sm font-medium text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.id }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatDate(payment.created_at, 'DD/MM/YYYY') }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.reference }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">
+                        <td class="whitespace-nowrap px-2 py-1 text-sm font-medium text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.id }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatDate(payment.created_at, 'DD/MM/YYYY') }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.reference }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">
                             <a v-if="payment.parentable?.id" :href="route(parentRouteName, payment.parentable_id)" class="text-blue-600 hover:text-blue-900">
                                 {{ payment.parentable.id }}
                             </a>
@@ -215,19 +215,19 @@ function dataTableSortClass(field) {
                                 {{ payment.parentable_id }}
                             </span>
                         </td>
-                        <td class="whitespace-nowrap p-4 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">
                             {{ payment.first_name }} {{ payment.last_name }}
                         </td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.addresses ? payment.addresses[0]?.postCode : '-' }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.amount) }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.deposit) }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.apr ? payment.apr + '%' : '-' }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.term }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.deferred ?? '-' }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_status?.name }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_provider?.name }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.subsidy) }}</td>
-                        <td class="whitespace-nowrap p-2 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.parentable?.user?.name }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.addresses ? payment.addresses[0]?.postCode : '-' }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.amount) }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.deposit) }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.apr ? payment.apr + '%' : '-' }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.term }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.deferred ?? '-' }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_status?.name }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_provider?.name }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.subsidy) }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.parentable?.user?.name }}</td>
                         <td class="relative whitespace-nowrap p-2 text-right text-sm font-medium" :class="{ 'bg-gray-100': index % 2 === 0 }">
                             <Link :href="route('payments.show', {payment: payment})" class="bg-blue-500 hover:bg-blue-300 text-white px-2 py-1 rounded text-sm">
                                 Show
