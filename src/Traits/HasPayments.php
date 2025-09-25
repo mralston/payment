@@ -38,7 +38,7 @@ trait HasPayments
             ->whereHas('paymentStatus', function ($query) {
                 $query->where('active', true);
             })
-            ->latest();
+            ->latest('payments.created_at');
     }
 
     public function paymentIsCash(): bool
