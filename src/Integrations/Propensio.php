@@ -632,7 +632,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer 
 
                         // Save credit agreement
                         try {
-                            $file = $helper->storeFile('propensio_credit_agreement.pdf', $documentResponse['response']);
+                            $file = $helper->storeFile('credit_agreement', 'propensio_credit_agreement.pdf', $documentResponse['response']);
 
                             // Store reference in finance application
                             $payment->update([
