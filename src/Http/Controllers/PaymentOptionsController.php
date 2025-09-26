@@ -28,13 +28,14 @@ class PaymentOptionsController
         //
     }
 
-    public function options(int $parent)
+    public function options(Request $request, int $parent)
     {
         $parentModel = $this->bootstrap($parent, $this->helper);
 
         $survey = $parentModel->paymentSurvey ?? $parentModel->paymentSurvey()->create([
             'customers' => $this->helper->getCustomers(),
             'addresses' => $this->helper->getAddresses(),
+            'skipped' => $request->boolean('surveySkipped', null),
         ]);
 
         $this->setDefaultDeposits($survey, $parentModel);

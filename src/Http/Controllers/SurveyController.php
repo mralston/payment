@@ -68,6 +68,7 @@ class SurveyController
                 ...($request->boolean('creditCheckConsent') ? ['credit_check_consent' => '1'] : []),
                 'lease_responses' => $request->get('leaseResponses'),
                 'finance_responses' => $request->get('financeResponses'),
+                'skipped' => false,
             ]);
 
         return redirect()

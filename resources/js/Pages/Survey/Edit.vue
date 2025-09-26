@@ -176,7 +176,9 @@ function submit()
 
 function skip()
 {
-    router.get(route('payment.options', {parent: props.parentModel}), {}, {
+    router.get(route('payment.options', {parent: props.parentModel}), {
+        surveySkipped: true,
+    }, {
         onStart: () => navigating.value = skipping.value = true,
         onFinish: () => navigating.value = skipping.value = false,
     });

@@ -25,6 +25,7 @@ class PaymentSurvey extends Model
         'finance_deposit',
         'lease_deposit',
         'credit_check_consent',
+        'skipped',
     ];
 
     protected $casts = [
