@@ -501,11 +501,14 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer 
         if ($status == 200) {
             $responseXml = $response->getBody()->getContents();
 
-            if ($methodName != 'GetDocument') {
-                Log::channel('finance')->info('Propensio Response XML (raw) [' . $methodName . '] :');
-                Log::channel('finance')->info($responseXml);
-            } else {
-                Log::channel('finance')->info('Propensio Response to GetDocument received');
+            // Log response - but only if it doesn't contain a document (which is lots of base64 encoded raw file content)
+            if (Str::doesntContain($responseXml, 'DOCUMENT_DATA')) {
+                if ($methodName != 'GetDocument') {
+                    Log::channel('finance')->info('Propensio Response XML (raw) [' . $methodName . '] :');
+                    Log::channel('finance')->info($responseXml);
+                } else {
+                    Log::channel('finance')->info('Propensio Response to GetDocument received');
+                }
             }
 
             // Propensio's XML response is messed up. They wrap their response XML with a <string> tag
