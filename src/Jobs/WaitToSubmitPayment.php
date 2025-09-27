@@ -54,6 +54,6 @@ class WaitToSubmitPayment implements ShouldQueue
         } while ($response['status'] == 'processing'); // Repeat if still processing.
 
         // Once the status is no longer 'processing', proceed to submit.
-        $result = $leaseService->submitApplication($gateway, $this->payment, $this->offer, $survey, $parent);
+        $result = $leaseService->submitApplication($gateway, $this->payment, $this->offer, $survey, $parent->id);
     }
 }
