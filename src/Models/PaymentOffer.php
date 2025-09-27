@@ -79,7 +79,8 @@ class PaymentOffer extends Model
 
     public function paymentProduct(): BelongsTo
     {
-        return $this->belongsTo(PaymentProduct::class);
+        return $this->belongsTo(PaymentProduct::class)
+            ->withTrashed();
     }
 
     public function payment(): HasOne
