@@ -6,8 +6,9 @@ import { Head } from '@inertiajs/vue3'
 import AddressInput from "../../Components/AddressInput.vue";
 import ValidationBanner from "../../Components/ValidationBanner.vue";
 import ValidationWrapper from "../../Components/ValidationWrapper.vue";
-import {ref} from "vue";
+import {onMounted, ref} from "vue";
 import {ArrowPathIcon} from "@heroicons/vue/20/solid/index.js";
+import {makeNumeric} from "../../Helpers/Number.js";
 
 const props = defineProps({
     parentModel: Object,
@@ -192,6 +193,17 @@ function unselectOffer() {
         onFinish: () => navigating.value = skipping.value = false,
     });
 }
+
+onMounted(() => {
+    if (!form.financeResponses.yearlyHouseholdIncome || form.financeResponses.yearlyHouseholdIncome === 0) {
+        const yearlyHouseholdIncome = form.customers.reduce((acc, customer) => {
+            return acc + makeNumeric(customer?.grossAnnualIncome ?? 0);
+        }, 0);
+        if (yearlyHouseholdIncome > 0) {
+            form.financeResponses.yearlyHouseholdIncome = yearlyHouseholdIncome;
+        }
+    }
+});
 
 </script>
 
@@ -536,6 +548,22 @@ function unselectOffer() {
                                     </div>
                                 </ValidationWrapper>
                             </div>
+
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-6 mb-4">
+
+                            <div class="mb-4">
+                                <label :for="`financeResponses.yearlyHouseholdIncome`" class="block text-sm/6 font-medium text-gray-900">Yearly Household Income</label>
+                                <ValidationWrapper :form="form" :field="`financeResponses.yearlyHouseholdIncome`">
+                                    <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
+                                        <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
+                                        <input type="number" step="0.01" v-model="form.financeResponses.yearlyHouseholdIncome" :id="`financeResponses.yearlyHouseholdIncome`" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+                                    </div>
+                                </ValidationWrapper>
+                            </div>
+
+                            <div></div>
 
                         </div>
 

@@ -13,6 +13,7 @@ class FinanceData extends Data
         public ?string $occupation = null,
         public ?string $dateStartedEmployment = null,
         public ?BankAccountData $bankAccount = null,
+        public ?float $yearlyHouseholdIncome = null,
         public ?float $monthlyMortgage = null,
         public ?float $monthlyRent = null,
     ) {

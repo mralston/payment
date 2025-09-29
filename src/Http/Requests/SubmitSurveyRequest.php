@@ -113,6 +113,8 @@ class SubmitSurveyRequest extends FormRequest
                     'financeResponses.bankAccount.accountNumber' => ['required', 'numeric', 'digits:8'],
                     'financeResponses.bankAccount.sortCode' => ['required', 'string', 'regex:/^\d{6}$|^\d{2}-\d{2}-\d{2}$/'],
 
+                    'financeResponses.yearlyHouseholdIncome' => ['required', 'numeric'],
+
                     'financeResponses.monthlyMortgage' => ['required', 'numeric'],
                     'financeResponses.monthlyRent' => ['required', 'numeric'],
                 ]
@@ -180,6 +182,9 @@ class SubmitSurveyRequest extends FormRequest
             'financeResponses.bankAccount.accountNumber.digits' => 'The account number must be 8 digits.',
             'financeResponses.bankAccount.sortCode.required' => 'You must enter the sort code.',
             'financeResponses.bankAccount.sortCode.regex' => 'The sort code must be in the format 123456 or 12-34-56.',
+
+            'financeResponses.yearlyHouseholdIncome.required' => 'You must enter an annual household income amount.',
+            'financeResponses.yearlyHouseholdIncome.numeric' => 'The annual household income must be a number.',
 
             'financeResponses.monthlyMortgage.required' => 'You must enter a monthly mortgage amount.',
             'financeResponses.monthlyMortgage.numeric' => 'The monthly mortgage amount must be a number.',

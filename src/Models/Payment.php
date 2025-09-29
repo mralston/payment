@@ -289,7 +289,7 @@ class Payment extends Model
         $this->occupation = $survey->finance_responses?->occupation;
         $this->time_with_employer = floor(Carbon::parse($survey->finance_responses?->dateStartedEmployment)->diffInMonths());
         $this->gross_income_individual = $customer['grossAnnualIncome'];
-        $this->gross_income_household = $survey->customers->sum('grossAnnualIncome');
+        $this->gross_income_household = $survey->finance_responses->yearlyHouseholdIncome ?? $survey->customers->sum('grossAnnualIncome');
         $this->net_monthly_income_individual = $customer['netMonthlyIncome'];
         $this->mortgage_monthly = $survey->finance_responses?->monthlyMortgage;
         $this->rent_monthly = $survey->finance_responses?->monthlyRent;
