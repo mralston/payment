@@ -26,10 +26,7 @@ class HometreeService
             Payment::withoutTimestamps(function () use ($hometreeLender, $records, $hometreePaymentType) {
                 $records->each(function($record) use ($hometreeLender, $hometreePaymentType) {
                     // Skip unselected applications (we don't want to create payments for these)
-                    if (
-                        $record['application-status'] == 'pending-applicants' ||
-                        $record['application-status'] == 'pending-customer-choice'
-                    ) {
+                    if (empty($record['customer-applied-at-timestamp'])) {
                         return;
                     }
 
