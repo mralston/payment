@@ -98,15 +98,15 @@ class SubmitSurveyRequest extends FormRequest
                             ?->pluck('value')
                     )],
 
-                    'financeResponses.occupation' => ['required', 'string'],
-                    'financeResponses.employerName' => ['required', 'string'],
-                    'financeResponses.dateStartedEmployment' => ['required', 'date'],
+                    'financeResponses.occupation' => ['nullable', 'required_if:customers.0.employmentStatus,full_time_employed,part_time_employed', 'string'],
+                    'financeResponses.employerName' => ['nullable', 'required_if:customers.0.employmentStatus,full_time_employed,part_time_employed', 'string'],
+                    'financeResponses.dateStartedEmployment' => ['nullable', 'required_if:customers.0.employmentStatus,full_time_employed,part_time_employed', 'date'],
 
-                    'financeResponses.employerAddress.address1' => ['required', 'string', 'max:255'],
+                    'financeResponses.employerAddress.address1' => ['nullable', 'required_if:customers.0.employmentStatus,full_time_employed,part_time_employed', 'string', 'max:255'],
                     'financeResponses.employerAddress.address2' => ['nullable', 'string', 'max:255'],
                     'financeResponses.employerAddress.county' => ['nullable', 'string', 'max:255'],
-                    'financeResponses.employerAddress.postCode' => ['required', 'string', 'max:255'],
-                    'financeResponses.employerAddress.uprn' => ['required_unless:financeResponses.employerAddress.manual,true'],
+                    'financeResponses.employerAddress.postCode' => ['nullable', 'required_if:customers.0.employmentStatus,full_time_employed,part_time_employed', 'string', 'max:255'],
+                    'financeResponses.employerAddress.uprn' => ['nullable', 'exclude_if:financeResponses.employerAddress.manual,true', 'required_if:customers.0.employmentStatus,full_time_employed,part_time_employed'],
 
                     'financeResponses.bankAccount.bankName' => ['required', 'string', 'max:255'],
                     'financeResponses.bankAccount.accountName' => ['required', 'string', 'max:255'],

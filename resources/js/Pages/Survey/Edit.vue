@@ -6,7 +6,7 @@ import { Head } from '@inertiajs/vue3'
 import AddressInput from "../../Components/AddressInput.vue";
 import ValidationBanner from "../../Components/ValidationBanner.vue";
 import ValidationWrapper from "../../Components/ValidationWrapper.vue";
-import {onMounted, ref} from "vue";
+import {computed, onMounted, ref} from "vue";
 import {ArrowPathIcon} from "@heroicons/vue/20/solid/index.js";
 import {makeNumeric} from "../../Helpers/Number.js";
 
@@ -203,6 +203,17 @@ onMounted(() => {
             form.financeResponses.yearlyHouseholdIncome = yearlyHouseholdIncome;
         }
     }
+});
+
+const employed = computed(() => {
+    if (
+        form.customers[0].employmentStatus === 'full_time_employed' ||
+        form.customers[0].employmentStatus === 'part_time_employed'
+    ) {
+        return true;
+    }
+
+    return false;
 });
 
 </script>
@@ -588,44 +599,48 @@ onMounted(() => {
                             </ValidationWrapper>
                         </div>
 
-                        <div v-if="form.customers[0].employmentStatus === 'self_employed'" class="mb-4">
-                            <label for="customers.0.currentAccountForBusiness" class="block text-sm/6 font-medium text-gray-900">Do you use your personal current account for business use?</label>
-                            <ValidationWrapper :form="form" field="customers.0.currentAccountForBusiness" class="mt-2">
-                                <select v-model="form.customers[0].currentAccountForBusiness" :id="`customers.0.currentAccountForBusiness`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
-                                    <option></option>
-                                    <option v-for="currentAccountForBusiness in currentAccountForBusinesses" :key="currentAccountForBusiness.id" :value="currentAccountForBusiness.value">
-                                        {{ currentAccountForBusiness.name }}
-                                    </option>
-                                </select>
-                            </ValidationWrapper>
-                        </div>
+                        <div v-if="employed">
 
-                        <div class="mb-4">
-                            <label for="occupation" class="block text-sm/6 font-medium text-gray-900">Occupation</label>
-                            <ValidationWrapper :form="form" field="financeResponses.occupation" class="mt-2">
-                                <input type="text" v-model="form.financeResponses.occupation" id="occupation" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                            </ValidationWrapper>
-                        </div>
+                            <div v-if="form.customers[0].employmentStatus === 'self_employed'" class="mb-4">
+                                <label for="customers.0.currentAccountForBusiness" class="block text-sm/6 font-medium text-gray-900">Do you use your personal current account for business use?</label>
+                                <ValidationWrapper :form="form" field="customers.0.currentAccountForBusiness" class="mt-2">
+                                    <select v-model="form.customers[0].currentAccountForBusiness" :id="`customers.0.currentAccountForBusiness`" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6">
+                                        <option></option>
+                                        <option v-for="currentAccountForBusiness in currentAccountForBusinesses" :key="currentAccountForBusiness.id" :value="currentAccountForBusiness.value">
+                                            {{ currentAccountForBusiness.name }}
+                                        </option>
+                                    </select>
+                                </ValidationWrapper>
+                            </div>
 
-                        <div class="mb-4">
-                            <label for="employerName" class="block text-sm/6 font-medium text-gray-900">Employer name</label>
-                            <ValidationWrapper :form="form" field="financeResponses.employerName" class="mt-2">
-                                <input type="text" v-model="form.financeResponses.employerName" id="employerName" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                            </ValidationWrapper>
-                        </div>
+                            <div class="mb-4">
+                                <label for="occupation" class="block text-sm/6 font-medium text-gray-900">Occupation</label>
+                                <ValidationWrapper :form="form" field="financeResponses.occupation" class="mt-2">
+                                    <input type="text" v-model="form.financeResponses.occupation" id="occupation" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
+                            </div>
 
-                        <div class="mb-4">
-                            <label class="block text-sm/6 font-medium text-gray-900">Employer Address</label>
-                            <ValidationWrapper :form="form" :field="['financeResponses.employerAddress.houseNumber', 'financeResponses.employerAddress.street', 'financeResponses.employerAddress.address1', 'financeResponses.employerAddress.address2', 'financeResponses.employerAddress.town', 'financeResponses.employerAddress.county', 'financeResponses.employerAddress.postCode', 'financeResponses.employerAddress.uprn']" class="mt-2">
-                                <AddressInput v-model:address="form.financeResponses.employerAddress" :index="index" :showHouseNumber="false" class="mb-4"/>
-                            </ValidationWrapper>
-                        </div>
+                            <div class="mb-4">
+                                <label for="employerName" class="block text-sm/6 font-medium text-gray-900">Employer name</label>
+                                <ValidationWrapper :form="form" field="financeResponses.employerName" class="mt-2">
+                                    <input type="text" v-model="form.financeResponses.employerName" id="employerName" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
+                            </div>
 
-                        <div class="mb-4">
-                            <label for="dateStartedEmployment" class="block text-sm/6 font-medium text-gray-900">Approximate Start Date</label>
-                            <ValidationWrapper :form="form" field="financeResponses.dateStartedEmployment">
-                                <input type="date" v-model="form.financeResponses.dateStartedEmployment" id="dateStartedEmployment" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
-                            </ValidationWrapper>
+                            <div class="mb-4">
+                                <label class="block text-sm/6 font-medium text-gray-900">Employer Address</label>
+                                <ValidationWrapper :form="form" :field="['financeResponses.employerAddress.houseNumber', 'financeResponses.employerAddress.street', 'financeResponses.employerAddress.address1', 'financeResponses.employerAddress.address2', 'financeResponses.employerAddress.town', 'financeResponses.employerAddress.county', 'financeResponses.employerAddress.postCode', 'financeResponses.employerAddress.uprn']" class="mt-2">
+                                    <AddressInput v-model:address="form.financeResponses.employerAddress" :index="index" :showHouseNumber="false" class="mb-4"/>
+                                </ValidationWrapper>
+                            </div>
+
+                            <div class="mb-4">
+                                <label for="dateStartedEmployment" class="block text-sm/6 font-medium text-gray-900">Approximate Start Date</label>
+                                <ValidationWrapper :form="form" field="financeResponses.dateStartedEmployment">
+                                    <input type="date" v-model="form.financeResponses.dateStartedEmployment" id="dateStartedEmployment" class="block w-full rounded-md bg-white px-2 py-1 text-base text-gray-900 outline-1 -outline-offset-1 border-gray-300 placeholder:text-gray-400 focus:outline-2 focus:-outline-offset-2 focus:outline-blue-600 sm:text-sm/6" />
+                                </ValidationWrapper>
+                            </div>
+
                         </div>
 
                     </div>
