@@ -31,6 +31,7 @@
     "mralston/laravel-additional-string-helpers": "^1.0",
     "mralston/mug": "^1.0",
     "pusher/pusher-php-server": "^7.2",
+    "spatie/array-to-xml": "^3.4",
     "spatie/laravel-data": "^4.17"
   },
   "autoload": {
