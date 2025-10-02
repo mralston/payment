@@ -311,18 +311,14 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
      */
     public function pollStatus(Payment $payment): array
     {
-        // Poll the Allium API
+        // Poll the Tandem API
         $response = Http::withHeaders([
             'Ocp-Apim-Subscription-Key' => $this->key
         ])
             ->get($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationStatus');
 
-        dump($this->endpoint . '/' . $payment->provider_foreign_id . '/getApplicationStatus');
-
-        // Look for 404 response (which means Allium don't have an application matching the specified ID)
+        // Look for 404 response (which means Tandem don't have an application matching the specified ID)
         if ($response->status() == 404) {
-
-            dump($response->body());
 
             $payment->update([
                 'payment_status_id' => PaymentStatus::byIdentifier('NotFound')?->id,
@@ -372,7 +368,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             Mail::to($payment->paymentProvider->underwriter_email)
                 ->send(new FinanceApplicationCancelled($payment));
         } catch (RequestException $ex) {
-            // Allium return a 403 if the loan has already been cancelled
+            // Tandem return a 403 if the loan has already been cancelled
             if ($ex->getCode() == 403) {
                 Log::channel('finance')
                     ->debug('Cancellation request for ' . $payment->reference . ' rejected (403)');

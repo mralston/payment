@@ -657,6 +657,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer 
             $status = 'error';
         }
 
+        $payment->update([
+            'payment_status_id' => PaymentStatus::byIdentifier($status)?->id,
+        ]);
+
         return [
             'status' => $status ?? $payment->paymentStatus->value,
             'lender_response_data' => $response['response'],
