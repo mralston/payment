@@ -2,6 +2,8 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
+use Exception;
+use Illuminate\Http\Client\RequestException;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Log;
 use Inertia\Inertia;
@@ -104,10 +106,23 @@ class LeaseController
 
                 Log::debug('update result: ' . $result ? 'success' : 'failure');
             }
-        } catch (\Exception $e) {
+        } catch (RequestException $e) {
             $payment->update([
                 'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
-                'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data,
+                'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data ?? (string)$e->response?->getBody() ?? $e->getMessage(),
+                'submitted_at' => now(),
+                'payment_status_id' => PaymentStatus::byIdentifier('error')?->id,
+            ]);
+
+            return redirect()
+                ->route('payment.lease.show', [
+                    'parent' => $parent,
+                    'lease' => $payment,
+                ]);
+        } catch (Exception $e) {
+            $payment->update([
+                'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
+                'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data ?? $e->getMessage(),
                 'submitted_at' => now(),
                 'payment_status_id' => PaymentStatus::byIdentifier('error')?->id,
             ]);
