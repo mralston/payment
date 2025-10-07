@@ -47,6 +47,7 @@ class HometreeWebhookRequest extends FormRequest
             'records' => ['required', 'array', 'min:1'],
 
             'records.*' => ['required', 'array'],
+            'records.*.customer-applied-at-timestamp' => ['nullable', 'string'],
             'records.*.htf-quote-id' => ['nullable', 'string'],
             'records.*.application-id' => ['required', 'string'],
             'records.*.client-application-reference' => ['nullable', 'string'],
