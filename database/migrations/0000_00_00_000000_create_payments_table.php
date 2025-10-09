@@ -83,10 +83,6 @@ return new class extends Migration
             $table->timestamps();
             $table->softDeletes();
         });
-
-        // Start new payment records from an ID safely clear of number of finance_application
-        // records that will be populated from the old finance journey
-        DB::statement('ALTER TABLE `payments` AUTO_INCREMENT = 100000');
     }
 
     /**

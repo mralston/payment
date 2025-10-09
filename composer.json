@@ -36,11 +36,15 @@
   },
   "autoload": {
     "psr-4": {
-      "Mralston\\Payment\\": "src"
+      "Mralston\\Payment\\": "src",
+      "Mralston\\Payment\\Tests\\": "tests"
     }
   },
   "config": {
-    "sort-packages": true
+    "sort-packages": true,
+    "allow-plugins": {
+      "pestphp/pest-plugin": true
+    }
   },
   "extra": {
     "laravel": {
@@ -50,5 +54,9 @@
     }
   },
   "minimum-stability": "dev",
-  "prefer-stable": true
+  "prefer-stable": true,
+  "require-dev": {
+    "orchestra/testbench": "^9.0",
+    "pestphp/pest": "^4.1"
+  }
 }

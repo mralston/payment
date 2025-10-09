@@ -2,13 +2,12 @@
 
 namespace Mralston\Payment\Http\Controllers;
 
-use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Services\PrequalService;
 use Mralston\Payment\Traits\BootstrapsPayment;
 
-class PrequalController extends Controller
+class PrequalController
 {
     use BootstrapsPayment;
 
