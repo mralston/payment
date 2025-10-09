@@ -284,7 +284,9 @@ class Payment extends Model
         $this->secondary_telephone = $customer['landline'] ?? null;
         $this->addresses = $survey->addresses;
         $this->employment_status = $customer['employmentStatus'];
-        $this->employer_name = $survey->finance_responses?->employerName;
+        $this->employer_name = $customer['employmentStatus'] == 'self_employed' ?
+            $customer['firstName'] . ' ' . $customer['lastName'] :
+            $survey->finance_responses?->employerName;
         $this->employer_address = $survey->finance_responses?->employerAddress;
         $this->occupation = $survey->finance_responses?->occupation;
         $this->time_with_employer = floor(Carbon::parse($survey->finance_responses?->dateStartedEmployment)->diffInMonths());
