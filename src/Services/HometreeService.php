@@ -114,12 +114,19 @@ class HometreeService
         return is_numeric($inputString) ? intval($inputString) : null;
     }
 
+    /**
+     * @param string $status
+     * @return string
+     *
+     * @todo Convert this to a database lookup, similar to how PaymentLookupValues work.
+     */
     private function translateStatus(string $status): string
     {
         return match ($status) {
             'pending-application' => 'new',
             'pending-customer-review' => 'pending',
             'pending-signature' => 'accepted',
+            'pending-customer-direct-debit' => 'pending-customer-direct-debit',
             'pending-installation' => 'parked',
             'active' => 'active',
             'needs-manual-review' => 'referred',
