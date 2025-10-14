@@ -33,77 +33,67 @@ const props = defineProps({
         <div class="bg-white">
             <div class="flex flex-row gap-4 max-md:flex-col">
                 <div class="w-1/2 max-md:w-full">
+                    <DetailsRow label="Advance amount">
+                        {{ formatCurrency(payment.amount) }}
+                    </DetailsRow>
+                    <DetailsRow label="Term (months)">
+                        {{ payment.term }}
+                    </DetailsRow>
+                    <DetailsRow label="Deferred">
+                        {{ payment.deferred ?? '-' }}
+                        <span v-if="payment.payment_product?.deferred_type === 'bnpl_months'">&nbsp;months BNPL</span>
+                        <span v-else-if="payment.payment_product?.deferred_type === 'deferred_payments'">&nbsp;deferred payments</span>
+                    </DetailsRow>
+                    <DetailsRow label="Cash price">
+                        {{ formatCurrency(payment.total_cost ?? (makeNumeric(payment.amount) + makeNumeric(payment.deposit))) }}
+                    </DetailsRow>
+                    <DetailsRow label="Deposit">
+                        {{ formatCurrency(payment.deposit) }}
+                    </DetailsRow>
+                    <DetailsRow label="Goods">
+                        {{ products.filter(product => product?.name).map(product => product.name).join(', ') }}
+                    </DetailsRow>
+                    <DetailsRow label="Subsidy">
+                        {{ formatCurrency(payment.subsidy) }}
+                    </DetailsRow>
                     <DetailsRow
-                        label="Advance amount"
-                        :value="formatCurrency(payment.amount)"
-                    />
-                    <DetailsRow
-                        label="Term (months)"
-                        :value="String(payment.term)"
-                    />
-                    <DetailsRow
-                        label="Cash price"
-                        :value="formatCurrency(payment.total_cost ?? (makeNumeric(payment.amount) + makeNumeric(payment.deposit)))"
-                    />
-                    <DetailsRow
-                        label="Deposit"
-                        :value="formatCurrency(payment.deposit)"
-                    />
-                    <DetailsRow
-                        label="Goods"
-                        :value="products.filter(product => product?.name).map(product => product.name).join(', ')"
-                    />
-                    <DetailsRow
-                        label="Subsidy"
-                        :value="formatCurrency(payment.subsidy)"
-                    />
-                    <DetailsRow
-                        label="Monthly payment"
-                        :value="formatCurrency(payment.monthly_payment)"
-                    />
-                    <DetailsRow
-                        label="Monthly interest rate"
-                        :value="payment.apr ? String(Math.round(payment.apr / 12, 7)) + '&percnt;' : ''"
-                    />
-                    <DetailsRow
-                        v-if="payment.apr"
-                        label="APR"
-                        :value="String(payment.apr) + '&percnt;'" />
-                    <DetailsRow
-                        label="Total charge for credit"
-                        :value="formatCurrency(payment.total_payable - payment.amount)"
-                    />
-                    <DetailsRow
-                        label="Total amount repayable"
-                        :value="formatCurrency(payment.total_payable)"
-                    />
+                        label="Monthly payment">
+                        {{ formatCurrency(payment.monthly_payment) }}
+                    </DetailsRow>
+                    <DetailsRow v-if="payment.apr"
+                                label="APR">
+                        {{ payment.apr }}%
+                    </DetailsRow>
+                    <DetailsRow label="Total charge for credit">
+                        {{ formatCurrency(payment.total_payable - payment.amount) }}
+                    </DetailsRow>
+                    <DetailsRow label="Total amount repayable">
+                        {{ formatCurrency(payment.total_payable) }}
+                    </DetailsRow>
                 </div>
                 <div class="w-1/2 max-md:w-full">
-                    <DetailsRow
-                        label="Application submitted date"
-                        :value="payment.submitted_at ? moment(payment.submitted_at).format('DD/MM/YYYY') : ''"
-                    />
-                    <DetailsRow
-                        label="Agreement signed"
-                        :value="payment.signed_at ? 'Yes' : 'No'"
-                    />
-                    <DetailsRow
-                        label="Sat note signed"
-                        :value="payment.sat_note_file_id ? 'Yes' : 'No'"
-                    />
-                    <DetailsRow
-                        label="Offer expiry date"
-                        :value="payment.offer_expiration_date ? moment(payment.offer_expiration_date).format('DD/MM/YYYY') : ''"
-                    />
-                    <DetailsRow
-                        label="Agreement signed date"
-                        :value="payment.signed_at ? moment(payment.signed_at).format('DD/MM/YYYY') : ''"
-                    />
-                    <DetailsRow
-                        label="Cancellation expiry date"
-                        :value="payment.decision_received_at && payment.payment_status.identifier !== 'declined' ?
-                            moment(payment.decision_received_at).add(12, 'days').format('DD/MM/YYYY') : ''"
-                    />
+                    <DetailsRow label="Application submitted date">
+                        <span v-if="payment.submitted_at">{{ moment(payment.submitted_at).format('DD/MM/YYYY') }}</span>
+                    </DetailsRow>
+                    <DetailsRow label="Agreement signed">
+                        <span v-if="payment.signed_at">Yes</span>
+                        <span v-else>No</span>
+                    </DetailsRow>
+                    <DetailsRow label="Sat note signed">
+                        <span v-if="payment.sat_note_file_id">Yes</span>
+                        <span v-else>No</span>
+                    </DetailsRow>
+                    <DetailsRow label="Offer expiry date">
+                        <span v-if="payment.offer_expiration_date">{{ moment(payment.offer_expiration_date).format('DD/MM/YYYY') }}</span>
+                    </DetailsRow>
+                    <DetailsRow label="Agreement signed date">
+                        <span v-if="payment.signed_at">{{ moment(payment.signed_at).format('DD/MM/YYYY') }}</span>
+                    </DetailsRow>
+                    <DetailsRow label="Cancellation expiry date">
+                        <span v-if="payment.decision_received_at && payment.payment_status.identifier !== 'declined'">
+                            {{ moment(payment.decision_received_at).add(12, 'days').format('DD/MM/YYYY') }}
+                        </span>
+                    </DetailsRow>
                 </div>
             </div>
         </div>

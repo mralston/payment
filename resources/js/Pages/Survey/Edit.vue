@@ -195,7 +195,7 @@ function unselectOffer() {
 }
 
 onMounted(() => {
-    if (!form.financeResponses.yearlyHouseholdIncome || form.financeResponses.yearlyHouseholdIncome === 0) {
+    if (!form.financeResponses?.yearlyHouseholdIncome || form.financeResponses?.yearlyHouseholdIncome === 0) {
         const yearlyHouseholdIncome = form.customers.reduce((acc, customer) => {
             return acc + makeNumeric(customer?.grossAnnualIncome ?? 0);
         }, 0);

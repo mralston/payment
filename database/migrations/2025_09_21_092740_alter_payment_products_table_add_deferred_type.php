@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payment_products', function (Blueprint $table) {
-            $table->enum('deferred_type', ['months', 'payments'])->nullable()->after('deferred');
+            $table->enum('deferred_type', ['bnpl_months', 'deferred_payments'])->nullable()->after('deferred');
         });
     }
 

@@ -1,8 +1,8 @@
 <script setup>
-import { Icon } from '@iconify/vue';    
+import { Icon } from '@iconify/vue';
 const props = defineProps({
     label: String,
-    value: String,
+    value: String, // Legacy. Use slot instead.
     stack: Boolean,
     icon: String,
     type: String,
@@ -16,7 +16,10 @@ const props = defineProps({
             {{ label }}
         </div>
         <div class="w-1/3" :class="{ 'w-full': stack }">
-            <span :class="type === 'danger' ? 'bg-red-500 text-white px-2 py-1 rounded-md' : ''">{{ value }}</span>
+            <span :class="type === 'danger' ? 'bg-red-500 text-white px-2 py-1 rounded-md' : ''">
+                <slot/>
+                {{ value }}
+            </span>
         </div>
     </div>
 </template>

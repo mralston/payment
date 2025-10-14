@@ -46,6 +46,7 @@ class PaymentController
                     'paymentProvider',
                     'parentable.user',
                     'paymentStatus',
+                    'paymentProduct',
                 ])
                 ->join('payment_providers', 'payments.payment_provider_id', '=', 'payment_providers.id')
                 ->join('payment_statuses', 'payments.payment_status_id', '=', 'payment_statuses.id')
@@ -174,6 +175,7 @@ class PaymentController
                 ->load([
                     'paymentProvider',
                     'paymentStatus',
+                    'paymentProduct',
                     'parentable',
                     'parentable.user',
                     'paymentCancellations',

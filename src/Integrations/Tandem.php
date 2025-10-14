@@ -618,7 +618,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'] > 0 ? $product['deferredPayments'] : null,
-                            'deferred_type' => $product['deferredPayments'] > 0 ? 'payments' : null,
+                            'deferred_type' => $product['deferredPayments'] > 0 ? 'deferred_payments' : null,
                         ]);
 
                     // If the product has been soft deleted, don't store the offer
@@ -644,7 +644,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                             'apr' => $product['apr'],
                             'term' => $product['termMonths'],
                             'deferred' => $product['deferredPayments'] > 0 ? $product['deferredPayments'] : null,
-                            'deferred_type' => $product['deferredPayments'] > 0 ? 'payments' : null,
+                            'deferred_type' => $product['deferredPayments'] > 0 ? 'deferred_payments' : null,
                             'first_payment' => $payments['RepaymentDetails']['FirstRepaymentAmount'],
                             'monthly_payment' => $payments['RepaymentDetails']['MonthlyRepayment'],
                             'final_payment' => $payments['RepaymentDetails']['FinalRepaymentAmount'],

@@ -223,7 +223,11 @@ function dataTableSortClass(field) {
                         <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.deposit) }}</td>
                         <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.apr ? payment.apr + '%' : '-' }}</td>
                         <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.term }}</td>
-                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.deferred ?? '-' }}</td>
+                        <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">
+                            {{ payment.deferred ?? '-' }}
+                            <span v-if="payment.payment_product?.deferred_type === 'bnpl_months'">&nbsp;months BNPL</span>
+                            <span v-else-if="payment.payment_product?.deferred_type === 'deferred_payments'">&nbsp;deferred payments</span>
+                        </td>
                         <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_status?.name }}</td>
                         <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ payment.payment_provider?.name }}</td>
                         <td class="whitespace-nowrap px-2 py-1 text-sm text-gray-500" :class="{ 'bg-gray-100': index % 2 === 0 }">{{ formatCurrency(payment.subsidy) }}</td>

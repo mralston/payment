@@ -78,11 +78,13 @@ if (props.modelValue) {
                                         <span v-else>years</span>
                                         <span v-if="offer.deferred">
                                             -
-                                            <span v-if="offer.deferred_type === 'payments'">{{ offer.deferred + 1 }}</span>
+                                            <span v-if="offer.deferred_type === 'deferred_payments'">{{ offer.deferred + 1 }}</span>
                                             <span v-else>{{ offer.deferred }}</span>
                                             <span v-if="offer.deferred / 12 === 1">&nbsp;month</span>
                                             <span v-else>&nbsp;months</span>
-                                            deferred
+
+                                            <span v-if="offer.deferred_type === 'bnpl_months'">&nbsp;BNPL</span>
+                                            <span v-else>&nbsp;deferred</span>
                                         </span>
                                         <span v-if="offer.apr == 0 && offer.type === 'finance'">&nbsp;- interest free credit</span>
                                     </div>
