@@ -236,19 +236,19 @@ const disabledCancellationButtons = computed(() => {
                             {{ payment.payment_status.name }}
                         </td>
                     </tr>
-                    <tr v-if="offer.first_payment">
+                    <tr v-if="offer?.first_payment">
                         <th class="p-1 mr-2">First Payment</th>
                         <td class="p-1">
                             {{ formatCurrency(offer.first_payment) }}
                         </td>
                     </tr>
-<!--                    <tr v-if="offer.monthly_payment">-->
+<!--                    <tr v-if="offer?.monthly_payment">-->
 <!--                        <th class="bg-gray-100 p-1 mr-2">Monthly Payment</th>-->
 <!--                        <td class="bg-gray-100 p-1">-->
 <!--                            {{ formatCurrency(offer.monthly_payment) }}-->
 <!--                        </td>-->
 <!--                    </tr>-->
-                    <tr v-if="offer.final_payment">
+                    <tr v-if="offer?.final_payment">
                         <th class="bg-gray-100 p-1 mr-2">Final Payment</th>
                         <td class="bg-gray-100 p-1">
                             {{ formatCurrency(offer.final_payment) }}
