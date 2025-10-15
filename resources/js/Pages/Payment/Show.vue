@@ -80,28 +80,22 @@ const paymentType = computed(() => {
                 :payment="payment"/>
 
             <div :class="layout[view].container">
-                <Loan
-                    :payment="payment"
-                    :paymentType="paymentType"
-                    :products="products"/>
 
-                <Applicant
-                    :payment="payment"/>
+                <Loan :payment="payment"
+                      :paymentType="paymentType"
+                      :products="products"/>
 
-                <Employment
-                    :payment="payment"/>
+                <Applicant :payment="payment"/>
 
-                <Income
-                    :payment="payment"/>
+                <Employment :payment="payment"/>
 
-                <Address
-                    :payment="payment"/>
+                <Income :payment="payment"/>
 
-                <BankAccount
-                    :payment="payment"/>
+                <Address :payment="payment"/>
 
-                <MarketingConsent
-                    :payment="payment"/>
+                <BankAccount :payment="payment"/>
+
+                <MarketingConsent :payment="payment"/>
 
             </div>
 
