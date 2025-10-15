@@ -18,7 +18,7 @@ import PaymentOffersSelect from "../../Components/PaymentOffersSelect.vue";
 import OfferStatusBadge from "../../Components/OfferStatusBadge.vue";
 import BulletPointsSkeleton from "../../Components/BulletPointsSkeleton.vue";
 import SkeletonItem from "../../Components/SkeletonItem.vue";
-import {makeNumeric} from "../../Helpers/Number.js";
+import {makeNumeric, round} from "../../Helpers/Number.js";
 import {decompress} from "../../Helpers/Compression.js";
 import Modal from "../../Components/Modal.vue";
 import AddressInput from "../../Components/AddressInput.vue";
@@ -76,6 +76,7 @@ const offers = ref([]);
 
 const newDeposit = ref(null);
 const newDepositType = ref(null);
+const maxDeposit = ref(null);
 
 const showAddressLookup = ref(false);
 
@@ -425,6 +426,28 @@ const selectedLeaseProvider = computed(() => {
     }
 });
 
+const maxFinanceDeposit = computed(() => {
+    if (selectedFinanceProvider.value?.max_deposit_percent) {
+        return round(selectedFinanceProvider.value.max_deposit_percent / 100 * props.totalCost, 2);
+    }
+
+    return null;
+});
+
+const maxLeaseDeposit = computed(() => {
+    if (selectedLeaseProvider.value?.max_deposit_percent) {
+        return round(selectedLeaseProvider.value.max_deposit_percent / 100 * props.totalCost, 2);
+    }
+
+    return null;
+});
+
+const disabledDepositModalButtons = computed(() => {
+    if (maxDeposit.value && newDeposit.value > maxDeposit.value) {
+        return ['ok'];
+    }
+});
+
 function showPrequalErrorsModal(gatewayType) {
     currentErrorsToDisplay.value = parseGatewayErrors.value(gatewayType);
     prequalErrorsModal.value.show();
@@ -444,6 +467,14 @@ function changeDeposit(paymentType)
 {
     newDepositType.value = paymentType;
     newDeposit.value = props.survey[paymentType + '_deposit'];
+
+    if (paymentType === 'finance') {
+        maxDeposit.value = maxFinanceDeposit.value;
+    } else if (paymentType === 'lease' && selectedLeaseProvider.value.max_deposit_percent) {
+        maxDeposit.value = maxLeaseDeposit.value;
+    } else {
+        maxDeposit.value = null;
+    }
 
     depositModal.value.show();
 }
@@ -528,12 +559,22 @@ function submitSurvey()
         </ul>
     </MoreInfoModal>
 
-    <Modal ref="depositModal" :title="`Change ${newDepositType} deposit`" :buttons="['ok', 'cancel']" type="question" @ok="submitDepositChange">
+    <Modal ref="depositModal" :title="`Change ${newDepositType} deposit`" :buttons="['ok', 'cancel']" :disabled-buttons="disabledDepositModalButtons" type="question" @ok="submitDepositChange">
         <p class="mb-4">What deposit will the customer be paying for {{ newDepositType }}?</p>
         <div class="flex items-center rounded-md bg-white pl-3 outline outline-1 -outline-offset-1 outline-gray-300 hover:outline-gray-300 has-[input:focus-within]:outline has-[input:focus-within]:outline-2 has-[input:focus-within]:-outline-offset-2 has-[input:focus-within]:outline-blue-600">
             <div class="shrink-0 select-none text-base text-gray-700 sm:text-sm/6">&pound;</div>
-            <input type="number" step="0.01" v-model="newDeposit" :id="newDeposit" class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0" placeholder="0.00" />
+            <input type="number"
+                   step="0.01"
+                   v-model="newDeposit"
+                   :id="newDeposit"
+                   :max="maxDeposit"
+                   class="block min-w-0 grow py-1.5 pl-1 pr-3 text-base text-gray-900 placeholder:text-gray-400 focus:outline focus:outline-0 sm:text-sm/6 border-0"
+                   placeholder="0.00" />
         </div>
+        <p v-if="maxDeposit" class="mt-2">
+            Maximum:
+            {{ formatCurrency(maxDeposit) }}
+        </p>
     </Modal>
 
     <Modal ref="errorModal" title="Error" :buttons="['ok', 'cancel']" type="danger" @ok="if (errorModalCallback) { errorModalCallback(); }">
@@ -549,7 +590,7 @@ function submitSurvey()
 
         <div class="float-end">
             <button type="button"
-                    class="rounded bg-gray-600 px-2 py-1 mr-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                    class="rounded bg-gray-600 px-2 py-1 mr-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600 disabled:cursor-not-allowed"
                     title="Refresh Offers"
                     @click="resetPrequal">
                 <ArrowPathIcon :disabled="pendingGateways.length > 0"
@@ -606,14 +647,14 @@ function submitSurvey()
 
                             <div class="mt-8">
                                 <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.cash_deposit)) }}
-                                <button type="button" class="float-right" @click="changeDeposit('cash')">
+                                <button type="button" class="float-right disabled:cursor-not-allowed" @click="changeDeposit('cash')" :disabled="navigating">
                                     <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
                                 </button>
                             </div>
 
                             <button @click="selectOffer('cash')"
                                     :disabled="navigating"
-                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed">
                                 Select
                             </button>
 
@@ -675,21 +716,22 @@ function submitSurvey()
                             </div>
 
                             <div class="mt-8">
+                                <ExclamationTriangleIcon v-if="maxFinanceDeposit && makeNumeric(survey.finance_deposit) > maxFinanceDeposit" class="h-6 w-6 mr-1 text-red-500 inline-block" title="Deposit is too high"/>
                                 <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.finance_deposit)) }}
-                                <button type="button" class="float-right" @click="changeDeposit('finance')">
+                                <button type="button" class="float-right disabled:cursor-not-allowed" @click="changeDeposit('finance')" :disabled="selectedFinanceOffer === null || navigating">
                                     <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />
                                 </button>
                             </div>
 
                             <button @click="selectOffer('finance')"
-                                    :disabled="selectedFinanceOffer === null || navigating"
-                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                    :disabled="selectedFinanceOffer === null || navigating || (maxFinanceDeposit && makeNumeric(survey.finance_deposit) > maxFinanceDeposit)"
+                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed">
                                 Select
                             </button>
 
                             <button @click="financeMoreInfoModal.show"
                                     :disabled="selectedFinanceOffer === null"
-                                    class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 disabled:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                    class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 disabled:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed">
                                 More Info
                             </button>
 
@@ -743,21 +785,22 @@ function submitSurvey()
                             </div>
 
                             <div class="mt-8">
+                                <ExclamationTriangleIcon v-if="maxLeaseDeposit && makeNumeric(survey.lease_deposit) > maxLeaseDeposit" class="h-6 w-6 mr-1 text-red-500 inline-block" title="Deposit is too high"/>
                                 <b>Deposit:</b> {{ formatCurrency(makeNumeric(survey.lease_deposit)) }}
-<!--                                <button type="button" class="float-right" @click="changeDeposit('lease')">-->
-<!--                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600" aria-hidden="true" />-->
+<!--                                <button type="button" class="float-right" @click="changeDeposit('lease')" :disabled="selectedLeaseOffer === null || navigating">-->
+<!--                                    <PencilIcon class="h-6 w-5 flex-none text-indigo-600 disabled:cursor-not-allowed" aria-hidden="true" />-->
 <!--                                </button>-->
                             </div>
 
                             <button @click="selectOffer('lease')"
-                                    :disabled="selectedLeaseOffer === null || navigating"
-                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                    :disabled="selectedLeaseOffer === null || navigating || (maxLeaseDeposit && makeNumeric(survey.lease_deposit) > maxLeaseDeposit)"
+                                    class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 disabled:bg-blue-200 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed">
                                 Select
                             </button>
 
                             <button @click="leaseMoreInfoModal.show"
                                     :disabled="selectedLeaseOffer === null"
-                                    class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 disabled:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                                    class="mt-4 w-full rounded-md bg-white border border-blue-500 px-3 py-2 text-center text-sm/6 font-semibold text-blue-500 shadow-sm hover:bg-gray-100 disabled:bg-white focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600 disabled:cursor-not-allowed">
                                 More Info
                             </button>
 
