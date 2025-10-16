@@ -3,6 +3,7 @@
 namespace Mralston\Payment\Services;
 
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 use Mralston\Mug\Facades\Mug;
 use Mralston\Payment\Data\AddressLookupResultData;
 use Mralston\Payment\Data\AddressLookupResultsData;
@@ -18,6 +19,15 @@ class MugService implements PaymentAddressLookup
     {
         return Mug::addressRecco($postCode)
             ->map(function ($address) {
+                if (empty($address['town']) && Str::contains($address['addressLine2'], ', ')) {
+                    $address['county'] = $address['city'];
+                    [
+                        $address['addressLine2'],
+                        $address['city']
+                    ] = Str::of($address['addressLine2'])
+                        ->split('/, /', 2);
+                }
+
                 return new AddressLookupResultData(
                     uprn: $address['uprn'],
                     latitude: $address['latitude'],

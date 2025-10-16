@@ -3,7 +3,7 @@ import { ref, watch, computed } from 'vue';
 import { MagnifyingGlassIcon } from '@heroicons/vue/16/solid';
 import Modal from "./Modal.vue";
 import axios from 'axios';
-import {ArrowPathIcon} from "@heroicons/vue/20/solid/index.js";
+import {ArrowPathIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
 
 defineOptions({
     inheritAttrs: false
@@ -75,6 +75,10 @@ const addressesFound = computed(() => Object.keys(addresses.value).length > 0);
 const manualAddress = ref(props.allowManualEntry);
 
 const lookupRunning = ref(false);
+
+const addressesWithoutUprnOrUdprn = computed(() => {
+    return Object.values(addresses.value).filter((address) => !address.uprn && !address.udprn) ?? [];
+});
 
 function lookup()
 {
@@ -183,9 +187,15 @@ function notListed()
                     @click="selectAddress(address)"
                     @dblclick="selectAddressAndClose(address)">
                 {{ address.summary }}
+                <ExclamationTriangleIcon v-if="!address.uprn && !address.udprn" class="text-red-500 h-6 w-6 float-right mr-2" aria-hidden="true"/>
             </button>
         </div>
         <div v-else>No addresses matched the post code.</div>
+
+        <div v-if="addressesWithoutUprnOrUdprn.length > 0" class="mt-4">
+            <ExclamationTriangleIcon class="text-red-500 h-6 w-6 inline-block" aria-hidden="true"/>
+            Some addresses cannot be used with all payment providers.
+        </div>
     </Modal>
 
     <div v-bind="$attrs" class="border border-gray-300 rounded bg-gray-50">
@@ -252,6 +262,11 @@ function notListed()
                 <MagnifyingGlassIcon v-else class="h-4 w-4 text-gray-600" aria-hidden="true"/>
             </button>
         </div>
+    </div>
+
+    <div v-if="addressModel && !addressModel.uprn && !addressModel.udprn" class="mt-2 text-sm text-red-500">
+        <ExclamationTriangleIcon class="text-red-500 h-4 w-4 inline-block" aria-hidden="true"/>
+        Cannot be used with some payment providers.
     </div>
 </template>
 
