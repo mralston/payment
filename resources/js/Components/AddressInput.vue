@@ -264,7 +264,7 @@ function notListed()
         </div>
     </div>
 
-    <div v-if="addressModel && !addressModel.uprn && !addressModel.udprn" class="mt-2 text-sm text-red-500">
+    <div v-if="addressModel.manual || ((addressModel.address1 || addressModel.address2 || addressModel.houseNumber || addressModel.street) && !addressModel.uprn && !addressModel.udprn)" class="mt-2 text-sm text-red-500">
         <ExclamationTriangleIcon class="text-red-500 h-4 w-4 inline-block" aria-hidden="true"/>
         Cannot be used with some payment providers.
     </div>
