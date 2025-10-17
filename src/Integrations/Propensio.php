@@ -18,6 +18,7 @@ use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 //use Mralston\Payment\Interfaces\Signable;
+use Mralston\Payment\Interfaces\WantsEpvs;
 use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Mail\SatNoteUpload;
 use Mralston\Payment\Models\Payment;
@@ -28,7 +29,7 @@ use Mralston\Payment\Models\PaymentSurvey;
 use Mralston\Payment\Services\PaymentCalculator;
 use Spatie\ArrayToXml\ArrayToXml;
 
-class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer /*, Signable*/
+class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, WantsEpvs /*, Signable*/
 {
     public const UNEXPECTED_ERROR = 0; // Any error that we were not expecting. i.e. an Exception
     public const TARGET_REFERENCE_UNKNOWN = 1; // Target reference not recognised
@@ -955,7 +956,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer 
             ->combine($matches[1]);
     }
 
-    public function uploadEpvsCertificate(FinanceApplication $application, string $encodedFile)
+    public function uploadEpvsCertificate(Payment $payment, string $encodedFile): bool
     {
         // TODO: E-mail it to them?
         return false;
