@@ -59,7 +59,7 @@ class PaymentController
                         ->when(!empty($request->input('search.reference')), fn($query) => $query->where('payments.reference', 'like', '%' . $request->input('search.reference') . '%'))
                         ->when(!empty($request->input('search.parentable_id')), fn($query) => $query->where('payments.parentable_id', $request->input('search.parentable_id')))
                         ->when(!empty($request->input('search.customer')), fn($query) => $query->whereRaw('CONCAT(payments.first_name, \' \', payments.last_name) LIKE ?', ['%' . $request->input('search.customer') . '%']))
-                        ->when(!empty($request->input('search.post_code')), fn($query) => $query->whereRaw('LOWER(addresses->>\'$[0].postCode\') LIKE LOWER(?)', ['%' . $request->input('search.post_code') . '%']))
+                        ->when(!empty($request->input('search.post_code')), fn($query) => $query->whereRaw('REPLACE(LOWER(addresses->>\'$[0].postCode\'), \' \', \'\') LIKE LOWER(?)', ['%' . Str::replace(' ', '', $request->input('search.post_code')) . '%']))
                         ->when(!empty($request->input('search.amount')), fn($query) => $query->where('payments.amount', $request->input('search.amount')))
                         ->when(!empty($request->input('search.deposit')), fn($query) => $query->where('payments.deposit', $request->input('search.deposit')))
                         ->when(!empty($request->input('search.apr')), fn($query) => $query->where('payments.apr', $request->input('search.apr')))
