@@ -180,6 +180,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ),
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
+        
+        $this->requestData = $payload;
 
         Log::debug('Hometree prequal request:', $payload);
         Log::debug('POST /applications');
@@ -191,6 +193,10 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ->post('/applications', $payload);
 
         $json = $response->json();
+        
+        if ($response->serverError()) {
+            Log::debug('Hometree response: ' . $response->body());
+        }
 
 //        Log::debug('Hometree prequal response:', $json);
 
@@ -243,9 +249,21 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                         ...(
                         $survey->basic_questions_completed ? [
                             'affordability' => [
-                                'gross_annual_income' => $customer['grossAnnualIncome'],
+                                'gross_annual_income' => $this->stringifyDecimal($customer['grossAnnualIncome']),
                                 'dependants' => $customer['dependants'],
                                 'employment_status' => PaymentLookupValue::byValue($customer['employmentStatus'])->payment_provider_values['hometree'],
+                                ...(
+                                    $customer['employmentStatus'] === 'self_employed' ?
+                                        [
+                                            'current_account_for_business' => boolval(
+                                                PaymentLookupField::byIdentifier('current_account_for_business')
+                                                    ->paymentLookupValues()
+                                                    ->firstWhere('value', $customer['currentAccountForBusiness'])
+                                                    ->payment_provider_values['hometree']
+                                            )
+                                        ] :
+                                        []
+                                )
                             ]
                         ] : []
                         ),
@@ -264,8 +282,10 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ->patch('/applications/' . $applicationId, $payload);
 
         $json = $response->json();
+        
+        // Log::debug('response: ' . $response->body());
 
-        Log::debug('status: ' . $json['status']);
+        // Log::debug('status: ' . $json['status'] ?? 'null');
 
 //        Log::debug('Hometree update application response:', $json);
 

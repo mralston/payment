@@ -490,7 +490,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     Log::channel('finance')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
                     Log::channel('finance')->error('URL: ' . $url);
                     Log::channel('finance')->error('Data: ' . print_r($data, true));
-                    Log::channel('finance')->error('Response: ' . $response->body());
+                    Log::channel('finance')->error('Response: ' . $response?->body() ?? '<null>');
                     throw $ex;
                 }
             }
