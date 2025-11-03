@@ -118,5 +118,11 @@ Route::group(['middleware' => ['web', 'auth']], function () {
 
             Route::get('finance/{payment}/signing-link', [FinanceSigningLinkController::class, 'show'])
                 ->name('finance.signing-link');
+
+            Route::get('{payment}/move-check/{parentableId}', [PaymentController::class, 'moveCheck'])
+                ->name('payments.move-check');
+
+            Route::post('{payment}/move/{parentableId}', [PaymentController::class, 'move'])
+                ->name('payments.move');
     });
 });

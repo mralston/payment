@@ -36,7 +36,11 @@ class PaymentController
         $parentTable = app(config('payment.parent_model'))->getTable();
         $userTable = app(config('payment.user_model'))->getTable();
 
+        $parentableName = explode('\\', config('payment.parent_model'));
+        $parentableName = end($parentableName);
+
         return Inertia::render('Payment/Index', [
+            'parentableName' => $parentableName,
             'payments' => Payment::select('payments.*')
                 ->whereHas('paymentStatus', function ($query) {
                     $query->where('unlisted', false);
@@ -206,5 +210,43 @@ class PaymentController
             'reason' => $reason,
         ])
             ->withViewData($this->helper->getViewData());
+    }
+
+    public function moveCheck(Request $request, Payment $payment, int $parentableId)
+    {
+        $targetParentable = app(config('payment.parent_model'))->findOrFail($parentableId);
+
+        if ($targetParentable->id == $payment->parentable->id) {
+            return response()->json([
+                'error' => 'Quote is already associated with the finance application.'
+            ], 403);
+        }
+
+        if (!$this->paymentService->isFinanceApplicationCompatible($payment, $targetParentable)) {
+
+            $compatibility = $this->paymentService->paymentCompatibility($payment, $targetParentable);
+
+            return response()->json([
+                'error' => 'Finance application is not compatible with the target quote.',
+                'compatibility' => $compatibility
+            ], 200);
+        }
+
+        return response()->json($targetParentable->payments()->with('paymentStatus')->get(), 200);
+    }
+
+    public function move(Request $request, Payment $payment, int $parentableId)
+    {
+        $targetParentable = app(config('payment.parent_model'))->findOrFail($parentableId);
+
+        if ($payment->parentable->id == $targetParentable->id) {
+            return response()->json([
+                'error' => 'Payment is already associated with the target parentable.'
+            ], 403);
+        }
+
+        $this->paymentService->move($payment, $targetParentable);
+
+        return redirect()->back()->with('success', 'Payment moved successfully.');
     }
 }
