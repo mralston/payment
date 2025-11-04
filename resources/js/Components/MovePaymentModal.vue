@@ -33,7 +33,6 @@ function findParentable() {
 
     axios.get(route('payment.payments.move-check', {payment: props.payment.id, parentableId: parentableId.value}))
         .then(response => {
-            console.log(response);
             isLoading.value = false;
             responseMessages.value = [];
             responseMessagesFoundPayments.value = [];
