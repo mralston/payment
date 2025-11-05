@@ -180,7 +180,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ),
             'reference' => $helper->getReference() . '-' . Str::of(Str::random(5))->upper(),
         ];
-        
+
         $this->requestData = $payload;
 
         Log::debug('Hometree prequal request:', $payload);
@@ -193,7 +193,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ->post('/applications', $payload);
 
         $json = $response->json();
-        
+
         if ($response->serverError()) {
             Log::debug('Hometree response: ' . $response->body());
         }
@@ -282,7 +282,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ->patch('/applications/' . $applicationId, $payload);
 
         $json = $response->json();
-        
+
         // Log::debug('response: ' . $response->body());
 
         // Log::debug('status: ' . $json['status'] ?? 'null');
@@ -338,7 +338,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
     {
         dispatch(function () use ($survey, $totalCost) {
 
-            if (empty($survey->addresses[0]['uprn'])) {
+            if (empty($survey->addresses[0]['uprn']) && empty($survey->addresses[0]['udprn'])) {
                 event(new PrequalError(
                     gateway: static::class,
                     type: 'lease',
