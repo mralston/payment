@@ -6,6 +6,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Support\Collection;
 use Mralston\Payment\Data\AddressData;
 use Mralston\Payment\Data\CompanyData;
+use Mralston\Payment\Models\Payment;
 
 interface PaymentHelper
 {
@@ -61,4 +62,6 @@ interface PaymentHelper
     public function canChangePaymentMethod(): bool;
 
     public function disableChangePaymentMethodAfterCancellation(): bool|string;
+
+    #public function getProudctCode(Payment $payment): string;
 }
