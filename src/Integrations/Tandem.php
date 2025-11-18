@@ -104,7 +104,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                 'externalUniqueReference' => $payment->reference,
             ],
             'finance' => [
-                'financeProductCode' => 'Standard', // Should this be populated with the value from /financeProducts ?
+                'financeProductCode' => 'Standard',
                 'advance' => $payment->amount,
                 'termMonths' => $payment->term,
                 'apr' => $payment->apr,
@@ -196,7 +196,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                 'goods' => [
                     [
                         'description' => $payment->parentable->products_description ?? 'Various products',
-                        'typeCode' =>  $helper->getProductCode($payment),//'RESOLP001',
+                        'typeCode' =>  $helper->getProductCode($payment),
                         'totalPrice' => $helper->getGross(),
                         'quantity' => 1
                     ],

@@ -2,12 +2,14 @@
 
 namespace Mralston\Payment\Models;
 
+use App\PaymentProductCode;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
-use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Facades\Cache;
 use Mralston\Epvs\Models\FinanceLender as EpvsFinanceLender;
+use Mralston\Payment\Interfaces\PaymentGateway;
 
 class PaymentProvider extends Model
 {
@@ -33,7 +35,7 @@ class PaymentProvider extends Model
         );
     }
 
-    public function gateway()
+    public function gateway(): ?PaymentGateway
     {
         if (empty($this->gateway)) {
             return null;
@@ -42,17 +44,22 @@ class PaymentProvider extends Model
         return app($this->gateway);
     }
 
-    public function paymentProducts()
+    public function paymentProducts(): HasMany
     {
         return $this->hasMany(PaymentProduct::class);
     }
 
-    public function paymentType()
+    public function paymentProductCodes()
+    {
+        return $this->hasMany(PaymentProductCode::class);
+    }
+
+    public function paymentType(): BelongsTo
     {
         return $this->belongsTo(PaymentType::class);
     }
 
-    public function epvsFinanceLender()
+    public function epvsFinanceLender(): BelongsTo
     {
         return $this->belongsTo(EpvsFinanceLender::class);
     }

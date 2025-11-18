@@ -63,5 +63,5 @@ interface PaymentHelper
 
     public function disableChangePaymentMethodAfterCancellation(): bool|string;
 
-    #public function getProudctCode(Payment $payment): string;
+    public function getProductCode(Payment $payment): ?string;
 }
