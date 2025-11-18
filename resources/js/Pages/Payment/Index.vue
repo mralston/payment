@@ -7,9 +7,11 @@ import {formatCurrency} from "../../Helpers/Currency.js";
 import {titleCase} from "../../Helpers/Strings.js";
 import {watch} from "vue";
 import { ChevronDownIcon } from '@heroicons/vue/16/solid';
+import MovePaymentModal from "../../Components/MovePaymentModal.vue";
 
 const props = defineProps({
     payments: Object,
+    parentableName: String,
     parentRouteName: String,
     parentModelDescription: {
         type: String,
@@ -237,6 +239,19 @@ function dataTableSortClass(field) {
                                 Show
                                 <span class="sr-only">, {{ payment.reference }}</span>
                             </Link>
+                            <button
+                                type="button"
+                                class="bg-yellow-500 hover:bg-yellow-400 text-white px-2 py-1 rounded text-sm ml-2"
+                                data-toggle="modal"
+                                :data-target="`#movePaymentModal${payment.id}`"
+                                :data-payment_id="payment.id"
+                                title="Move Payment"
+                            >
+                                <i class="fa fa-arrows text-xs" aria-hidden="true"></i>
+                            </button>
+                            <MovePaymentModal
+                                :payment="payment"
+                                :parentable-name="parentableName"></MovePaymentModal>
                         </td>
                     </tr>
                 </tbody>
