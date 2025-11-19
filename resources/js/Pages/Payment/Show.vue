@@ -13,11 +13,16 @@ import MarketingConsent from '../../Components/Details/MarketingConsent.vue';
 import DetailsBanner from '../../Components/Details/DetailsBanner.vue';
 import { Icon } from '@iconify/vue';
 import { PaymentProvider } from '../../Enums/PaymentProvider';
+import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
+import Banner from "../../Components/Banner.vue";
 
 const props = defineProps({
     payment: Object,
     products: Array,
     paymentProviderSupportsRemoteSigning: Boolean,
+    parentModelDescription: String,
+    success: String,
+    errors: Array,
 });
 
 const crumbs = ref([
@@ -66,12 +71,24 @@ const paymentType = computed(() => {
         </button>
     </div>
 
+    <Banner v-if="success" type="success" class="mx-10 mt-4">
+        <CheckCircleIcon class="h-6 w-6 inline" aria-hidden="true"/>
+        {{ success }}
+    </Banner>
+    <Banner v-if="errors.length" type="error" class="mx-10 mt-4">
+        <ExclamationTriangleIcon class="h-6 w-6 inline" aria-hidden="true"/>
+        <ul>
+            <li v-for="error in errors" :key="error">{{ error }}</li>
+        </ul>
+    </Banner>
+
     <div class="flex max-w-8xl mx-auto max-md:flex-col text-sm p-10 gap-4">
         <div class="w-1/4 max-md:w-full">
             <Summary
                 :payment="payment"
                 :paymentType="paymentType"
                 :payment-provider-supports-remote-signing="paymentProviderSupportsRemoteSigning"
+                :parent-model-description="parentModelDescription"
             />
 
         </div>

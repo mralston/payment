@@ -5,13 +5,14 @@ import {Head, Link, router, useForm} from "@inertiajs/vue3";
 import {formatDate} from "../../Helpers/Date.js";
 import {formatCurrency} from "../../Helpers/Currency.js";
 import {titleCase} from "../../Helpers/Strings.js";
-import {watch} from "vue";
+import {ref, watch} from "vue";
 import { ChevronDownIcon } from '@heroicons/vue/16/solid';
 import MovePaymentModal from "../../Components/MovePaymentModal.vue";
+import Banner from "../../Components/Banner.vue";
+import {CheckCircleIcon, ExclamationTriangleIcon} from "@heroicons/vue/20/solid/index.js";
 
 const props = defineProps({
     payments: Object,
-    parentableName: String,
     parentRouteName: String,
     parentModelDescription: {
         type: String,
@@ -20,7 +21,11 @@ const props = defineProps({
     search: Object,
     sort: String,
     direction: String,
+    success: String,
+    errors: Array,
 });
+
+const movePaymentModal = ref(null);
 
 const form = useForm({
     perPage: props.payments.per_page,
@@ -96,6 +101,11 @@ function dataTableSortClass(field) {
     return form.direction === 'asc' ? 'sorting_asc' : 'sorting_desc';
 }
 
+function movePayment(payment)
+{
+    movePaymentModal.value.show(payment);
+}
+
 </script>
 
 <template>
@@ -104,7 +114,21 @@ function dataTableSortClass(field) {
         <title>Payments</title>
     </Head>
 
+    <MovePaymentModal ref="movePaymentModal" :parentModelDescription="parentModelDescription"/>
+
     <div class="p-10">
+
+        <Banner v-if="success" type="success" class="mb-4">
+            <CheckCircleIcon class="h-6 w-6 inline" aria-hidden="true"/>
+            {{ success }}
+        </Banner>
+        <Banner v-if="errors.length" type="error" class="mb-4">
+            <ExclamationTriangleIcon class="h-6 w-6 inline" aria-hidden="true"/>
+            <ul>
+                <li v-for="error in errors" :key="error">{{ error }}</li>
+            </ul>
+        </Banner>
+
         <h1 class="text-4xl font-bold mb-4">Payments</h1>
 
 <!--        <div class="grid grid-cols-2">-->
@@ -242,16 +266,10 @@ function dataTableSortClass(field) {
                             <button
                                 type="button"
                                 class="bg-yellow-500 hover:bg-yellow-400 text-white px-2 py-1 rounded text-sm ml-2"
-                                data-toggle="modal"
-                                :data-target="`#movePaymentModal${payment.id}`"
-                                :data-payment_id="payment.id"
-                                title="Move Payment"
-                            >
-                                <i class="fa fa-arrows text-xs" aria-hidden="true"></i>
+                                @click="movePayment(payment)"
+                                title="Move Payment">
+                                Move
                             </button>
-                            <MovePaymentModal
-                                :payment="payment"
-                                :parentable-name="parentableName"></MovePaymentModal>
                         </td>
                     </tr>
                 </tbody>

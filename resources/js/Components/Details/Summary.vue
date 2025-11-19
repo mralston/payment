@@ -4,6 +4,9 @@ import DetailsRow from './DetailsRow.vue';
 import SigningLink from '../SigningLink.vue';
 import Cancel from '../Cancel.vue';
 import SatNote from "../SatNote.vue";
+import MovePaymentModal from "../MovePaymentModal.vue";
+import Button from "../Button.vue";
+import {ref} from "vue";
 
 const props = defineProps({
     payment: {
@@ -15,10 +18,22 @@ const props = defineProps({
         required: true,
     },
     paymentProviderSupportsRemoteSigning: Boolean,
+    parentModelDescription: String,
 });
+
+const movePaymentModal = ref(null);
+
+function movePayment(payment)
+{
+    movePaymentModal.value.show(payment);
+}
+
 </script>
 
 <template>
+
+    <MovePaymentModal ref="movePaymentModal" :parentModelDescription="parentModelDescription"/>
+
     <div class="p-10 bg-white border border-[#ed6058] rounded-lg">
         <h1 class="text-xl font-bold flex flex-row gap-2 items-center"><Icon icon="fa6-solid:file-invoice" /> Summary</h1>
         <div class="mt-10 flex flex-col gap-8">
@@ -67,6 +82,14 @@ const props = defineProps({
                 :stack="true"
                 label="Consultant ref"
                 :value="payment.parentable?.user?.name" />
+
+            <Button
+                type="warning"
+                @click="movePayment(payment)"
+                title="Move Payment">
+                Move {{ parentModelDescription }}
+            </Button>
+
             <Cancel :payment="payment" />
         </div>
     </div>

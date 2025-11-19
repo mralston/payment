@@ -6,12 +6,14 @@ use GregoryDuckworth\Encryptable\EncryptableTrait;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\Relations\MorphTo;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Mralston\Payment\Data\BankAccountData;
 use Mralston\Payment\Data\FinanceData;
 
 class PaymentSurvey extends Model
 {
     use EncryptableTrait;
+    use SoftDeletes;
 
     protected $fillable = [
         'customers',

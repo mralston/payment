@@ -1,20 +1,24 @@
 <script setup>
-import { ref } from 'vue';
+import {computed, ref} from 'vue';
 import axios from 'axios';
 import { formatCurrency } from "../Helpers/Currency.js";
+import Modal from "./Modal.vue";
+import {router, useForm} from "@inertiajs/vue3";
+import {ExclamationTriangleIcon, CheckCircleIcon} from "@heroicons/vue/20/solid/index.js";
+import Banner from "./Banner.vue";
 
 const props = defineProps({
-    payment: {
-        type: Object,
-        required: true,
-    },
-    parentableName: {
+    parentModelDescription: {
         type: String,
-        required: true,
+        default: 'Parent',
     },
 });
 
-const parentableId = ref('');
+const movePaymentModal = ref(null);
+
+const payment = ref(null);
+
+const parentableId = ref(null);
 const isLoading = ref(false);
 const responseMessages = ref([]);
 const responseMessagesFoundPayments = ref([]);
@@ -31,7 +35,7 @@ function findParentable() {
     responseMessagesFoundPayments.value = [];
     submitDisabled.value = true;
 
-    axios.get(route('payment.payments.move-check', {payment: props.payment.id, parentableId: parentableId.value}))
+    axios.get(route('payment.payments.move-check', {payment: payment.value.id, parentableId: parentableId.value}))
         .then(response => {
             isLoading.value = false;
             responseMessages.value = [];
@@ -49,8 +53,7 @@ function findParentable() {
                     const paymentMatch = compat.payment_amount == compat.parentable_total_cost;
                     responseMessages.value.push({
                         type: paymentMatch ? 'success' : 'danger',
-                        message: `${paymentMatch ? '<i class="fa fa-check-circle"></i> ' :
-                            '<i class="fa fa-exclamation-triangle"></i> '}Payment Amount: ${formatCurrency(compat.payment_amount)}  -  Parentable Total Cost: ${formatCurrency(compat.parentable_total_cost)}`
+                        message: 'Payment Amount: ' + formatCurrency(compat.payment_amount) + ' - ' + props.parentModelDescription + ' Total Cost: ' + formatCurrency(compat.parentable_total_cost)
                     });
                 }
 
@@ -60,7 +63,7 @@ function findParentable() {
             // Add success message
             responseMessages.value.push({
                 type: 'success',
-                message: '<i class="fa fa-check-circle"></i> Payment is compatible with the ' + props.parentableName.toLowerCase() + '.'
+                message: 'Payment is compatible with the ' + props.parentModelDescription.toLowerCase() + '.'
             });
 
             // Display found finance applications
@@ -79,11 +82,15 @@ function findParentable() {
         .catch(error => {
             isLoading.value = false;
             let errorMessage = 'Check failed.';
-            
+
             if (error.response?.data?.error) {
                 errorMessage = error.response.data.error;
             }
-            
+
+            if (error.response?.status === 404) {
+                errorMessage = props.parentModelDescription + ' not found';
+            }
+
             responseMessages.value = [{
                 type: 'danger',
                 message: errorMessage
@@ -92,113 +99,85 @@ function findParentable() {
         });
 }
 
-function submitForm() {
-    const form = document.getElementById(`movePaymentForm_${props.payment.id}`);
-    if (form) {
-        form.submit();
-    }
+function movePayment()
+{
+    router.post(route('payment.payments.move', {payment: payment.value.id, parentableId: parentableId.value}));
 }
+
+function show(p) {
+    // Store payment
+    payment.value = p;
+
+    // Reset state
+    parentableId.value = null;
+    responseMessages.value = [];
+    responseMessagesFoundPayments.value = [];
+    submitDisabled.value = true;
+
+    // Open modal component
+    movePaymentModal.value.show();
+}
+
+defineExpose({ show });
 
 </script>
 
 <template>
-    <div class="modal fade" :id="`movePaymentModal${payment.id}`" tabindex="-1" role="dialog" aria-labelledby="movePaymentModalLabel">
-        <div class="modal-dialog" role="document">
-            <div class="modal-content">
-                <div class="modal-header flex items-center">
-                    <h5 class="modal-title flex-1" id="formModalLabel">Move Payment {{ payment.reference }}</h5>
-                    <button type="button" class="close ml-2" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
-                </div>
-                <div class="modal-body">
-                    <form
-                        :id="`movePaymentForm_${payment.id}`"
-                        method="post"
-                        :action="route('payment.payments.move', {payment: payment.id, parentableId: parentableId})">
-                        <input type="hidden" name="_token" :value="csrfToken">
-                        <div class="form-group">
-                            <label for="field1">Which {{ parentableName }} would you like to move the payment to?</label>
-                            <div class="form-group">
-                                <div class="row">
-                                    <div class="col-md-10">
-                                        <input
-                                            type="text"
-                                            :placeholder="`${parentableName} ID`"
-                                            class="form-control"
-                                            name="parentable_id"
-                                            :id="`${payment.id}_parentable_id`"
-                                            v-model="parentableId">
-                                    </div>
-                                    <div class="col-md-2">
-                                        <button 
-                                            type="button" 
-                                            class="btn btn-block btn-primary"
-                                            @click="findParentable"
-                                            :disabled="isLoading || !parentableId">
-                                            {{ isLoading ? 'Loading...' : 'Find' }}
-                                        </button>
-                                    </div>
-                                </div>
-                            </div>
-                            <input type="hidden" class="form-control" name="payment_id" :value="payment.id">
-                        </div>
+    <Modal ref="movePaymentModal" title="Move Payment" :buttons="['ok', 'cancel']" @ok="movePayment" :disabled-buttons="submitDisabled ? ['ok'] : []">
 
-                        <div :id="`movePaymentFormResponse_${payment.id}`">
-                            <div 
-                                v-for="(msg, index) in responseMessages" 
-                                :key="index"
-                                :class="`alert alert-${msg.type === 'loading' ? 'info' : msg.type}`"
-                                v-html="msg.message">
-                            </div>
-                        </div>
-                        <div v-if="responseMessagesFoundPayments.length > 0" :id="`movePaymentFormResponseFoundPayments_${payment.id}`">
-                            <p class="alert alert-warning"><i class="fa fa-exclamation-triangle"></i> By clicking submit, all current payments listed below for {{ parentableName.toLowerCase() }} #{{ parentableId }} will be cancelled.</p>
-                            <table class="table table-bordered">
-                                <thead>
-                                    <tr>
-                                        <th>Status</th>
-                                        <th>Message</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    <tr v-for="(msg, index) in responseMessagesFoundPayments" :key="index">
-                                        <td :class="`alert alert-${msg.type === 'loading' ? 'info' : msg.type}`">{{ msg.type === 'loading' ? 'Loading...' : msg.type }}</td>
-                                        <td :class="`alert alert-${msg.type === 'loading' ? 'info' : msg.type}`" v-html="msg.message"></td>
-                                    </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
-                    <button
-                        :id="`movePaymentFormSubmitButton_${payment.id}`"
-                        :disabled="submitDisabled"
-                        type="button"
-                        class="btn btn-success"
-                        @click="submitForm">
-                        Proceed with payment move
-                    </button>
-                </div>
-            </div>
+        <p class="mb-2">
+            <label for="parentable_id" class="font-normal">
+                Which {{ parentModelDescription.toLowerCase() }} would you like to move the payment to?
+            </label>
+        </p>
+
+        <div class="flex mb-4">
+            <input
+                type="text"
+                :placeholder="parentModelDescription + ' ID'"
+                class="border rounded border-gray-300 text-sm p-1 flex-1 mr-2"
+                name="parentable_id"
+                id="parentable_id"
+                v-model="parentableId"
+                @keyup.enter="findParentable">
+            <button
+                type="button"
+                class="w-14 flex-none bg-blue-500 hover:bg-blue-400 disabled:bg-blue-300 text-white px-2 py-1 rounded text-sm"
+                @click="findParentable"
+                :disabled="isLoading || !parentableId">
+                {{ isLoading ? 'Loading...' : 'Find' }}
+            </button>
         </div>
-    </div>
+
+        <Banner v-for="(msg, index) in responseMessages"
+                :key="index"
+                :type="msg.type === 'loading' ? 'info' : msg.type"
+                class="mb-2">
+            <CheckCircleIcon v-if="msg.type === 'success'" class="h-6 w-6 inline mr-2" aria-hidden="true"/>
+            <ExclamationTriangleIcon v-if="msg.type === 'danger'" class="h-6 w-6 inline mr-2" aria-hidden="true"/>
+            {{ msg.message }}
+        </Banner>
+
+        <div v-if="responseMessagesFoundPayments.length > 0">
+            <p class="alert alert-warning">
+                <ExclamationTriangleIcon class="h-6 w-6 inline mr-2" aria-hidden="true"/>
+                If you proceed, all current payments listed below for {{ parentModelDescription.toLowerCase() }} #{{ parentableId }} will be cancelled.
+            </p>
+            <table class="w-full divide-y divide-gray-300">
+                <thead>
+                    <tr>
+                        <th class="p-2 text-left text-sm font-semibold text-gray-900">Status</th>
+                        <th class="p-2 text-left text-sm font-semibold text-gray-900">Message</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-200 bg-white">
+                    <tr v-for="(msg, index) in responseMessagesFoundPayments" :key="index">
+                        <td class="p-1" :class="{ 'bg-sky-100': msg.type === 'loading', 'bg-green-100': msg.type === 'success', 'bg-red-100': msg.type === 'danger', 'text-sky-600': msg.type === 'loading', 'text-green-600': msg.type === 'success', 'text-red-600': msg.type === 'danger' }">{{ msg.type === 'loading' ? 'Loading...' : msg.type }}</td>
+                        <td class="p-1" :class="{ 'bg-sky-100': msg.type === 'loading', 'bg-green-100': msg.type === 'success', 'bg-red-100': msg.type === 'danger', 'text-sky-600': msg.type === 'loading', 'text-green-600': msg.type === 'success', 'text-red-600': msg.type === 'danger' }" v-html="msg.message"></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+
+    </Modal>
 </template>
-<style scoped>
-.modal-title,
-.modal-body {
-    text-align: left !important;
-}
-
-.modal-body .alert {
-    text-align: left !important;
-}
-
-.modal-body .form-group {
-    text-align: left !important;
-}
-</style>
-
-

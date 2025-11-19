@@ -27,13 +27,15 @@ class PaymentOfferObserver
      */
     public function deleted(PaymentOffer $paymentOffer): void
     {
+        dump($paymentOffer
+            ->paymentProvider
+            ->gateway());
+
         // Notify lender of cancellation
         $paymentOffer
             ->paymentProvider
             ->gateway()
             ->cancelOffer($paymentOffer);
-
-        $paymentOffer->forceDelete();
     }
 
     /**

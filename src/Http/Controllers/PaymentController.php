@@ -36,11 +36,7 @@ class PaymentController
         $parentTable = app(config('payment.parent_model'))->getTable();
         $userTable = app(config('payment.user_model'))->getTable();
 
-        $parentableName = explode('\\', config('payment.parent_model'));
-        $parentableName = end($parentableName);
-
         return Inertia::render('Payment/Index', [
-            'parentableName' => $parentableName,
             'payments' => Payment::select('payments.*')
                 ->whereHas('paymentStatus', function ($query) {
                     $query->where('unlisted', false);
@@ -193,6 +189,7 @@ class PaymentController
             'paymentProviderSupportsRemoteSigning' => $payment
                 ->paymentProvider
                 ->gateway() instanceof Signable,
+            'parentModelDescription' => config('payment.parent_model_description'),
         ])->withViewData($this->helper->getViewData());
     }
 
@@ -218,16 +215,16 @@ class PaymentController
 
         if ($targetParentable->id == $payment->parentable->id) {
             return response()->json([
-                'error' => 'Quote is already associated with the finance application.'
+                'error' => config('payment.parent_model_description') . ' is already associated with the payment.'
             ], 403);
         }
 
-        if (!$this->paymentService->isFinanceApplicationCompatible($payment, $targetParentable)) {
+        if (!$this->paymentService->isPaymentCompatible($payment, $targetParentable)) {
 
             $compatibility = $this->paymentService->paymentCompatibility($payment, $targetParentable);
 
             return response()->json([
-                'error' => 'Finance application is not compatible with the target quote.',
+                'error' => 'Payment is not compatible with the target ' . Str::lower(config('payment.parent_model_description')) . '.',
                 'compatibility' => $compatibility
             ], 200);
         }
@@ -241,12 +238,14 @@ class PaymentController
 
         if ($payment->parentable->id == $targetParentable->id) {
             return response()->json([
-                'error' => 'Payment is already associated with the target parentable.'
+                'error' => 'Payment is already associated with the target ' . Str::lower(config('payment.parent_model_description')) . '.'
             ], 403);
         }
 
         $this->paymentService->move($payment, $targetParentable);
 
-        return redirect()->back()->with('success', 'Payment moved successfully.');
+        return redirect()
+            ->back()
+            ->with('success', 'Payment moved successfully.');
     }
 }
