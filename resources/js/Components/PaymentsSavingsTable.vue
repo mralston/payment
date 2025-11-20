@@ -5,8 +5,10 @@ import {toMax2DP} from "../Helpers/Number.js";
 import {computed} from "vue";
 
 const props = defineProps({
+    type: String,
     term: Number, // In months
     deferred: Number,
+    deferredType: String,
     upfrontPayment: Number,
     yearlyPayments: Array,
     apr: Number,
@@ -79,9 +81,17 @@ const termInYears = computed(() => {
                 {{ termInYears }} Year Finance Option
                 <span v-if="apr">at {{ toMax2DP(apr) }}% APR</span>
             </strong>
-            <span v-if="deferred > 0">
-                (First payment deferred for {{ deferred }} months)
+            <span v-if="deferred">
+                -
+                <span v-if="deferredType === 'deferred_payments'">{{ deferred + 1 }}</span>
+                <span v-else>{{ deferred }}</span>
+                <span v-if="deferred / 12 === 1">&nbsp;month</span>
+                <span v-else>&nbsp;months</span>
+
+                <span v-if="deferredType === 'bnpl_months'">&nbsp;BNPL</span>
+                <span v-else>&nbsp;deferred</span>
             </span>
+            <span v-if="apr == 0 && type === 'finance'">&nbsp;- interest free credit</span>
             <span v-if="upfrontPayment > 0">
                 ({{ toPounds(upfrontPayment) }} up front)
             </span>

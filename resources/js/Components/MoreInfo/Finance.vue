@@ -37,16 +37,26 @@ const props = defineProps({
                     <span>
                         over {{ selectedOffer.term / 12 }} years
                     </span>
-                    <span v-if="selectedOffer.deferred > 0">
-                        ({{ selectedOffer.deferred }} months deferred)
+                    <span v-if="selectedOffer.deferred">
+                        -
+                        <span v-if="selectedOffer.deferred_type === 'deferred_payments'">{{ selectedOffer.deferred + 1 }}</span>
+                        <span v-else>{{ selectedOffer.deferred }}</span>
+                        <span v-if="selectedOffer.deferred / 12 === 1">&nbsp;month</span>
+                        <span v-else>&nbsp;months</span>
+
+                        <span v-if="selectedOffer.deferred_type === 'bnpl_months'">&nbsp;BNPL</span>
+                        <span v-else>&nbsp;deferred</span>
                     </span>
+                    <span v-if="selectedOffer.apr == 0 && selectedOffer.type === 'finance'">&nbsp;- interest free credit</span>
                 </div>
             </template>
             <div class="grid grid-cols-2 gap-4">
                 <div>
                     <PaymentsSavingsTable :show-title="false"
+                                          :type="selectedOffer.type"
                                           :term="makeNumeric(selectedOffer.term)"
                                           :deferred="makeNumeric(selectedOffer.deferred)"
+                                          :deferred-type="selectedOffer.deferred_type"
                                           :yearly-payments="selectedOffer.yearly_payments"
                                           :monthly-payment="makeNumeric(selectedOffer.monthly_payment)"
                                           :apr="makeNumeric(selectedOffer.apr)"
@@ -78,8 +88,10 @@ const props = defineProps({
                              class="h-7 mr-4 inline-block">
                         <span v-else>selectedOffer.payment_provider.name</span>
                     </div>
-                    <PaymentsSavingsTable :term="makeNumeric(offer.term)"
+                    <PaymentsSavingsTable :type="offer.type"
+                                          :term="makeNumeric(offer.term)"
                                           :deferred="makeNumeric(offer.deferred)"
+                                          :deferred-type="offer.deferred_type"
                                           :yearly-payments="offer.yearly_payments"
                                           :monthly-payment="makeNumeric(offer.monthly_payment)"
                                           :apr="makeNumeric(offer.apr)"

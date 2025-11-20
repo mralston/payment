@@ -49,14 +49,16 @@ const props = defineProps({
         <div class="grid grid-cols-2 gap-4">
             <div>
                 <PaymentsSavingsTable :show-title="false"
-                                       :term="makeNumeric(selectedOffer.term)"
-                                       :deferred="makeNumeric(selectedOffer.deferred)"
-                                       :upfront-payment="makeNumeric(selectedOffer.upfront_payment)"
-                                       :yearly-payments="selectedOffer.yearly_payments"
-                                       :monthly-payment="makeNumeric(selectedOffer.monthly_payment)"
-                                       :apr="makeNumeric(selectedOffer.apr)"
-                                       :system-savings="systemSavings"
-                                       class="bg-white mb-4"/>
+                                      :type="selectedOffer.type"
+                                      :term="makeNumeric(selectedOffer.term)"
+                                      :deferred="makeNumeric(selectedOffer.deferred)"
+                                      :deferred-type="selectedOffer.deferred_type"
+                                      :upfront-payment="makeNumeric(selectedOffer.upfront_payment)"
+                                      :yearly-payments="selectedOffer.yearly_payments"
+                                      :monthly-payment="makeNumeric(selectedOffer.monthly_payment)"
+                                      :apr="makeNumeric(selectedOffer.apr)"
+                                      :system-savings="systemSavings"
+                                      class="bg-white mb-4"/>
             </div>
             <div>
                 <p class="font-bold mb-4">Total Payable</p>
@@ -78,8 +80,10 @@ const props = defineProps({
                          class="h-7 mr-4 inline-block">
                     <span v-else>selectedOffer.payment_provider.name</span>
                 </div>
-                <PaymentsSavingsTable :term="makeNumeric(offer.term)"
+                <PaymentsSavingsTable :type="offer.type"
+                                      :term="makeNumeric(offer.term)"
                                       :deferred="makeNumeric(offer.deferred)"
+                                      :deferred-type="offer.deferred_type"
                                       :upfront-payment="makeNumeric(offer.upfront_payment)"
                                       :yearly-payments="offer.yearly_payments"
                                       :monthly-payment="makeNumeric(offer.monthly_payment)"
