@@ -104,7 +104,7 @@ class LeaseController
                     'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
                 ]);
 
-                Log::debug('update result: ' . $result ? 'success' : 'failure');
+                Log::channel('payment')->debug('update result: ' . $result ? 'success' : 'failure');
             }
         } catch (RequestException $e) {
             $payment->update([
@@ -142,11 +142,11 @@ class LeaseController
 
         // Decide whether to submit immediately or wait in the background until ready
         if ($response['status'] == 'processing') {
-            Log::debug('backgrounding');
+            Log::channel('payment')->debug('backgrounding');
             // Need to wait until it's ready. We'll do that in the background
             WaitToSubmitPayment::dispatch($payment, $offer);
         } else {
-            Log::debug('foregrounding');
+            Log::channel('payment')->debug('foregrounding');
             // Application is ready. Submit it now
             $result = $this->leaseService->submitApplication($gateway, $payment, $offer, $survey, $parent);
         }

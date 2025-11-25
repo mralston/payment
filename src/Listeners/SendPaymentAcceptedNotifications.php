@@ -30,7 +30,7 @@ class SendPaymentAcceptedNotifications implements ShouldQueue
      */
     public function handle(PaymentAccepted|PaymentConditionallyAccepted $event): void
     {
-        Log::debug('Payment #' . $event->payment->id . ' accepted.');
+        Log::channel('payment')->debug('Payment #' . $event->payment->id . ' accepted.');
 
         // Notify rep
         Mail::to($event->payment->parentable->user)

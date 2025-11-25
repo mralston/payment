@@ -26,7 +26,7 @@ class TandemService
         // Fetch ID of webhook request
         $webhook_request_id = $request->input('Id');
 
-        Log::debug(
+        Log::channel('payment')->debug(
             'Payment Webhook #' . $webhook_request_id . " received\n" .
             "Lender: Tandem\n" .
             'Payment #' . $payment->id . ': ' . $payment->reference
@@ -34,14 +34,14 @@ class TandemService
 
         // Loop though notifications
         foreach ($request->input('Notifications') as $notification) {
-            Log::debug(print_r($notification, true));
+            Log::channel('payment')->debug(print_r($notification, true));
 
             // Check applicationId is correct
             if ($notification['applicationId'] != $payment->provider_foreign_id) {
-                Log::warning('applicationId Mismatch');
-                Log::info('URI: ' . $request->fullUrl());
-                Log::info(print_r($notification, true));
-                Log::info($payment);
+                Log::channel('payment')->warning('applicationId Mismatch');
+                Log::channel('payment')->info('URI: ' . $request->fullUrl());
+                Log::channel('payment')->info(print_r($notification, true));
+                Log::channel('payment')->info($payment);
                 abort(409, 'applicationId Mismatch');
             }
 

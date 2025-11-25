@@ -385,9 +385,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'provider_request_data' => $this->requestData
         ]);
 
-        Log::debug('propensio request: ', $data);
+        Log::channel('payment')->debug('propensio request: ', $data);
 
-        #Log::channel('finance')->info($data);
+        #Log::channel('payment')->info($data);
 
         $response = $this->validateAndSend(
             $data,
@@ -398,9 +398,9 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $payment
         );
 
-        #Log::channel('finance')->info($response);
+        #Log::channel('payment')->info($response);
 
-        Log::debug('propensio response: ', $response);
+        Log::channel('payment')->debug('propensio response: ', $response);
 
         if (is_array($response)) {
             $this->responseData = $response;
@@ -466,7 +466,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
                 try {
                     if (!$xml->schemaValidate($schemaFile)) {
-                        Log::channel('finance')->info('failed internal validation');
+                        Log::channel('payment')->info('failed internal validation');
                         return libxml_get_errors();
                     }
                 } catch (\Exception $e) {
@@ -474,10 +474,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 }
             }
 
-            Log::channel('finance')->info('Propensio Request XML [' . $methodName . '] :');
-            Log::channel('finance')->info($xmlOutput);
+            Log::channel('payment')->info('Propensio Request XML [' . $methodName . '] :');
+            Log::channel('payment')->info($xmlOutput);
         } else {
-            Log::channel('finance')->info('Propensio Request (no XML) [' . $methodName . ']');
+            Log::channel('payment')->info('Propensio Request (no XML) [' . $methodName . ']');
         }
 
         if (!empty($payment)) {
@@ -505,10 +505,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             // Log response - but only if it doesn't contain a document (which is lots of base64 encoded raw file content)
             if (Str::doesntContain($responseXml, 'DOCUMENT_DATA')) {
                 if ($methodName != 'GetDocument') {
-                    Log::channel('finance')->info('Propensio Response XML (raw) [' . $methodName . '] :');
-                    Log::channel('finance')->info($responseXml);
+                    Log::channel('payment')->info('Propensio Response XML (raw) [' . $methodName . '] :');
+                    Log::channel('payment')->info($responseXml);
                 } else {
-                    Log::channel('finance')->info('Propensio Response to GetDocument received');
+                    Log::channel('payment')->info('Propensio Response to GetDocument received');
                 }
             }
 
@@ -518,27 +518,27 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 $responseXml = '<?xml version="1.0" encoding="utf-8"?>' . "\n" . html_entity_decode($matches[1]);
 
                 if ($methodName != 'GetDocument') {
-                    Log::channel('finance')->info('Propensio Response XML (fixed) [' . $methodName . '] :');
-                    Log::channel('finance')->info($responseXml);
+                    Log::channel('payment')->info('Propensio Response XML (fixed) [' . $methodName . '] :');
+                    Log::channel('payment')->info($responseXml);
                 }
             }
 
             // Parse XML into array
             $output = $this->xmlToArray($responseXml);
 
-            Log::debug('output:', $output);
+            Log::channel('payment')->debug('output:', $output);
 
             // Parse RETURN_MESSAGE into an array
             if ($methodName != 'GetDocument') {
                 $output['RETURN_MESSAGE'] = $this->parseReturnMessage($output['RETURN_MESSAGE'] ?? '')
                     ->toArray();
 
-//                Log::channel('finance')->info('Parsed return_message:');
-//                Log::channel('finance')->info(print_r($output['RETURN_MESSAGE'], true));
+//                Log::channel('payment')->info('Parsed return_message:');
+//                Log::channel('payment')->info(print_r($output['RETURN_MESSAGE'], true));
 
 
-                Log::channel('finance')->info('Propensio Response XML (as array) [' . $methodName . '] :');
-                Log::channel('finance')->info($output);
+                Log::channel('payment')->info('Propensio Response XML (as array) [' . $methodName . '] :');
+                Log::channel('payment')->info($output);
             }
 
             if ($responseKey == 'DOCUMENT') {
@@ -547,8 +547,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
             return [ 'response' => $output, 'status_code' => $status, 'xml' => $xmlOutput ?? null];
         } else {
-            Log::channel('finance')->info('Propensio response (HTTP STATUS=' . $status . ':');
-            Log::channel('finance')->info($response->getBody()?->getContents() ?? 'EMPTY RESPONSE');
+            Log::channel('payment')->info('Propensio response (HTTP STATUS=' . $status . ':');
+            Log::channel('payment')->info($response->getBody()?->getContents() ?? 'EMPTY RESPONSE');
 
             return [ 'response' => $response->getBody()?->getContents() ?? 'EMPTY RESPONSE', 'status_code' => $status, 'xml' => null];
         }
@@ -605,7 +605,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'provider_response_data' => $this->responseData
         ]);
 
-        Log::debug('response: ', $response);
+        Log::channel('payment')->debug('response: ', $response);
 
         if (isset($response['response']['RETURN_MESSAGE']['STATUS_CODE']) && $this->isStatusOk($response['response']['STATUS'])) {
             if (!empty($response['response']['RETURN_MESSAGE']['STATUS_CODE'])) {
@@ -638,12 +638,12 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                         try {
                             $file = $helper->storeFile('credit_agreement', 'propensio_credit_agreement.pdf', $documentResponse['response']);
 
-                            // Store reference in finance application
+                            // Store reference in payment
                             $payment->update([
                                 'credit_agreement_file_id' => $file->id
                             ]);
                         } catch (\Exception $e) {
-                            Log::channel('finance')->error($e->getMessage());
+                            Log::channel('payment')->error($e->getMessage());
                         }
                     }
                 }
@@ -696,20 +696,20 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         }
 
         if (is_array($response) && $response['response']['RETURN_MESSAGE']['MESSAGE_REF'] == 1) {
-            Log::channel('finance')->info('Cancellation request for ' . $payment->reference . ' rejected (403)');
+            Log::channel('payment')->info('Cancellation request for ' . $payment->reference . ' rejected (403)');
 
             // Poll the status of the application to see where it's genuinely up to
             $result = $this->pollStatus($payment);
 
-            Log::channel('finance')->info('Application status: ' . $result['status']);
+            Log::channel('payment')->info('Application status: ' . $result['status']);
 
             // If it isn't 'expired' then e-mail them for manual cancellation
             if ($result['status'] != 'expired') {
-                Log::channel('finance')->info('Sending cancellation request e-mail');
+                Log::channel('payment')->info('Sending cancellation request e-mail');
                 Mail::to($payment->paymentProvider->underwriter_email)
                     ->send(new CancelManually($payment));
             } else {
-                Log::channel('finance')->info('Application was already cancelled successfully');
+                Log::channel('payment')->info('Application was already cancelled successfully');
             }
 
             return true;
@@ -720,7 +720,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
     public function sendSatNote(Payment $payment)
     {
-        Log::channel('finance')->info('Sending sat note by e-mail');
+        Log::channel('payment')->info('Sending sat note by e-mail');
 
         Mail::to($payment->paymentProvider->sat_note_email)
             ->send(new SatNoteUpload($payment));
@@ -949,7 +949,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             ->matchAllFull('/([A-Z_]+)=[\'"]([^\'"]*)[\'"]/');
 
         if (empty($matches[0])) {
-            Log::debug('return message: ' . $returnMessage);
+            Log::channel('payment')->debug('return message: ' . $returnMessage);
         }
 
         return collect($matches[0])

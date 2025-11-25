@@ -183,9 +183,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         $this->requestData = $payload;
 
-        Log::debug('Hometree prequal request:', $payload);
-        Log::debug('POST /applications');
-        Log::debug('token: ' . $this->key);
+        Log::channel('payment')->debug('Hometree prequal request:', $payload);
+        Log::channel('payment')->debug('POST /applications');
+        Log::channel('payment')->debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -195,10 +195,10 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         $json = $response->json();
 
         if ($response->serverError()) {
-            Log::debug('Hometree response: ' . $response->body());
+            Log::channel('payment')->debug('Hometree response: ' . $response->body());
         }
 
-//        Log::debug('Hometree prequal response:', $json);
+//        Log::channel('payment')->debug('Hometree prequal response:', $json);
 
         $response->throw();
 
@@ -272,9 +272,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                 })->toArray(),
         ];
 
-//        Log::debug('Hometree update application request:', $payload);
-        Log::debug('PATCH /applications/' . $applicationId);
-        Log::debug('token: ' . $this->key);
+//        Log::channel('payment')->debug('Hometree update application request:', $payload);
+        Log::channel('payment')->debug('PATCH /applications/' . $applicationId);
+        Log::channel('payment')->debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -283,11 +283,11 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         $json = $response->json();
 
-        // Log::debug('response: ' . $response->body());
+        // Log::channel('payment')->debug('response: ' . $response->body());
 
-        // Log::debug('status: ' . $json['status'] ?? 'null');
+        // Log::channel('payment')->debug('status: ' . $json['status'] ?? 'null');
 
-//        Log::debug('Hometree update application response:', $json);
+//        Log::channel('payment')->debug('Hometree update application response:', $json);
 
         $response->throw();
 
@@ -296,8 +296,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
     public function getApplication(string $applicationId): array
     {
-        Log::debug('GET /applications/' . $applicationId);
-        Log::debug('token: ' . $this->key);
+        Log::channel('payment')->debug('GET /applications/' . $applicationId);
+        Log::channel('payment')->debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -306,16 +306,16 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             ->throw()
             ->json();
 
-//        Log::debug('Hometree prequal update:', $response);
+//        Log::channel('payment')->debug('Hometree prequal update:', $response);
 
-        Log::debug('status: ' . $response['status']);
+        Log::channel('payment')->debug('status: ' . $response['status']);
 
         return $response;
     }
 
     public function getProducts(): array
     {
-        Log::debug('token: ' . $this->key);
+        Log::channel('payment')->debug('token: ' . $this->key);
 
         try {
             $response = Http::baseUrl($this->endpoint)
@@ -325,9 +325,9 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
                 ->throw()
                 ->json();
         } catch (Throwable $ex) {
-            Log::error('Failed to retrieve products from API.');
-            Log::error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-            Log::error('URL: ' . $this->endpoint . '/products');
+            Log::channel('payment')->error('Failed to retrieve products from API.');
+            Log::channel('payment')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+            Log::channel('payment')->error('URL: ' . $this->endpoint . '/products');
             throw $ex;
         }
 
@@ -568,8 +568,8 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             $this->requestData = ['preapproval_id' => $offer->preapproval_id];
         }
 
-        Log::debug('POST /applications/' . $offer->provider_application_id . '/offers/' . $offer->provider_offer_id . '/select');
-        Log::debug('token: ' . $this->key);
+        Log::channel('payment')->debug('POST /applications/' . $offer->provider_application_id . '/offers/' . $offer->provider_offer_id . '/select');
+        Log::channel('payment')->debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
@@ -585,10 +585,10 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         $this->responseData = $response->json();
 
-        Log::debug('status: ' . $this->responseData['status']);
+        Log::channel('payment')->debug('status: ' . $this->responseData['status']);
 
-        Log::debug($this->requestData);
-        Log::debug($this->responseData);
+        Log::channel('payment')->debug($this->requestData);
+        Log::channel('payment')->debug($this->responseData);
 
         $response->throw();
 
@@ -611,17 +611,17 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             'reason' => 'customer.unknown',
         ];
 
-        Log::debug('POST /applications/' . $payment->provider_foreign_id . '/abandon');
-        Log::debug('token: ' . $this->key);
+        Log::channel('payment')->debug('POST /applications/' . $payment->provider_foreign_id . '/abandon');
+        Log::channel('payment')->debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
             ->withToken($this->key, 'Token')
             ->post('/applications/' . $payment->provider_foreign_id . '/abandon', $this->requestData);
 
-        Log::debug('HT cancellation response status: ' . $response->status());
-        Log::debug('HT cancellation response status code: ' . $response->getStatusCode());
-        Log::debug('HT cancellation response body: ' . $response->body());
+        Log::channel('payment')->debug('HT cancellation response status: ' . $response->status());
+        Log::channel('payment')->debug('HT cancellation response status code: ' . $response->getStatusCode());
+        Log::channel('payment')->debug('HT cancellation response body: ' . $response->body());
 
         // Add application and offer IDs to the request data stored to the DB for easier troubleshooting
         $this->requestData = [
@@ -631,14 +631,14 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
 
         $this->responseData = $response->json();
 
-        Log::debug($this->requestData);
-        Log::debug($this->responseData);
+        Log::channel('payment')->debug($this->requestData);
+        Log::channel('payment')->debug($this->responseData);
 
         try{
             $response->throw();
         } catch (RequestException $ex) {
             if ($ex->getCode() !== 403) {
-                Log::debug('Sending cancellation e-mail to ' . $payment->paymentProvider->underwriter_email);
+                Log::channel('payment')->debug('Sending cancellation e-mail to ' . $payment->paymentProvider->underwriter_email);
                 Mail::to($payment->paymentProvider->underwriter_email)
                     ->send(new CancelManually($payment, $reason));
             }
@@ -694,17 +694,17 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
             'reason' => 'customer.unknown',
         ];
 
-        Log::debug('Cancelling Hometree offer ' . $paymentOffer->id);
-        Log::debug('POST /applications/' . $paymentOffer->provider_offer_id . '/abandon');
-        Log::debug('token: ' . $this->key);
+        Log::channel('payment')->debug('Cancelling Hometree offer ' . $paymentOffer->id);
+        Log::channel('payment')->debug('POST /applications/' . $paymentOffer->provider_offer_id . '/abandon');
+        Log::channel('payment')->debug('token: ' . $this->key);
 
         $response = Http::baseUrl($this->endpoint)
             ->withHeader('X-Client-App', config('payment.hometree.client_id', 'Hometree'))
             ->withToken($this->key, 'Token')
             ->post('/applications/' . $paymentOffer->provider_offer_id . '/abandon', $this->requestData);
 
-        Log::debug('HT offer cancellation response status: ' . $response->status());
-        Log::debug('HT offer cancellation response status code: ' . $response->getStatusCode());
-        Log::debug('HT offer cancellation response body: ' . $response->body());
+        Log::channel('payment')->debug('HT offer cancellation response status: ' . $response->status());
+        Log::channel('payment')->debug('HT offer cancellation response status code: ' . $response->getStatusCode());
+        Log::channel('payment')->debug('HT offer cancellation response body: ' . $response->body());
     }
 }

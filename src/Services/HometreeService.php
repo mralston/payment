@@ -86,7 +86,7 @@ class HometreeService
                     try {
                         $payment->save();
                     } catch (\Exception $e) {
-                        Log::error('Failed to upsert Hometree finance record #' . $record['htf-quote-id'], [$e->getMessage()]);
+                        Log::channel('payment')->error('Failed to upsert Hometree finance record #' . $record['htf-quote-id'], [$e->getMessage()]);
                     }
                 });
             });

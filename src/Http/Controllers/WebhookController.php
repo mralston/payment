@@ -22,10 +22,10 @@ class WebhookController
 
     public function hometree(HometreeWebhookRequest $request)
     {
-        Log::debug('Hometree webhook received');
-        Log::debug('Headers:', $request->headers->all());
-        Log::debug('Body:', $request->all());
-        Log::debug($request->getContent());
+        Log::channel('payment')->debug('Hometree webhook received');
+        Log::channel('payment')->debug('Headers:', $request->headers->all());
+        Log::channel('payment')->debug('Body:', $request->all());
+        Log::channel('payment')->debug($request->getContent());
 
 
         $this->hometreeService->handleWebhook(collect($request->validated()));

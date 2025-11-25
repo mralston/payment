@@ -77,7 +77,7 @@ class OffersReceived implements ShouldBroadcast
             'offers' => $offers,
         ];
 
-        Log::debug('broadcasting offers: ', $payload);
+        Log::channel('payment')->debug('broadcasting offers: ', $payload);
 
         return [
             'payload' => app(Compression::class)

@@ -27,7 +27,7 @@ class SendPaymentCancelledNotifications implements ShouldQueue
      */
     public function handle(PaymentCancelled $event): void
     {
-        Log::debug('Payment #' . $event->payment->id . ' cancelled.');
+        Log::channel('payment')->debug('Payment #' . $event->payment->id . ' cancelled.');
 
 //        // Notify Customer Care
 //        Mail::to([

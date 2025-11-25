@@ -28,7 +28,7 @@ class SendPaymentDeclinedNotifications implements ShouldQueue
      */
     public function handle(PaymentDeclined $event): void
     {
-        Log::debug('Payment #' . $event->payment->id . ' declined.');
+        Log::channel('payment')->debug('Payment #' . $event->payment->id . ' declined.');
 
         // Notify rep
         Mail::to($event->payment->parentable?->user)

@@ -43,13 +43,13 @@ class WaitToSubmitPayment implements ShouldQueue
             // Fetch the latest application status.
             $response = $gateway->getApplication($this->offer->provider_application_id);
 
-//                    Log::debug('Raw payment status: ', [$response['status']]);
+//                    Log::channel('payment')->debug('Raw payment status: ', [$response['status']]);
 
             $this->payment->update([
                 'payment_status_id' => PaymentStatus::byIdentifier($response['status'])?->id,
             ]);
 
-            Log::debug('Payment status: ', $this->payment->paymentStatus->toArray());
+            Log::channel('payment')->debug('Payment status: ', $this->payment->paymentStatus->toArray());
 
         } while ($response['status'] == 'processing'); // Repeat if still processing.
 

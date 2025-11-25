@@ -24,7 +24,7 @@ class SendPaymentExpiredNotifications implements ShouldQueue
      */
     public function handle(PaymentExpired $event): void
     {
-        Log::debug('Payment #' . $event->payment->id . ' expired.');
+        Log::channel('payment')->debug('Payment #' . $event->payment->id . ' expired.');
 
 //        Mail::to($event->payment->parentable->user)
 //            ->send(new PaymentExpired($event->payment));

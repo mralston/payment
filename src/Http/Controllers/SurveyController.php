@@ -181,9 +181,9 @@ class SurveyController
 
         // Clear offers if the survey was changed so that the options page is refreshed
         if ($survey->wasChanged()) {
-            Log::debug('Clearing offers');
+            Log::channel('payment')->debug('Clearing offers');
             $parentModel->paymentOffers()->delete();
-            Log::debug('Offers cleared', ['offer_count' => $parentModel->paymentOffers()->count() ?? '0']);
+            Log::channel('payment')->debug('Offers cleared', ['offer_count' => $parentModel->paymentOffers()->count() ?? '0']);
         }
 
         return redirect()

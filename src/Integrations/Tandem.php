@@ -222,7 +222,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             ]
         ];
 
-        Log::info('tandem request', $this->requestData);
+        Log::channel('payment')->info('tandem request', $this->requestData);
 
         $submitted_at = Carbon::now();
 
@@ -242,9 +242,9 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         } catch (\Throwable $ex) {
             $this->responseData = json_decode($ex->response->body(), true);
 
-            Log::debug('Tandem response: ' . print_r($this->responseData, true));
+            Log::channel('payment')->debug('Tandem response: ' . print_r($this->responseData, true));
 
-            Log::channel('finance')->error($ex->getMessage(), $this->responseData);
+            Log::channel('payment')->error($ex->getMessage(), $this->responseData);
 
             $paymentStatus = PaymentStatus::byIdentifier('error');
             $payment->update([
@@ -256,7 +256,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
             return $payment;
         }
 
-        Log::channel('finance')->info('tandem response', $this->responseData);
+        Log::channel('payment')->info('tandem response', $this->responseData);
 
         $paymentStatus = PaymentStatus::byIdentifier($this->responseData['status']);
         $payment->update([
@@ -370,21 +370,21 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         } catch (RequestException $ex) {
             // Tandem return a 403 if the loan has already been cancelled
             if ($ex->getCode() == 403) {
-                Log::channel('finance')
+                Log::channel('payment')
                     ->debug('Cancellation request for ' . $payment->reference . ' rejected (403)');
 
                 // Poll the status of the application to see where it's genuinely up to
                 $result = $this->pollStatus($payment);
 
-                Log::channel('finance')->debug('Application status: ' . $result['status']);
+                Log::channel('payment')->debug('Application status: ' . $result['status']);
 
                 // If it isn't 'expired' then e-mail them for manual cancellation
                 if ($result['status'] != 'expired') {
-                    Log::channel('finance')->debug('Sending cancellation request e-mail');
+                    Log::channel('payment')->debug('Sending cancellation request e-mail');
                     Mail::to($payment->paymentProvider->underwriter_email)
                         ->send(new CancelManually($payment));
                 } else {
-                    Log::channel('finance')->debug('Application was already cancelled successfully');
+                    Log::channel('payment')->debug('Application was already cancelled successfully');
                 }
 
                 return true;
@@ -412,12 +412,12 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
             $json = $response->json();
 
-            #Log::channel('finance')->debug(print_r($json, true));
+            #Log::channel('payment')->debug(print_r($json, true));
 
             return $json['fulfilmentAccepted'];
         } catch (\Throwable $ex) {
-            Log::channel('finance')->debug('Failed to send Sat Note to Tandem for finance application #' . $payment->id);
-            Log::channel('finance')->debug('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+            Log::channel('payment')->debug('Failed to send Sat Note to Tandem for finance application #' . $payment->id);
+            Log::channel('payment')->debug('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
             return false;
         }
     }
@@ -439,18 +439,18 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                 ->throw();
 
             $json = $response->json();
-//            Log::channel('finance')->info(print_r($json, true));
+//            Log::channel('payment')->info(print_r($json, true));
 
             return true;
         } catch (\Throwable $ex) {
             if ($ex->getCode() == 404) {
-                Log::channel('finance')->warning('Payment #' . $payment->id . ' not waiting for EPVS certificate.');
+                Log::channel('payment')->warning('Payment #' . $payment->id . ' not waiting for EPVS certificate.');
                 return true; // Is this the right response?
             }
 
-            Log::channel('finance')->error('Failed to upload certificate to Tandem for finance application #' . $payment->id);
-            Log::channel('finance')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-            Log::channel('finance')->error('URL: ' . $url);
+            Log::channel('payment')->error('Failed to upload certificate to Tandem for finance application #' . $payment->id);
+            Log::channel('payment')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+            Log::channel('payment')->error('URL: ' . $url);
             return false;
         }
     }
@@ -468,7 +468,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     'deferredPayments' => intval($deferredPeriod),
                 ];
 
-//                Log::channel('finance')->info(print_r($data, true));
+//                Log::channel('payment')->info(print_r($data, true));
 
                 try {
                     $url = $this->endpoint . '/financeCalculation';
@@ -482,15 +482,15 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     $response->throw();
 
                     $json = $response->json();
-//                    Log::channel('finance')->info(print_r($json, true));
+//                    Log::channel('payment')->info(print_r($json, true));
 
                     return $json;
                 } catch (\Throwable $ex) {
-                    Log::channel('finance')->error('Failed to retrieve payments from API.');
-                    Log::channel('finance')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-                    Log::channel('finance')->error('URL: ' . $url);
-                    Log::channel('finance')->error('Data: ' . print_r($data, true));
-                    Log::channel('finance')->error('Response: ' . $response?->body() ?? '<null>');
+                    Log::channel('payment')->error('Failed to retrieve payments from API.');
+                    Log::channel('payment')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+                    Log::channel('payment')->error('URL: ' . $url);
+                    Log::channel('payment')->error('Data: ' . print_r($data, true));
+                    Log::channel('payment')->error('Response: ' . $response?->body() ?? '<null>');
                     throw $ex;
                 }
             }
@@ -514,10 +514,10 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
             return collect($json['financeProducts'] ?? []);
         } catch (\Throwable $ex) {
-            Log::channel('finance')->error('Failed to retrieve payments from API.');
-            Log::channel('finance')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
-            Log::channel('finance')->error('URL: ' . $url);
-//            Log::channel('finance')->error('Data: ' . print_r($data, true));
+            Log::channel('payment')->error('Failed to retrieve payments from API.');
+            Log::channel('payment')->error('Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+            Log::channel('payment')->error('URL: ' . $url);
+//            Log::channel('payment')->error('Data: ' . print_r($data, true));
             throw $ex;
         }
     }
@@ -552,7 +552,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
                 $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
 
-                //Log::channel('finance')->info(print_r($products, true));
+                //Log::channel('payment')->info(print_r($products, true));
 
                 $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $totalCost, $amount, $deposit) {
                     // Fetch payments
@@ -588,7 +588,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
                     // If there are no payments, skip it
                     if ($payments['RepaymentDetails']['MonthlyRepayment'] <= 0) {
-                        Log::channel('finance')->debug('No payment calc for product', $product);
+                        Log::channel('payment')->debug('No payment calc for product', $product);
                         return null;
                     }
 
@@ -598,7 +598,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                         (intval($product['apr']) === 0 ? ' interest free' : '') .
                         ($product['deferredPayments'] > 0 ? ', ' . ($product['deferredPayments'] + 1) . ' months deferred' : ''); // +1 because Tandem quote deferred payments, not deferred months
 
-//                    Log::channel('finance')->debug('Creating Tandem Product', [
+//                    Log::channel('payment')->debug('Creating Tandem Product', [
 //                        'payment_provider_id' => $paymentProvider->id,
 //                        'identifier' => 'tandem_' . $product['apr'] . '_' . $product['termMonths'] . ($product['deferredPayments'] > 0 ? '+' . $product['deferredPayments'] : ''),
 //                        'name' => $productName,
@@ -624,7 +624,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
                     // If the product has been soft deleted, don't store the offer
                     // This allows us to disable products we don't want to offer to customers
                     if ($paymentProduct->trashed()) {
-                        Log::channel('finance')->debug('Tandem product soft deleted', $product);
+                        Log::channel('payment')->debug('Tandem product soft deleted', $product);
                         return null;
                     }
 
@@ -672,7 +672,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
     public function parseErrors(Collection $response): ErrorCollectionData
     {
-        Log::debug('errors to parse', $response->toArray());
+        Log::channel('payment')->debug('errors to parse', $response->toArray());
 
         return new ErrorCollectionData(
             collect($response['errors'])

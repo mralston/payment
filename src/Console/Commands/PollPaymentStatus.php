@@ -56,12 +56,12 @@ class PollPaymentStatus extends Command
                     Log::channel('payment')->debug($this->signature . ': ' . $payment->status);
                 } catch (\Exception $ex) {
                     Log::channel('payment')->error($this->signature . ': Unable to poll status of payment #' . $payment->id . '.');
-                    Log::channel('finance')->error($this->signature . ': Error #' . $ex->getCode() . ': ' . $ex->getMessage());
+                    Log::channel('payment')->error($this->signature . ': Error #' . $ex->getCode() . ': ' . $ex->getMessage());
                 }
 
                 return 0;
             } else {
-                Log::channel('finance')->debug('Unable to find payment #' . $this->argument('payment') . ' for polling.');
+                Log::channel('payment')->debug('Unable to find payment #' . $this->argument('payment') . ' for polling.');
                 return 1;
             }
         }
@@ -83,7 +83,7 @@ class PollPaymentStatus extends Command
                     ->where('decision_received_at', '>', Carbon::now()->subtract(14, 'days'));
             })->chunk(10, function ($payments) {
                 $payments->map(function (Payment $payment) {
-                    Log::channel('finance')->debug('Polling payment #' . $payment->id);
+                    Log::channel('payment')->debug('Polling payment #' . $payment->id);
                     try {
                         $payment
                             ->paymentProvider

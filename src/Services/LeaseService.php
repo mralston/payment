@@ -15,9 +15,9 @@ class LeaseService
     {
         try {
             $response = $gateway->apply($payment);
-            Log::debug('Select Response: ', $response);
+            Log::channel('payment')->debug('Select Response: ', $response);
         } catch (\Exception $e) {
-            Log::error('Error submitting application: ' . $e->getMessage());
+            Log::channel('payment')->error('Error submitting application: ' . $e->getMessage());
             $payment->update([
                 'provider_request_data' => $gateway->getRequestData() ?? $payment->provider_request_data,
                 'provider_response_data' => $gateway->getResponseData() ?? $payment->provider_response_data,
@@ -41,7 +41,7 @@ class LeaseService
             ),
         ]);
 
-        Log::debug('update after submit result: ' . $result ? 'success' : 'failure');
+        Log::channel('payment')->debug('update after submit result: ' . $result ? 'success' : 'failure');
 
         // Mark selected offer as submitted (cannot resubmit once an offer has been selected)
         $offer->update([

@@ -103,15 +103,15 @@ class FinanceController
         // Submit the application
         $result = $this->submitApplication($gateway, $payment, $offer, $survey, $parent);
 
-        Log::debug('Submit Application Result: ', [$result ? 'success' : 'failure']);
+        Log::channel('payment')->debug('Submit Application Result: ', [$result ? 'success' : 'failure']);
 
         // Watch the status in the background for a little while and see if it updates
         if ($result) {
-            Log::debug('starting background watch for payment updates');
+            Log::channel('payment')->debug('starting background watch for payment updates');
             WatchForPaymentUpdates::dispatch($payment->id);
-            Log::debug('dispatched wait job');
+            Log::channel('payment')->debug('dispatched wait job');
         } else {
-            Log::debug('not starting watch for payment updates');
+            Log::channel('payment')->debug('not starting watch for payment updates');
         }
 
         return redirect()
@@ -146,7 +146,7 @@ class FinanceController
         try {
             $payment = $gateway->apply($payment);
         } catch (\Exception $e) {
-            Log::error('Error submitting application: ' . $e->getMessage());
+            Log::channel('payment')->error('Error submitting application: ' . $e->getMessage());
             $payment->update([
                 'provider_request_data' => $gateway->getRequestData(),
                 'provider_response_data' => $gateway->getResponseData(),

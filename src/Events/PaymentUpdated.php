@@ -57,7 +57,7 @@ class PaymentUpdated extends Event implements ShouldBroadcast
 //                ->parseErrors($payment->provider_response_data);
 //        }
 
-        Log::debug('broadcasting', ['payment' => $payload]);
+        Log::channel('payment')->debug('broadcasting', ['payment' => $payload]);
 
         return [
             'payload' => app(Compression::class)
