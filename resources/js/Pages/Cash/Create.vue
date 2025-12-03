@@ -64,9 +64,9 @@ function unselectOffer() {
                                 Pay your deposit now.
                             </p>
 
-                            <button v-if="!minimal" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
+                            <!-- <button v-if="!minimal" class="mt-10 w-full rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">
                                 Pay Deposit
-                            </button>
+                            </button> -->
 
                         </div>
 
