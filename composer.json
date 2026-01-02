@@ -1,7 +1,6 @@
 {
   "name": "mralston/payment",
   "description": "Payment flows for cash, finance and leasing.",
-  "version": "0.1",
   "keywords": [
     "mralston",
     "payment",
