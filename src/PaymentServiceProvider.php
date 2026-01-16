@@ -81,7 +81,8 @@ class PaymentServiceProvider extends ServiceProvider
             $helper = app(PaymentHelper::class);
 
             return new Propensio(
-                $helper->getApiKey('propensio') ?? config('payment.propensio.api_key'),
+                config('payment.propensio.username'),
+                config('payment.propensio.password'),
                 config('payment.propensio.endpoint'),
             );
         });
