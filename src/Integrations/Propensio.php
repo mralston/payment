@@ -17,6 +17,7 @@ use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
+use Mralston\Payment\Interfaces\Apiable;
 //use Mralston\Payment\Interfaces\Signable;
 use Mralston\Payment\Interfaces\WantsEpvs;
 use Mralston\Payment\Mail\CancelManually;
@@ -34,7 +35,7 @@ use Mralston\Payment\Traits\HandlesPaymentErrors;
 use Mralston\Payment\Traits\HandlesPaymentResponse;
 use Spatie\ArrayToXml\ArrayToXml;
 
-class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, WantsEpvs /*, Signable*/
+class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, WantsEpvs, Apiable /*, Signable*/
 {
     use HandlesPaymentErrors;
     use HandlesPaymentResponse;
@@ -233,6 +234,11 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         } else {
             return false;
         }
+    }
+
+    public function getCancellationResponse(): array
+    {
+        return $this->propensioService->getLastResponse();
     }
 
     public function sendSatNote(Payment $payment)
