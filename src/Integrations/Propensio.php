@@ -306,30 +306,23 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             throw new \Exception('Status not found');
         }
 
-        $statusLookupValue = PaymentLookupField::byIdentifier('status')
-            ->paymentLookupValues()
-            ->whereJsonContains('payment_provider_values->propensio', $response->statusCode)
-            ->firstOrFail();
-
-        $status = PaymentStatus::byIdentifier($statusLookupValue->value);
-
-        if (is_null($status)) {
+        if (is_null($response->statusId)) {
 
             $this->recordError(
                 $payment,
                 PaymentStage::byIdentifier(PaymentStageEnum::STATUS_POLL->value),
-                'Status not found',
+                ['error' => 'Status not found'],
             );
 
             throw new \Exception('Status not found');
         }
 
         $payment->update([
-            'payment_status_id' => $status->id,
+            'payment_status_id' => $response->statusId,
         ]);
 
         return [
-            'status' => $status->name,
+            'status' => $response->statusName,
             'lender_response_data' => $this->propensioService->getLastResponse(),
             'offer_expiration_date' => null
         ];

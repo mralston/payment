@@ -11,7 +11,8 @@ class NormalisedResponseData extends Data
         public ?string $requestId = null,
         public ?string $applicationId = null,
         public ?string $applicationNumber = null,
-        public ?string $statusCode = null,
+        public ?int $statusId = null,
+        public ?string $statusName = null,
     ) {
     }
 }
