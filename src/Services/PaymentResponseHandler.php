@@ -3,31 +3,27 @@
 namespace Mralston\Payment\Services;
 
 use Illuminate\Support\Collection;
+use Mralston\Payment\Data\NormalisedResponseData;
 
 class PaymentResponseHandler
 {
     public function normalizeResponse(
         array|Collection $responseData,
         string $provider,
-    ): array {
+    ): NormalisedResponseData {
         return match($provider) {
             'propensio' => $this->parsePropensioResponse($responseData),
         };
     }
 
-    protected function parsePropensioResponse(array|Collection $responseData): array
+    protected function parsePropensioResponse(array|Collection $responseData): NormalisedResponseData
     {
-        return [
-            'http_status' => $responseData['code'] ?? null,
-            'request_id' => $responseData['results']['requestReqId'] ?? null,
-            'application_id' => $responseData['results']['data']['applicationId'] ?? null,
-            'application_number' => $responseData['results']['data']['applicationNumber'] ?? null,
-            'status_code' => $responseData['results']['data']['applicationStatusCode'] ?? null,
-            'portal_url' => $responseData['results']['data']['portalConfirmationUrl'] ?? null,
-            'applicant_name' => $responseData['results']['data']['applicantName'] ?? null,
-            'created_at' => $responseData['results']['data']['applicationCreatedAt'] ?? null,
-            'checklist_items' => $responseData['results']['checklistItems'] ?? null,
-            'status' => $responseData['results']['loan']['applicationStatusCode'] ?? null,
-        ];
+        return new NormalisedResponseData(
+            httpStatus: $responseData['code'] ?? null,
+            requestId: $responseData['results']['requestReqId'] ?? null,
+            applicationId: $responseData['results']['data']['applicationId'] ?? null,
+            applicationNumber: $responseData['results']['data']['applicationNumber'] ?? null,
+            statusCode: $responseData['results']['data']['applicationStatusCode'] ?? null,
+        );
     }
 }

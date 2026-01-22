@@ -226,8 +226,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             //'payment_status_id' => $paymentStatus?->id,
             'provider_request_data' => $propensioRequestData->get(),
             'provider_response_data' => $this->propensioService->getLastResponse(),
-            'provider_foreign_id' => $responseNormalized['application_id'],
-            'provider_application_number' => $responseNormalized['application_number'],
+            'provider_foreign_id' => $responseNormalized->applicationId,
+            'provider_application_number' => $responseNormalized->applicationNumber,
         ]);
 
         return $payment;
@@ -308,7 +308,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
         $statusLookupValue = PaymentLookupField::byIdentifier('status')
             ->paymentLookupValues()
-            ->whereJsonContains('payment_provider_values->propensio', $response['status'])
+            ->whereJsonContains('payment_provider_values->propensio', $response->statusCode)
             ->firstOrFail();
 
         $status = PaymentStatus::byIdentifier($statusLookupValue->value);
