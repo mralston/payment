@@ -74,4 +74,8 @@ return [
         'endpoint' => env('HOMETREE_ENDPOINT', config('app.env')),
     ],
 
+    'slack' => [
+        'webhook_url' => env('SLACK_WEBHOOK_URL'),
+    ],
+
 ];

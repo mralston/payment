@@ -29,6 +29,11 @@ class PaymentErrorHandler
     protected function parsePropensioErrors(array|Collection $responseData): array
     {
         $errors = [];
+
+        if (!empty($responseData['code']) && $responseData['code'] != 200) {
+            $errors[] = 'HTTP Status: ' . $responseData['code'];
+        }
+
         //missing data errors
         if (!empty($responseData['results']['errors'])) {
             foreach ($responseData['results']['errors'] as $error) {

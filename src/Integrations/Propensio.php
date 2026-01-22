@@ -23,22 +23,26 @@ use Mralston\Payment\Interfaces\WantsEpvs;
 use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Mail\SatNoteUpload;
 use Mralston\Payment\Enums\LookupField;
+use Mralston\Payment\Enums\PaymentStage as PaymentStageEnum;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentLookupField;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentSurvey;
+use Mralston\Payment\Models\PaymentStage;
 use Mralston\Payment\Services\PaymentCalculator;
 use Mralston\Payment\Services\PropensioService;
 use Mralston\Payment\Traits\HandlesPaymentErrors;
 use Mralston\Payment\Traits\HandlesPaymentResponse;
+use Mralston\Payment\Traits\RecordsPaymentError;
 use Spatie\ArrayToXml\ArrayToXml;
 
 class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, WantsEpvs, Apiable /*, Signable*/
 {
     use HandlesPaymentErrors;
     use HandlesPaymentResponse;
+    use RecordsPaymentError;
 
     private array $environmentCodes = [
         'local' => 'UAT',
@@ -203,6 +207,12 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                     'propensio',
                 )
             ]);
+
+            $this->recordError(
+                $payment,
+                PaymentStage::byIdentifier(PaymentStageEnum::APPLY->value),
+                $this->propensioService->getLastResponse(),
+            );
             
             return $payment;
         }
@@ -232,6 +242,13 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         ) {
             return true;
         } else {
+
+            $this->recordError(
+                $payment,
+                PaymentStage::byIdentifier(PaymentStageEnum::CANCEL->value),
+                $this->propensioService->getLastResponse(),
+            );
+
             return false;
         }
     }
@@ -250,6 +267,17 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             'Sat Note ' . $this->payment->provider_foreign_id . '.pdf',
             $this->payment->sat_note->dir
         );
+        
+        if ($this->hasErrors($this->propensioService->getLastResponse(), 'propensio')) {
+
+            $this->recordError(
+                $payment,
+                PaymentStage::byIdentifier(PaymentStageEnum::SAT_NOTE_UPLOAD->value),
+                $this->propensioService->getLastResponse(),
+            );
+
+            throw new \Exception('Sat note upload failed');
+        }
 
         Log::channel('payment')->info(
             $this->propensioService->getLastResponse()
@@ -268,6 +296,16 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 'propensio'
             );
 
+        if ($this->hasErrors($this->propensioService->getLastResponse(), 'propensio')) {
+            $this->recordError(
+                $payment,
+                PaymentStage::byIdentifier(PaymentStageEnum::STATUS_POLL->value),
+                $this->propensioService->getLastResponse(),
+            );
+
+            throw new \Exception('Status not found');
+        }
+
         $statusLookupValue = PaymentLookupField::byIdentifier('status')
             ->paymentLookupValues()
             ->whereJsonContains('payment_provider_values->propensio', $response['status'])
@@ -276,6 +314,13 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         $status = PaymentStatus::byIdentifier($statusLookupValue->value);
 
         if (is_null($status)) {
+
+            $this->recordError(
+                $payment,
+                PaymentStage::byIdentifier(PaymentStageEnum::STATUS_POLL->value),
+                'Status not found',
+            );
+
             throw new \Exception('Status not found');
         }
 

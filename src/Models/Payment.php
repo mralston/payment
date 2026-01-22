@@ -195,6 +195,11 @@ class Payment extends Model
         return $this->hasMany(PaymentCancellation::class);
     }
 
+    public function errors(): HasMany
+    {
+        return $this->hasMany(PaymentError::class);
+    }
+
     public function lastCancellation(): Attribute
     {
         return Attribute::get(function () {

@@ -18,6 +18,7 @@ class PaymentResponseHandler
     protected function parsePropensioResponse(array|Collection $responseData): array
     {
         return [
+            'http_status' => $responseData['code'] ?? null,
             'request_id' => $responseData['results']['requestReqId'] ?? null,
             'application_id' => $responseData['results']['data']['applicationId'] ?? null,
             'application_number' => $responseData['results']['data']['applicationNumber'] ?? null,
