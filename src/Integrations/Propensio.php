@@ -300,7 +300,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $this->recordError(
                 $payment,
                 PaymentStage::byIdentifier(PaymentStageEnum::STATUS_POLL->value),
-                $this->propensioService->getLastResponse(),
+                $this->normalizeErrors(
+                    $this->propensioService->getLastResponse(),
+                    'propensio'
+                ),
             );
 
             throw new \Exception('Status not found');
@@ -311,7 +314,11 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $this->recordError(
                 $payment,
                 PaymentStage::byIdentifier(PaymentStageEnum::STATUS_POLL->value),
-                ['error' => 'Status not found'],
+                [
+                    'applicationStatusCode' => $this
+                        ->propensioService
+                        ->getLastResponse()['results']['loan']['applicationStatusCode']
+                ],
             );
 
             throw new \Exception('Status not found');

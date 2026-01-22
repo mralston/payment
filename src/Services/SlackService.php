@@ -12,7 +12,7 @@ class SlackService
     {
         try {
             $response = Http::post($webhookUrl, [
-                'text' => $message['text'] ?? '',
+                '#text' => $message['text'] ?? '',
                 'blocks' => $message['blocks'] ?? [],
             ]);
 
@@ -35,11 +35,38 @@ class SlackService
             'text' => "🚨 Payment Error: #{$payment->id}",
             'blocks' => [
                 [
+                    'type' => 'header',
+                    'text' => [
+                        'type' => 'plain_text',
+                        'text' => '🚨 Payment Error Detected',
+                    ],
+                ],
+                [
+                    'type' => 'section',
+                    'fields' => [
+                        [
+                            'type' => 'plain_text',
+                            'text' => "*Payment ID:* {$payment->id}",
+                        ],
+                        [
+                            'type' => 'plain_text',
+                            'text' => "*Parent ID:* {$payment->parentable_id}",
+                        ],
+                        [
+                            'type' => 'plain_text',
+                            'text' => "*Provider:* {$payment->paymentProvider->name}",
+                        ],
+                        [
+                            'type' => 'plain_text',
+                            'text' => "*Stage:* {$stage}",
+                        ],
+                    ],
+                ],
+                [
                     'type' => 'section',
                     'text' => [
                         'type' => 'mrkdwn',
-                        'text' => "*Payment Error Detected*\n*Payment ID:* {$payment->id}\n *Parent ID:* {$payment->parentable_id}\n*Stage:* {$stage}\n*Provider:* {$payment->paymentProvider->name}\n" .
-                        "*Error Data:* " . json_encode($errorData),
+                        'text' => "*Error Data:* " . substr(json_encode($errorData,  JSON_PRETTY_PRINT | JSON_UNESCAPED_SLASHES | JSON_UNESCAPED_UNICODE), 0, 1900),
                     ],
                 ],
             ],
