@@ -43,23 +43,9 @@ class SlackService
                 ],
                 [
                     'type' => 'section',
-                    'fields' => [
-                        [
-                            'type' => 'plain_text',
-                            'text' => "*Payment ID:* {$payment->id}",
-                        ],
-                        [
-                            'type' => 'plain_text',
-                            'text' => "*Parent ID:* {$payment->parentable_id}",
-                        ],
-                        [
-                            'type' => 'plain_text',
-                            'text' => "*Provider:* {$payment->paymentProvider->name}",
-                        ],
-                        [
-                            'type' => 'plain_text',
-                            'text' => "*Stage:* {$stage}",
-                        ],
+                    'text' => [
+                        'type' => 'mrkdwn',
+                        'text' => "*Payment ID:* {$payment->id}\n*Parent ID:* {$payment->parentable_id}\n*Provider:* {$payment->paymentProvider->name}\n*Stage:* {$stage}",
                     ],
                 ],
                 [
