@@ -74,7 +74,7 @@ class PropensioRequestData extends Data
                 'cashPriceAmount' => $this->gross,
                 'depositAmount' => $this->payment->deposit,
                 'additionalContribution' => 0,
-                'loanAmount' => round($this->payment->amount - $this->payment->deposit, 2),
+                'loanAmount' => round($this->gross - $this->payment->deposit, 2),
                 'repaymentTermInMonths' => $this->payment->term,
                 'partExchangeAmount' => 0,
                 'settlementValueAmount' => 0,

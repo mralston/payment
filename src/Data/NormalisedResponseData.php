@@ -13,6 +13,7 @@ class NormalisedResponseData extends Data
         public ?string $applicationNumber = null,
         public ?int $statusId = null,
         public ?string $statusName = null,
+        public ?float $monthlyPayment = null,
     ) {
     }
 }

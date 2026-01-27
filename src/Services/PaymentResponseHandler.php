@@ -48,6 +48,7 @@ class PaymentResponseHandler
             applicationNumber: $responseData['results'][$key]['applicationNumber'] ?? null,
             statusId: $paymentStatus->id,
             statusName: $paymentStatus->name,
+            monthlyPayment: $responseData['results'][$key]['monthlyRepaymentAmount'] ?? null,
         );
     }
 }
