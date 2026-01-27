@@ -49,6 +49,8 @@ class PaymentResponseHandler
             statusId: $paymentStatus->id,
             statusName: $paymentStatus->name,
             monthlyPayment: $responseData['results'][$key]['monthlyRepaymentAmount'] ?? null,
+            aprRate: $responseData['results'][$key]['aprRate'] ?? null,
+            termInMonths: $responseData['results'][$key]['repaymentTermInMonths'] ?? null,
         );
     }
 }

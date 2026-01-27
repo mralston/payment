@@ -14,6 +14,8 @@ class NormalisedResponseData extends Data
         public ?int $statusId = null,
         public ?string $statusName = null,
         public ?float $monthlyPayment = null,
+        public ?float $aprRate = null,
+        public ?int $termInMonths = null,
     ) {
     }
 }
