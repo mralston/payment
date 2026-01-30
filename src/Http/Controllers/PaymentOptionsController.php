@@ -52,7 +52,7 @@ class PaymentOptionsController
                         foreach (config('payment.offer_visibility_rules', []) as $ruleClass) {
                             $rule = app($ruleClass);
                             if ($rule instanceof OfferVisibilityRule) {
-                                $rule->showOffers($query, $parentModel);
+                                $rule->applyVisibilityConstraints($query, $parentModel);
                             }
                         }
                 },

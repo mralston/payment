@@ -11,8 +11,10 @@ use Illuminate\Database\Eloquent\Relations\Relation;
 
 class HometreeRule implements OfferVisibilityRule
 {
-    public function showOffers(Builder|Relation $query, PaymentParentModel $parent): void
-    {
+    public function applyVisibilityConstraints(
+        Builder|Relation $query,
+        PaymentParentModel $parent
+    ): void {
         $hasFinalDeclinedPayment = $parent
             ->payments()
             ->whereHas('paymentProvider', function ($query) {
