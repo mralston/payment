@@ -62,23 +62,7 @@ class PaymentCalculator
         }
 
         $monthlyRepayment = round($amount * $factor, 2);
-
-        // Fee identification from the Representative Examples spreadsheet.
-        // Base fee is £100, with some specific cases having different amounts.
-        $fee = 100.0;
-
-        // Match specific outliers in the spreadsheet (likely deposits or product-specific fees)
-        if (abs($amount - 12532.00) < 0.01) {
-            $fee = 1000.0;
-        } elseif (abs($amount - 15034.00) < 0.01) {
-            $fee = 1000.0;
-        } elseif (abs($amount - 12032.00) < 0.01) {
-            $fee = 4000.0;
-        } elseif (abs($amount - 9950.00) < 0.01) {
-            $fee = 500.0;
-        }
-
-        $totalRepayable = round($monthlyRepayment * $term + $fee, 2);
+        $totalRepayable = round($monthlyRepayment * $term, 2);
         $interest = $totalRepayable - $amount;
 
         return [
