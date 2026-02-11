@@ -12,8 +12,12 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('payment_products', function (Blueprint $table) {
-            // 1. Temporarily modify the column to include new and old enum values
-            DB::statement("ALTER TABLE `payment_products` MODIFY COLUMN `deferred_type` enum('months','payments','bnpl_months','deferred_payments') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NULL DEFAULT NULL AFTER `deferred`");
+
+            $driver = DB::connection()->getDriverName();
+            if ($driver !== 'sqlite') {
+                // 1. Temporarily modify the column to include new and old enum values
+                DB::statement("ALTER TABLE `payment_products` MODIFY COLUMN `deferred_type` enum('months','payments','bnpl_months','deferred_payments') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NULL DEFAULT NULL AFTER `deferred`");
+            }
 
             // 2. Convert old values to new values using Eloquent/DB Builder
             DB::table('payment_products')
@@ -24,8 +28,10 @@ return new class extends Migration
                 ->where('deferred_type', 'payments')
                 ->update(['deferred_type' => 'deferred_payments']);
 
-            // 3. Permanently modify the column to only include the new enum values.
-            DB::statement("ALTER TABLE `payment_products` MODIFY COLUMN `deferred_type` enum('bnpl_months','deferred_payments') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NULL DEFAULT NULL AFTER `deferred`");
+            if ($driver !== 'sqlite') {
+                // 3. Permanently modify the column to only include the new enum values.
+                DB::statement("ALTER TABLE `payment_products` MODIFY COLUMN `deferred_type` enum('bnpl_months','deferred_payments') CHARACTER SET utf8mb3 COLLATE utf8mb3_unicode_ci NULL DEFAULT NULL AFTER `deferred`");
+            }
         });
     }
 

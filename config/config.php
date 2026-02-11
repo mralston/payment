@@ -49,8 +49,14 @@ return [
     */
 
     'propensio' => [
-        'api_key' => env('PROPENSIO_API_KEY') ?? '',
+        'username' => env('PROPENSIO_USERNAME', ''),
+        'password' => env('PROPENSIO_PASSWORD', ''),
         'endpoint' => env('PROPENSIO_ENDPOINT', config('app.env')),
+        'media_code' => env('PROPENSIO_MEDIA_CODE'),
+        'api_from_code' => env('PROPENSIO_API_FROM_CODE'),
+        'introducers_reference' => env('PROPENSIO_INTRODUCERS_REFERENCE'),
+        'goods_host_code' => env('PROPENSIO_GOODS_HOST_CODE'),
+        'loan_purpose_host_code' => env('PROPENSIO_LOAN_PURPOSE_HOST_CODE'),
     ],
 
     /*
@@ -66,6 +72,10 @@ return [
         'api_key' => env('HOMETREE_API_KEY'),
         'client_id' => env('HOMETREE_CLIENT_ID'),
         'endpoint' => env('HOMETREE_ENDPOINT', config('app.env')),
+    ],
+
+    'slack' => [
+        'webhook_url' => env('SLACK_WEBHOOK_URL'),
     ],
 
 ];

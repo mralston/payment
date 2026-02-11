@@ -248,9 +248,18 @@ const disabledCancellationButtons = computed(() => {
                 </tbody>
             </table>
 
-            <!--            <button class="mt-10 rounded-md bg-blue-600 px-3 py-2 text-center text-sm/6 font-semibold text-white shadow-sm hover:bg-blue-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600">-->
-            <!--                Pay Deposit-->
-            <!--            </button>-->
+            <div
+                v-if="payment?.provider_response_data?.results?.checklistItems"
+                class="my-8 w-1/2"
+            >
+
+                <p class="mb-4 font-bold">Next Steps:</p>
+                <p>Please provide {{ payment.payment_provider.name }} with the following documents to complete your application:</p>
+                <ul v-for="item in payment.provider_response_data.results.checklistItems" class="list-disc list-inside text-gray-500">
+                    <li v-if="item.isComplete == false">{{ item.description }}</li>
+                </ul>
+
+            </div>
 
         </div>
 
