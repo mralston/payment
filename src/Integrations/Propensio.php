@@ -217,7 +217,6 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $this->propensioService->getLastResponse(),
             'propensio'
         );
-        dd($responseNormalized);
 
         $payment->update([
             //'payment_status_id' => $paymentStatus?->id,
