@@ -37,7 +37,6 @@ use Mralston\Payment\Traits\HandlesPaymentErrors;
 use Mralston\Payment\Traits\HandlesPaymentResponse;
 use Mralston\Payment\Traits\RecordsPaymentError;
 use Mralston\Payment\Traits\HandlesPrequal;
-use Spatie\ArrayToXml\ArrayToXml;
 
 class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, WantsEpvs, Apiable /*, Signable*/
 {
