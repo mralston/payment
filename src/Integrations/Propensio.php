@@ -50,6 +50,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
         'dev' => 'UAT',
         'testing' => 'UAT',
         'production' => 'UAT',
+        'staging' => 'UAT',
     ];
 
     /**
