@@ -1,24 +1,15 @@
 <?php
 
-namespace Mralston\Payment\Services;
+namespace Mralston\Payment\Integrations;
 
-use Illuminate\Support\Collection;
 use Mralston\Payment\Data\NormalisedResponseData;
-use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentLookupField;
+use Mralston\Payment\Models\PaymentStatus;
+use Mralston\Payment\Interfaces\Response;
 
-class PaymentResponseHandler
+class PropensioResponse implements Response
 {
-    public function normalizeResponse(
-        array|Collection $responseData,
-        string $provider,
-    ): NormalisedResponseData {
-        return match($provider) {
-            'propensio' => $this->parsePropensioResponse($responseData),
-        };
-    }
-
-    protected function parsePropensioResponse(array|Collection $responseData): NormalisedResponseData
+    public function parseResponse(array $responseData): NormalisedResponseData
     {
         $key = isset($responseData['results']['loan']) ?
             'loan' : 'data';

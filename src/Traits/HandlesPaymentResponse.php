@@ -8,16 +8,14 @@ use Illuminate\Support\Collection;
 
 trait HandlesPaymentResponse
 {
-    protected function normalizeResponse(
+    protected function normaliseResponse(
         array|Collection $responseData,
         string $provider,
     ): NormalisedResponseData {
-        $responseHandler = app(PaymentResponseHandler::class);
+        $className = '\Mralston\Payment\Integrations\\' . $provider . 'Response';
+        $concrete = new $className();
         
-        return $responseHandler->normalizeResponse(
-            $responseData,
-            $provider,
-        );
+        return $concrete->parseResponse($responseData);
     }
 }
 

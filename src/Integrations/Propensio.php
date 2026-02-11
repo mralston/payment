@@ -94,11 +94,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $helper = app(PaymentHelper::class)
                 ->setParentModel($survey->parentable);
 
-            $amount = $helper->getTotalCost() - $survey->finance_deposit;
-
             $paymentProvider = PaymentProvider::byIdentifier('propensio');
-
-            $products = $paymentProvider->paymentProducts;
 
             $deposit = $survey->finance_deposit;
             $amount = $totalCost - $deposit;
@@ -115,7 +111,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
             // If there aren't any offers...
             if ($offers->isEmpty()) {
-                // Fetch products available from lender
+                $products = $paymentProvider->paymentProducts;
 
                 $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
 
@@ -202,7 +198,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $payment->update([
                 'payment_status_id' => $paymentStatus?->id,
                 'provider_request_data' => $propensioRequestData->get(),
-                'provider_response_data' => $this->normalizeErrors(
+                'provider_response_data' => $this->normaliseErrors(
                     $this->propensioService->getLastResponse(),
                     'propensio',
                 )
@@ -217,10 +213,11 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             return $payment;
         }
 
-        $responseNormalized = $this->normalizeResponse(
+        $responseNormalized = $this->normaliseResponse(
             $this->propensioService->getLastResponse(),
             'propensio'
         );
+        dd($responseNormalized);
 
         $payment->update([
             //'payment_status_id' => $paymentStatus?->id,
@@ -291,7 +288,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             ->getApplicationRequest($payment->provider_foreign_id);
 
         $response = $this
-            ->normalizeResponse(
+            ->normaliseResponse(
                 $this->propensioService->getLastResponse(),
                 'propensio'
             );
@@ -300,7 +297,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $this->recordError(
                 $payment,
                 PaymentStage::byIdentifier(PaymentStageEnum::STATUS_POLL->value),
-                $this->normalizeErrors(
+                $this->normaliseErrors(
                     $this->propensioService->getLastResponse(),
                     'propensio'
                 ),

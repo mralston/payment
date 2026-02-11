@@ -7,23 +7,25 @@ use Illuminate\Support\Collection;
 
 trait HandlesPaymentErrors
 {
-    protected function hasErrors(array|Collection $responseData, string $provider): bool
+    protected function hasErrors(
+        array|Collection $responseData,
+        string $provider
+    ): bool
     {
-        $errorHandler = app(PaymentErrorHandler::class);
+        $className = '\Mralston\Payment\Integrations\\' . $provider . 'ErrorHandler';
+        $concrete = new $className();
 
-        return !empty($errorHandler->normalizeErrors($responseData, $provider));
+        return !empty($concrete->parseErrors($responseData));
     }
 
-    protected function normalizeErrors(
+    protected function normaliseErrors(
         array|Collection $responseData,
         string $provider,
     ): array {
-        $errorHandler = app(PaymentErrorHandler::class);
+        $className = '\Mralston\Payment\Integrations\\' . $provider . 'ErrorHandler';
+        $concrete = new $className();
         
-        return $errorHandler->normalizeErrors(
-            $responseData,
-            $provider,
-        );
+        return $concrete->parseErrors($responseData);
+
     }
 }
-
