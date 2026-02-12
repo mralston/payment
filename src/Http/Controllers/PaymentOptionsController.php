@@ -9,6 +9,7 @@ use Mralston\Payment\Data\CancellationData;
 use Mralston\Payment\Events\PaymentCancelled;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PaymentParentModel;
+use Mralston\Payment\Interfaces\OfferVisibilityRule;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
@@ -44,8 +45,16 @@ class PaymentOptionsController
             'parentModel' => $parentModel,
             'survey' => $survey->load([
                 'paymentOffers' => function ($query) use ($parentModel) {
-                    $query->where('total_cost', $this->helper->getTotalCost())
+                    $query
+                        ->where('total_cost', $this->helper->getTotalCost())
                         ->where('parentable_id', $parentModel->id); // There's a bug where offers for different parent models are linked to the same survey. Possibly in the Hometree integration.
+                
+                        foreach (config('payment.offer_visibility_rules', []) as $ruleClass) {
+                            $rule = app($ruleClass);
+                            if ($rule instanceof OfferVisibilityRule) {
+                                $rule->applyVisibilityConstraints($query, $parentModel);
+                            }
+                        }
                 },
                 'paymentOffers.paymentProvider',
             ]),
