@@ -4,6 +4,7 @@ namespace Mralston\Payment\Traits;
 
 use Mralston\Payment\Services\PaymentErrorHandler;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 trait HandlesPaymentErrors
 {
@@ -12,7 +13,7 @@ trait HandlesPaymentErrors
         string $provider
     ): bool
     {
-        $className = '\Mralston\Payment\Integrations\\' . $provider . 'ErrorHandler';
+        $className = '\Mralston\Payment\Integrations\\' . Str::title($provider) . 'ErrorHandler';
         $concrete = new $className();
 
         return !empty($concrete->parseErrors($responseData));
@@ -22,7 +23,7 @@ trait HandlesPaymentErrors
         array|Collection $responseData,
         string $provider,
     ): array {
-        $className = '\Mralston\Payment\Integrations\\' . $provider . 'ErrorHandler';
+        $className = '\Mralston\Payment\Integrations\\' . Str::title($provider) . 'ErrorHandler';
         $concrete = new $className();
         
         return $concrete->parseErrors($responseData);

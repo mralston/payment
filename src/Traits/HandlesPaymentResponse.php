@@ -5,6 +5,7 @@ namespace Mralston\Payment\Traits;
 use Mralston\Payment\Services\PaymentResponseHandler;
 use Mralston\Payment\Data\NormalisedResponseData;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Str;
 
 trait HandlesPaymentResponse
 {
@@ -12,7 +13,7 @@ trait HandlesPaymentResponse
         array|Collection $responseData,
         string $provider,
     ): NormalisedResponseData {
-        $className = '\Mralston\Payment\Integrations\\' . $provider . 'Response';
+        $className = '\Mralston\Payment\Integrations\\' . Str::title($provider) . 'Response';
         $concrete = new $className();
         
         return $concrete->parseResponse($responseData);

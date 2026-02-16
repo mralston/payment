@@ -23,6 +23,7 @@ class PropensioService
         'local' => 'https://qa.aryzasoftware.com',
         'dev' => 'https://qa.aryzasoftware.com',
         'testing' => 'https://qa.aryzasoftware.com',
+        'staging' => 'https://qa.aryzasoftware.com',
         'production' => 'https://qa.aryzasoftware.com',
     ];
 

@@ -44,6 +44,7 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
         'local' => 'https://de-apiary-api.honeycombexternal.com:44310/acquisitionWebService/Retail/retail',
         'dev' => 'https://apim-01-ext.honeycombexternal.com/Retail/de',
         'testing' => 'https://apim-01-ext.honeycombexternal.com/Retail/te',
+        'staging' => 'https://apim-01-ext.honeycombexternal.com/Retail/te',
         'production' => 'https://apim-01-ext.honeycombexternal.com/Retail',
     ];
 

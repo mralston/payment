@@ -44,6 +44,7 @@ class Hometree implements PaymentGateway, LeaseGateway, PrequalifiesCustomer, Pa
         'local' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
         'dev' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
         'testing' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
+        'staging' => 'https://api.preprod.hometreefinance.dev/partner/v1.0',
         'production' => 'https://api.hometreefinance.co.uk/partner/v1.0',
     ];
 

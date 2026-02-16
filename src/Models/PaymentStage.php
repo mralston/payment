@@ -12,7 +12,7 @@ class PaymentStage extends Model
         'identifier',
     ];
 
-    public static function byIdentifier(string $identifier): static
+    public static function byIdentifier(string $identifier): ?PaymentStage
     {
         return static::firstWhere('identifier', $identifier);
     }
