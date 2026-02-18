@@ -40,7 +40,8 @@ class PropensioRequestData extends Data
                         $address['address2'] : $address['county'],
                     'county' => $address['county'] ?? '',
                     'postcode' => $address['postCode'] ?? '',
-                    'timeYears' => (string) $timeAtAddress->y,
+                    'timeYears' => $timeAtAddress->y > 10 ?
+                        '10' : (string) $timeAtAddress->y,
                     'timeMonths' => (string) $timeAtAddress->m
                 ];
             } else {
@@ -55,7 +56,8 @@ class PropensioRequestData extends Data
                         $address['address2'] : $address['county'],
                     'county' => $address['county'] ?? '',
                     'postcode' => $address['postCode'] ?? '',
-                    'timeYears' => (string) $timeAtAddress->y,
+                    'timeYears' => $timeAtAddress->y > 10 ?
+                        '10' : (string) $timeAtAddress->y,
                     'timeMonths' => (string) $timeAtAddress->m
                 ];
             }
