@@ -189,34 +189,5 @@ class PaymentLookupFieldTableSeeder extends Seeder
                 ]],
                 ['name' => 'Prefer not to say', 'value' => 'Other'],
             ]);
-
-        PaymentLookupField::create([
-            'name' => 'Status',
-            'identifier' => 'status',
-        ])->paymentLookupValues()
-            ->createMany([
-                ['name' => 'Cancelled', 'value' => 'cancelled', 'payment_provider_values' => [
-                    'propensio' => ['WSFcustomernpw', 'WSFcancelledpostpayo', 'WSFwithdrawnpostpayo'],
-                ]],
-                ['name' => 'Pending', 'value' => 'pending', 'payment_provider_values' => [
-                    'propensio' => ['WSFpendingfurtherinf'],
-                ]],
-                //not sure if ive translated this one correctly
-                ['name' => 'Accepted', 'value' => 'accepted', 'payment_provider_values' => [
-                    'propensio' => ['WSFexecuted', 'WSFautoaccept', 'WSFmanualaccept'],
-                ]],
-                ['name' => 'Referred', 'value' => 'referred', 'payment_provider_values' => [
-                    'propensio' => ['WSFsanction', 'WSFmanualrefer'],
-                ]],
-                ['name' => 'Declined', 'value' => 'declined', 'payment_provider_values' => [
-                    'propensio' => ['WSFmanualdecline', 'WSFautodecline'],
-                ]],
-                ['name' => 'Live', 'value' => 'live', 'payment_provider_values' => [
-                    'propensio' => ['WSFpaidout'],
-                ]],
-                ['name' => 'Expired', 'value' => 'expired', 'payment_provider_values' => [
-                    'propensio' => ['WSFquoteexpired', 'WSFappexpired'],
-                ]],
-            ]);
     }
 }

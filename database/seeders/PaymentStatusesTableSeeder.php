@@ -181,5 +181,99 @@ class PaymentStatusesTableSeeder extends Seeder
             'name' => 'Final archived'
         ]);
 
+        // Propensio statuses
+
+        PaymentStatus::create([
+            'identifier' => 'WSFcustomernpw',
+            'name' => 'Customer NPW',
+            'cancellable' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFcancelledpostpayo',
+            'name' => 'Cancelled post payo'
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFwithdrawnpostpayo',
+            'name' => 'Withdrawn post payo'
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFpendingfurtherinf',
+            'name' => 'Pending further information',
+            'active' => true,
+            'processing' => true,
+            'cancellable' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFexecuted',
+            'name' => 'Executed',
+            'executed' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFautoaccept',
+            'name' => 'Auto accepted',
+            'active' => true,
+            'decided' => true,
+            'cancellable' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFmanualaccept',
+            'name' => 'Manual accepted',
+            'active' => true,
+            'decided' => true,
+            'cancellable' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFsanction',
+            'name' => 'Sanctioned',
+            'error' => true,
+            'decided' => true,
+            'cancellable' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFmanualrefer',
+            'name' => 'Manual referred',
+            'active' => true,
+            'referred' => true,
+            'cancellable' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFmanualdecline',
+            'name' => 'Manual declined',
+            'decided' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFautodecline',
+            'name' => 'Auto declined',
+            'decided' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFpaidout',
+            'name' => 'Paid out',
+            'executed' => true,
+            'decided' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFquoteexpired',
+            'name' => 'Quote expired',
+            'error' => true,
+        ]);
+
+        PaymentStatus::create([
+            'identifier' => 'WSFappexpired',
+            'name' => 'Application expired',
+            'error' => true,
+        ]);
     }
 }

@@ -14,12 +14,11 @@ class PropensioResponse implements Response
         $key = isset($responseData['results']['loan']) ?
             'loan' : 'data';
 
-        $statusLookupValue = PaymentLookupField::byIdentifier('status')
-            ->paymentLookupValues()
-            ->whereJsonContains('payment_provider_values->propensio', $responseData['results'][$key]['applicationStatusCode'])
-            ->first();
+        $paymentStatus = PaymentStatus::byIdentifier(
+            $responseData['results'][$key]['applicationStatusCode']
+        );
 
-        if (is_null($statusLookupValue)) {
+        if (is_null($paymentStatus)) {
             return new NormalisedResponseData(
                 httpStatus: $responseData['code'] ?? null,
                 requestId: $responseData['results']['requestReqId'] ?? null,
@@ -29,8 +28,6 @@ class PropensioResponse implements Response
                 statusName: null,
             );
         }
-
-        $paymentStatus = PaymentStatus::byIdentifier($statusLookupValue->value);
 
         return new NormalisedResponseData(
             httpStatus: $responseData['code'] ?? null,
