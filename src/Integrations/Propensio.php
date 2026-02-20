@@ -117,7 +117,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $propensioRequestData->get()
         );
 
-        Log::channel('payment')->info('Propensio response data: ' . json_decode($this->propensioService->getLastResponse()));
+        dd($this->propensioService->getLastResponse());
 
         if ($this->hasErrors($this->propensioService->getLastResponse(), 'propensio')) {
 
