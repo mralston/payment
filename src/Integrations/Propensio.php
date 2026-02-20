@@ -218,8 +218,6 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 'propensio'
             );
 
-        dd($this->propensioService->getLastResponse());
-
         if ($this->hasErrors($this->propensioService->getLastResponse(), 'propensio')) {
             $this->recordError(
                 $payment,
