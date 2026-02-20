@@ -26,7 +26,11 @@ trait HandlesPaymentErrors
         $className = '\Mralston\Payment\Integrations\\' . Str::title($provider) . 'ErrorHandler';
         $concrete = new $className();
         
-        return $concrete->parseErrors($responseData);
+        return [
+            'errors' => [
+                $concrete->parseErrors($responseData)
+            ]
+        ];
 
     }
 }
