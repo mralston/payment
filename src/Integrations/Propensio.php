@@ -117,8 +117,6 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
             $propensioRequestData->get()
         );
 
-        dd($this->propensioService->getLastResponse());
-
         if ($this->hasErrors($this->propensioService->getLastResponse(), 'propensio')) {
 
             //{"errors": [{"errorMsg": "Term is less than the minimum value allowed for this product (i.e. 24)", "errorCode": "term", "errorValue": 12}, {"errorMsg": "Asset type must be 'NO ASSET' or 'STATIC_CARAVAN'", "errorCode": "assetType"}, {"errorMsg": "Mobile phone is required", "errorCode": "mobilePhone"}, {"errorMsg": "Current address city is required", "errorCode": "caCity"}, {"errorMsg": "Error code altCity_required", "errorCode": "altCity"}]}
