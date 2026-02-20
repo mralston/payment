@@ -26,6 +26,13 @@ class PropensioErrorHandler implements ErrorResponse
             $errors[] = $responseData['results']['message'];
         }
 
+        if (
+            !empty($responseData['response']) &&
+            $responseData['response']['STATUS'] == 2
+        ) {
+            $errors[] = 'API Exception: ' . ($responseData['response']['RETURN_MESSAGE']['MESSAGE_TEXT'] ?? json_encode($responseData['response']));
+        }
+
         return $errors;
     }
 }
