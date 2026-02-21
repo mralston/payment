@@ -13,6 +13,11 @@ class PaymentCancellation extends Model
         'user_id',
         'reason',
         'source',
+        'lender_response_data'
+    ];
+
+    protected $casts = [
+        'lender_response_data' => 'array',
     ];
 
     public function payment()

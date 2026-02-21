@@ -39,4 +39,20 @@ enum PaymentStatus: string
     case HOMETREE_FINAL_ABANDONED = 'final-abandoned';
     case HOMETREE_FINAL_ARCHIVED = 'final-archived';
     case HOMETREE_INVALID = 'invalid';
+
+    case PROPENSIO_CUSTOMER_NPW = 'WSFcustomernpw';
+    case PROPENSIO_PENDING_FURTHER_INFO = 'WSFpendingfurtherinf';
+    case PROPENSIO_EXECUTED = 'WSFexecuted';
+    case PROPENSIO_SANCTION = 'WSFsanction';
+    case PROPENSIO_AUTO_ACCEPT = 'WSFautoaccept';
+    case PROPENSIO_AUTO_DECLINE = 'WSFautodecline';
+    case PROPENSIO_MANUAL_ACCEPT = 'WSFmanualaccept';
+    case PROPENSIO_MANUAL_DECLINE = 'WSFmanualdecline';
+    case PROPENSIO_MANUAL_REFER = 'WSFmanualrefer';
+    case PROPENSIO_PAID_OUT = 'WSFpaidout';
+    case PROPENSIO_CANCELLED_POST_PAYO = 'WSFcancelledpostpayo';
+    case PROPENSIO_WITHDRAWN_POST_PAYO = 'WSFwithdrawnpostpayo';
+    case PROPENSIO_QUOTE_EXPIRED = 'WSFquoteexpired';
+    case PROPENSIO_APPLICATION_EXPIRED = 'WSFappexpired';
+
 }

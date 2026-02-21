@@ -22,7 +22,7 @@ class PaymentServiceProvider extends ServiceProvider
         $this->loadViewsFrom(__DIR__.'/../resources/views', 'payment');
 
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
-        $this->loadRoutesFrom(__DIR__.'/../routes/channels.php');
+        require __DIR__.'/../routes/channels.php';
 
         $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
 
@@ -81,7 +81,8 @@ class PaymentServiceProvider extends ServiceProvider
             $helper = app(PaymentHelper::class);
 
             return new Propensio(
-                $helper->getApiKey('propensio') ?? config('payment.propensio.api_key'),
+                config('payment.propensio.username'),
+                config('payment.propensio.password'),
                 config('payment.propensio.endpoint'),
             );
         });

@@ -105,6 +105,7 @@ class Payment extends Model
         'updated_at',
         'addresses',
         'prevent_payment_changes',
+        'provider_application_number',
     ];
 
     protected $casts = [
@@ -192,6 +193,11 @@ class Payment extends Model
     public function paymentCancellations(): HasMany
     {
         return $this->hasMany(PaymentCancellation::class);
+    }
+
+    public function errors(): HasMany
+    {
+        return $this->hasMany(PaymentError::class);
     }
 
     public function lastCancellation(): Attribute
