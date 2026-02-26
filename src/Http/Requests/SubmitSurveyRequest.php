@@ -66,7 +66,7 @@ class SubmitSurveyRequest extends FormRequest
                     'addresses.*.houseNumber' => ['required', 'string', 'max:255'],
                     'addresses.*.street' => ['required', 'string', 'max:255'],
                     'addresses.*.postCode' => ['required', 'string', 'max:255'],
-                    'addresses.*.dateMovedIn' => ['required', 'date'],
+                    'addresses.*.dateMovedIn' => ['required', 'date', 'before_or_equal:today'],
                     'addresses.*.uprn' => ['required_unless:addresses.*.manual,true'],
                     'addresses.*.homeAddress' => ['nullable','boolean'],
 
@@ -162,6 +162,7 @@ class SubmitSurveyRequest extends FormRequest
             'addresses.*.postCode.required' => 'You must enter a post code.',
             'addresses.*.dateMovedIn.required' => 'You must enter a date moved in.',
             'addresses.*.dateMovedIn.date' => 'The date moved in is not a valid date.',
+            'addresses.*.dateMovedIn.before_or_equal' => 'The date moved in cannot be in the future.',
             'addresses.*.uprn.required_unless' => 'You must use the post code lookup button to select an exact address.',
 
             'creditCheckConsent.accepted' => 'You must consent to the identity and credit check being performed.',
