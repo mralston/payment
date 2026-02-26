@@ -13,11 +13,13 @@ class PaymentCalculator
      * @param int $bnplMonths Optional number of zero-payment months at the start
      * @return array
      */
-    public function calculate(float $amount, float $apr, int $term, int $bnplMonths = 0): ?array
+    public function calculate(float $amount, float $apr, int $term, ?int $bnplMonths = null): ?array
     {
         if ($term <= 0) {
             return null;
         }
+
+        $bnplMonths ??= 0;
 
         // Monthly payment factors derived from the Propensio Representative Examples.
         // These factors represent the lender's specific rounding and calculation methods.

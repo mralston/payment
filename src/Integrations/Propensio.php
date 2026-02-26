@@ -13,6 +13,7 @@ use Illuminate\Support\Str;
 use Mralston\Payment\Data\PrequalData;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Events\OffersReceived;
+use Mralston\Payment\Facades\Propensio as PropensioFacade;
 use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
@@ -992,12 +993,10 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
                 $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
 
-                $calculator = app(PaymentCalculator::class);
-
                 // Store products to offers
-                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $calculator, $totalCost, $amount, $deposit) {
+                $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $totalCost, $amount, $deposit) {
 
-                    $payments = $calculator->calculate($amount, $product->apr, $product->term, $product->deferred);
+                    $payments = PropensioFacade::calculatePayments($amount, $product->apr, $product->term, $product->deferred);
 
                     return $survey->parentable
                         ->paymentOffers()
@@ -1041,7 +1040,8 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
     public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array
     {
-        // TODO: Implement calculatePayments() method.
+        return app(PaymentCalculator::class)
+            ->calculate($loanAmount, $apr, $loanTerm, $deferredPeriod);
     }
 
     public function financeProducts(): Collection
