@@ -505,13 +505,11 @@ class Tandem implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, Si
 
             $response = Http::withHeaders([
                 'Ocp-Apim-Subscription-Key' => $this->key
-
             ])
                 ->get($url)
                 ->throw();
 
             $json = $response->json();
-            dump($response->body());
 
             return collect($json['financeProducts'] ?? []);
         } catch (\Throwable $ex) {

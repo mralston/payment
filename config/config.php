@@ -68,4 +68,18 @@ return [
         'endpoint' => env('HOMETREE_ENDPOINT', config('app.env')),
     ],
 
+    /*
+    |--------------------------------------------------------------------------
+    | V12 Finance
+    |--------------------------------------------------------------------------
+    |
+    | The API key, Retailer ID and Retailer GUID to be used when talking to the V12 Finance API
+    |
+    */
+
+    'v12' => [
+        'api_key' => env('V12_API_KEY'),
+        'retailer_id' => env('V12_RETAILER_ID'),
+        'retailer_guid' => env('V12_RETAILER_GUID'),
+    ],
 ];

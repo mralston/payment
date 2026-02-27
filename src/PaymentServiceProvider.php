@@ -9,6 +9,7 @@ use Laravel\Sanctum\Sanctum;
 use Mralston\Payment\Integrations\Hometree;
 use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
+use Mralston\Payment\Integrations\V12;
 use Mralston\Payment\Interfaces\PaymentAddressLookup;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\PersonalAccessToken;
@@ -92,6 +93,16 @@ class PaymentServiceProvider extends ServiceProvider
             return new Hometree(
                 $helper->getApiKey('hometree') ?? config('payment.hometree.api_key'),
                 config('payment.hometree.endpoint'),
+            );
+        });
+
+        $this->app->singleton(V12::class, function ($app) {
+            $helper = app(PaymentHelper::class);
+
+            return new V12(
+                $helper->getApiKey('v12') ?? config('payment.v12.api_key'),
+                config('payment.v12.retailer_id'),
+                config('payment.v12.retailer_guid'),
             );
         });
 
