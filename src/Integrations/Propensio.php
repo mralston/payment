@@ -3,7 +3,6 @@
 namespace Mralston\Payment\Integrations;
 
 use App\Address;
-use App\FinanceApplication;
 use Carbon\Carbon;
 use GuzzleHttp\Client;
 use Illuminate\Support\Collection;
@@ -18,7 +17,6 @@ use Mralston\Payment\Interfaces\FinanceGateway;
 use Mralston\Payment\Interfaces\PaymentGateway;
 use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
-//use Mralston\Payment\Interfaces\Signable;
 use Mralston\Payment\Interfaces\WantsEpvs;
 use Mralston\Payment\Mail\CancelManually;
 use Mralston\Payment\Mail\SatNoteUpload;
@@ -27,8 +25,10 @@ use Mralston\Payment\Models\PaymentOffer;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentStatus;
 use Mralston\Payment\Models\PaymentSurvey;
-use Mralston\Payment\Services\PaymentCalculator;
+use Mralston\Payment\Services\PaymentCalculators\Propensio as PropensioPaymentCalculator;
 use Spatie\ArrayToXml\ArrayToXml;
+
+//use Mralston\Payment\Interfaces\Signable;
 
 class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer, WantsEpvs /*, Signable*/
 {
@@ -1040,7 +1040,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
 
     public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array
     {
-        return app(PaymentCalculator::class)
+        return app(PropensioPaymentCalculator::class)
             ->calculate($loanAmount, $apr, $loanTerm, $deferredPeriod);
     }
 

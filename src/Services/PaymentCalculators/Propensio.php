@@ -1,8 +1,8 @@
 <?php
 
-namespace Mralston\Payment\Services;
+namespace Mralston\Payment\Services\PaymentCalculators;
 
-class PaymentCalculator
+class Propensio
 {
     /**
      * Calculates monthly repayments and total repayable for standard and BNPL loans.

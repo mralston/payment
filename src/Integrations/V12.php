@@ -17,6 +17,7 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Interfaces\PrequalifiesCustomer;
 use Mralston\Payment\Models\Payment;
 use Mralston\Payment\Models\PaymentOffer;
+use Mralston\Payment\Models\PaymentProduct;
 use Mralston\Payment\Models\PaymentProvider;
 use Mralston\Payment\Models\PaymentSurvey;
 
@@ -50,19 +51,19 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
         // TODO: Implement pollStatus() method.
     }
 
+    /**
+     * @deprecated use calculatePaymentsForProduct())
+     */
     public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array
     {
-        // TODO: Implement calculatePayments() method.
-        return [
-            'term' => $loanTerm,
-            'firstPayment' => 0,
-            'monthlyPayment' => 0,
-            'finalPayment' => 0,
-            'total' => 0,
-            'apr' => $apr,
-            'amt' => round($loanAmount, 2),
-            'interest' => round(0, 2)
-        ];
+        // Method to satisfy stub.
+        return [];
+    }
+
+    public function calculatePaymentsForProduct(int $loanAmount, PaymentProduct $product): array
+    {
+        return app(\Mralston\Payment\Services\PaymentCalculators\V12::class)
+            ->calculate($loanAmount, $product);
     }
 
     public function financeProducts(): Collection
@@ -159,19 +160,12 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
             // If there aren't any offers...
             if ($offers->isEmpty()) {
-
+//Log::info('No DB offers found for V12.');
                 $products = $this->financeProducts();
-
+//                Log::info('Fetched products found from V12 API', [$products]);
                 $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
 
                 $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $totalCost, $amount, $deposit) {
-                    $payments = V12Facade::calculatePayments($amount, $product['apr'], $product['months'], $product['deferredPeriod']);
-
-                    // If there are no payments, skip it
-                    if (empty($payments)) {
-                        Log::channel('payment')->debug('No payment calc for product', $product);
-                        return null;
-                    }
 
                     // Create the product if it doesn't exist
                     $paymentProduct = $paymentProvider
@@ -181,11 +175,33 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'identifier' => 'v12_' . $product['apr'] . '_' . $product['months'] . ($product['deferredPeriod'] > 0 ? '+' . $product['deferredPeriod'] : ''),
                         ], [
                             'name' => 'V12 ' . $product['name'],
+                            'description' => $product['description'],
                             'apr' => $product['apr'],
                             'term' => $product['months'],
                             'deferred' => $product['deferredPeriod'] > 0 ? $product['deferredPeriod'] : null,
                             'deferred_type' => $product['deferredPeriod'] > 0 ? 'bnpl_months' : null,
+                            'provider_foreign_id' => $product['productGuid'],
+                            'document_fee' => $product['documentFee'],
+                            'document_fee_collection_month' => $product['documentFeeCollectionMonth'],
+                            'document_fee_maximum' => $product['documentFeeMaximum'],
+                            'document_fee_minimum' => $product['documentFeeMinimum'],
+                            'document_fee_percentage' => $product['documentFeePercentage'],
+                            'max_loan' => $product['maxLoan'],
+                            'min_loan' => $product['minLoan'],
+                            'monthly_rate' => $product['monthlyRate'],
+                            'service_fee' => $product['serviceFee'],
+                            'settlement_fee' => $product['settlementFee'],
                         ]);
+
+                    $payments = V12Facade::calculatePaymentsForProduct($amount, $paymentProduct);
+
+
+                    // If there are no payments, skip it
+                    if (empty($payments)) {
+                        Log::channel('payment')->debug('No payment calc for product', $product);
+                        return null;
+                    }
+                    Log::info('Calculated payments for £' . $amount . ' with product #' . $paymentProduct->id. ': ' . $paymentProduct->name, $payments);
 
                     // If the product has been soft deleted, don't store the offer
                     // This allows us to disable products we don't want to offer to customers
@@ -211,10 +227,10 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'term' => $product['months'],
                             'deferred' => $product['deferredPeriod'] > 0 ? $product['deferredPeriod'] : null,
                             'deferred_type' => $product['deferredPeriod'] > 0 ? 'bnpl_months' : null,
-                            'first_payment' => 0, //$payments['RepaymentDetails']['FirstRepaymentAmount'],
-                            'monthly_payment' => 0, //$payments['RepaymentDetails']['MonthlyRepayment'],
-                            'final_payment' => 0, //$payments['RepaymentDetails']['FinalRepaymentAmount'],
-                            'total_payable' => 0, //$payments['FinancialDetails']['TotalPayable'],
+                            'first_payment' => $payments['firstPayment'],
+                            'monthly_payment' => $payments['monthlyPayment'],
+                            'final_payment' => $payments['finalPayment'],
+                            'total_payable' => $payments['total'],
                             'status' => 'final',
                         ]);
                 })

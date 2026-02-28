@@ -67,15 +67,26 @@ if (props.modelValue) {
                                     <div class="flex items-center gap-2">
                                         <div>{{ offer.payment_provider.name }}</div>
                                         <div v-if="offer.apr > 0">{{ offer.apr }}%</div>
+                                        <div v-else>IFC</div>
+
                                         <div :class="[active ? 'text-white' : 'text-blue-500', 'flex-1 text-right']">
                                             {{ formatCurrency(offer.monthly_payment, 0) }}/month
                                         </div>
                                     </div>
 
                                     <div>
-                                        {{ offer.term / 12 }}
-                                        <span v-if="offer.term / 12 === 1">year</span>
-                                        <span v-else>years</span>
+                                        <span v-if="offer.term % 12 === 0">
+                                            {{ offer.term / 12 }}
+                                            <span v-if="offer.term / 12 === 1">year</span>
+                                            <span v-else>years</span>
+                                        </span>
+                                        <span v-else>
+                                            {{ offer.term }}
+                                            <span v-if="offer.term === 1">month</span>
+                                            <span v-else>months</span>
+                                        </span>
+
+
                                         <span v-if="offer.deferred">
                                             -
                                             <span v-if="offer.deferred_type === 'deferred_payments'">{{ offer.deferred + 1 }}</span>
