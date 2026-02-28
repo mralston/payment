@@ -68,4 +68,8 @@ return [
         'endpoint' => env('HOMETREE_ENDPOINT', config('app.env')),
     ],
 
+    'offer_visibility_rules' => [
+        Mralston\Payment\Rules\HometreeRule::class,
+    ],
+
 ];
