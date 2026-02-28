@@ -14,6 +14,7 @@ use Mralston\Payment\Interfaces\PaymentHelper;
 use Mralston\Payment\Models\PersonalAccessToken;
 use Mralston\Payment\Providers\EventServiceProvider;
 use Mralston\Payment\Services\MugService;
+use Mralston\Payment\Services\PerseService;
 
 class PaymentServiceProvider extends ServiceProvider
 {
@@ -97,6 +98,7 @@ class PaymentServiceProvider extends ServiceProvider
 
         $this->app->bind(PaymentAddressLookup::class, function ($app) {
             return app(MugService::class);
+//            return app(PerseService::class);
         });
     }
 

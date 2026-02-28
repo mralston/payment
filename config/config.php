@@ -58,7 +58,7 @@ return [
     | Hometree Finance
     |--------------------------------------------------------------------------
     |
-    | The API key and endpoint to be used when talking to the Allium Money API
+    | The API key and endpoint to be used when talking to the Hometree Finance API
     |
     */
 
@@ -66,6 +66,20 @@ return [
         'api_key' => env('HOMETREE_API_KEY'),
         'client_id' => env('HOMETREE_CLIENT_ID'),
         'endpoint' => env('HOMETREE_ENDPOINT', config('app.env')),
+    ],
+
+    /*
+    |--------------------------------------------------------------------------
+    | Perse
+    |--------------------------------------------------------------------------
+    |
+    | The API key to be used when talking to the Perse API
+    |
+    */
+
+    'perse' => [
+        'endpoint' => env('PERSE_ENDPOINT', env('APP_ENV')),
+        'api_key' => env('PERSE_API_KEY'),
     ],
 
 ];
