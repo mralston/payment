@@ -832,7 +832,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
                 [
                     'ADDRESS_ID' => $this->getNewRef(),
                     'IBC_REF' => $payment->ibcRef,
-                    'STREET1' => trim(($address['houseNumber'] ?? '') . ' ' . ($address['street'] ?? '')),
+                    'STREET1' => $address['street'] ?? '',
                     'STREET2' => $address['address2'] ?? '',
 //                    'DISTRICT' => $address['address3'] ?? '',
                     'POSTTOWN' => $address['town'] ?? '',
