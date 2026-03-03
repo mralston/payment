@@ -1041,7 +1041,7 @@ class Propensio implements PaymentGateway, FinanceGateway, PrequalifiesCustomer,
     public function calculatePayments(int $loanAmount, float $apr, int $loanTerm, ?int $deferredPeriod = null): array
     {
         return app(PaymentCalculator::class)
-            ->calculate($loanAmount, $apr, $loanTerm, $deferredPeriod);
+            ->calculate($loanAmount, $apr, $loanTerm, $deferredPeriod) ?? [];
     }
 
     public function financeProducts(): Collection
