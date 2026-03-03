@@ -7,6 +7,7 @@ use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Str;
+use Mralston\Payment\Data\AddressData;
 use Mralston\Payment\Data\PrequalData;
 use Mralston\Payment\Data\PrequalPromiseData;
 use Mralston\Payment\Events\OffersReceived;
@@ -38,7 +39,69 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
     public function apply(Payment $payment): Payment
     {
-        // TODO: Implement apply() method.
+        $helper = app(PaymentHelper::class)
+            ->setParentModel($payment->parentable);
+
+        $currentAddress = AddressData::from($payment->addresses->first());
+
+        $this->requestData = [
+            'Customer' => [
+                'EmailAddress' => $payment->email_address,
+                'Title' => '3',
+                'FirstName' => $payment->first_name,
+                'LastName' => $payment->last_name,
+                'Addresses' => [
+                    [
+//                        'FlatNumber' => '',
+//                        'BuildingName' => '',
+                        'BuildingNumber' => $currentAddress->houseNumber,
+                        'Street' => $currentAddress->street,
+//                        'Locality' => null,
+                        'TownOrCity' => $currentAddress->town,
+                        'County' => $currentAddress->county,
+                        'Postcode' => $currentAddress->postCode
+                    ]
+                ],
+                'HomeTelephone' => [
+                    'Code' => $this->phonePrefix($this->landline($payment)),
+                    'Number' => $this->phoneSuffix($this->landline($payment))
+                ],
+                'MobileTelephone' => [
+                    'Code' => $this->phonePrefix($this->mobile($payment)),
+                    'Number' => $this->phoneSuffix($this->mobile($payment))
+                ]
+            ],
+            'Order' => [
+                'Lines' => [
+                    [
+                        'Qty' => '1',
+                        'SKU' => 'testSKU1',
+                        'Item' => 'testItemName1',
+                        'Price' => '600.00'
+                    ],
+                    [
+                        'Qty' => '1',
+                        'SKU' => 'testSKU2',
+                        'Item' => 'testItemName2',
+                        'Price' => '400.00'
+                    ]
+                ],
+                'CashPrice' => $payment->amount,
+                'Deposit' => $payment->deposit,
+                'DuplicateSalesReferenceMethod' => 'ShowError',
+                'ProductId' => $payment->paymentProduct->provider_foreign_id,
+                'ProductGuid' => $payment->paymentProduct->provider_foreign_uuid,
+                'SalesReference' => $payment->reference,
+                'vLink' => false
+            ],
+            'Retailer' => [
+                'AuthenticationKey' => $this->key,
+                'RetailerGuid' => $this->retailerGuid,
+                'RetailerId' => $this->retailerId
+            ]
+        ];
+
+        dd($this->requestData);
     }
 
     public function cancel(Payment $payment, ?string $reason = null): bool
@@ -160,9 +223,9 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
 
             // If there aren't any offers...
             if ($offers->isEmpty()) {
-//Log::info('No DB offers found for V12.');
+
                 $products = $this->financeProducts();
-//                Log::info('Fetched products found from V12 API', [$products]);
+
                 $reference = $helper->getReference() . '-' . Str::of(Str::random(5))->upper();
 
                 $offers = $products->map(function ($product) use ($survey, $paymentProvider, $reference, $totalCost, $amount, $deposit) {
@@ -180,7 +243,8 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
                             'term' => $product['months'],
                             'deferred' => $product['deferredPeriod'] > 0 ? $product['deferredPeriod'] : null,
                             'deferred_type' => $product['deferredPeriod'] > 0 ? 'bnpl_months' : null,
-                            'provider_foreign_id' => $product['productGuid'],
+                            'provider_foreign_id' => $product['productId'],
+                            'provider_foreign_uuid' => $product['productGuid'],
                             'document_fee' => $product['documentFee'],
                             'document_fee_collection_month' => $product['documentFeeCollectionMonth'],
                             'document_fee_maximum' => $product['documentFeeMaximum'],
@@ -255,5 +319,65 @@ class V12 implements PaymentGateway, FinanceGateway, PrequalifiesCustomer
     public function cancelOffer(PaymentOffer $paymentOffer): void
     {
         // Stub to satisfy interface, no action required.
+    }
+
+    protected function phonePrefix(?string $phoneNumber): ?string
+    {
+        if (is_null($phoneNumber)) {
+            return null;
+        }
+
+        if (preg_match('/^(01\d1)/', $phoneNumber, $matches)) {
+            return Str::of($phoneNumber)->substr(0, 4);
+        }
+
+        return Str::of($phoneNumber)->substr(0, 5);
+    }
+
+    protected function phoneSuffix(?string $phoneNumber): ?string
+    {
+        if (empty($phoneNumber)) {
+            return null;
+        }
+
+        if (preg_match('/^(01\d1)/', $phoneNumber, $matches)) {
+            return Str::of($phoneNumber)->substr(4);
+        }
+
+        return Str::of($phoneNumber)->substr(5);
+    }
+
+    protected function landline(Payment $payment)
+    {
+        if (
+            !empty($payment->primary_telephone) &&
+            preg_match('/^0[^7]/', $payment->primary_telephone)
+        ) {
+            return $payment->primary_telephone;
+        }
+
+        if (
+            !empty($payment->secondary_telephone) &&
+            preg_match('/^0[^7]/', $payment->secondary_telephone)
+        ) {
+            return $payment->secondary_telephone;
+        }
+    }
+
+    protected function mobile(Payment $payment)
+    {
+        if (
+            !empty($payment->primary_telephone) &&
+            preg_match('/^07/', $payment->primary_telephone)
+        ) {
+            return $payment->primary_telephone;
+        }
+
+        if (
+            !empty($payment->secondary_telephone) &&
+            preg_match('/^07/', $payment->secondary_telephone)
+        ) {
+            return $payment->secondary_telephone;
+        }
     }
 }

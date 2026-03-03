@@ -80,7 +80,7 @@ const props = defineProps({
                 <span class="text-2xl">Other options</span>
             </template>
             <div class="grid grid-cols-2 gap-4">
-                <div v-for="offer in otherOffers" :key="offer.id">
+                <div v-for="offer in otherOffers" :key="offer.id" :class="{ hidden: makeNumeric(offer.term) % 12 !== 0 }">
                     <div class="text-2xl mb-2">
                         <img v-if="offer.payment_provider.logo"
                              :src="offer.payment_provider.logo"

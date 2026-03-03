@@ -22,6 +22,7 @@ return new class extends Migration
             $table->decimal('min_loan', 12, 2)->default(0)->after('document_fee_collection_month');
             $table->decimal('max_loan', 12, 2)->default(0)->after('min_loan');
             $table->decimal('settlement_fee', 8, 2)->default(0)->after('max_loan');
+            $table->uuid()->nullable()->after('provider_foreign_uuid')->after('provider_foreign_id');
         });
     }
 

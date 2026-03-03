@@ -14,6 +14,7 @@ class PaymentProduct extends Model
         'description',
         'identifier',
         'provider_foreign_id',
+        'provider_foreign_uuid',
         'apr',
         'monthly_rate',
         'term',
