@@ -117,7 +117,7 @@ class LeaseController
             return redirect()
                 ->route('payment.lease.show', [
                     'parent' => $parent,
-                    'lease' => $payment,
+                    'lease' => $payment->id,
                 ]);
         } catch (Exception $e) {
             $payment->update([
@@ -130,7 +130,7 @@ class LeaseController
             return redirect()
                 ->route('payment.lease.show', [
                     'parent' => $parent,
-                    'lease' => $payment,
+                    'lease' => $payment->id,
                 ]);
         }
 
@@ -157,7 +157,7 @@ class LeaseController
         return redirect()
             ->route('payment.lease.show', [
                 'parent' => $parent,
-                'lease' => $payment,
+                'lease' => $payment->id,
             ]);
     }
 

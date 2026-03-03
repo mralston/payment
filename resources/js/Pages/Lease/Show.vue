@@ -61,7 +61,7 @@ function cancel()
 
 function restart()
 {
-    router.get(route('payment.start', {parent: props.parentModel, payment: props.payment}));
+    router.get(route('payment.start', {parent: props.parentModel.id}));
 }
 
 useEcho(
