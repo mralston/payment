@@ -2,6 +2,12 @@
 @tailwind components;
 @tailwind utilities;
 
+@layer base {
+    *, ::before, ::after {
+        --tw-shadow-color: 0 0 #0000;
+    }
+}
+
 html {
     /* Reset base font size to match legacy styles */
     font-size: 16px;
