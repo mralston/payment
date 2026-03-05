@@ -2,10 +2,13 @@
 
 namespace Mralston\Payment;
 
-use Mralston\Payment\Console\Commands\PollPaymentStatus;
+use Illuminate\Support\Facades\Blade;
 use Illuminate\Support\ServiceProvider;
 use Inertia\Inertia;
 use Laravel\Sanctum\Sanctum;
+use Mralston\Payment\Console\Commands\GetEnvironment;
+use Mralston\Payment\Console\Commands\PollPaymentStatus;
+use Mralston\Payment\Console\Commands\SwitchEnvironment;
 use Mralston\Payment\Integrations\Hometree;
 use Mralston\Payment\Integrations\Propensio;
 use Mralston\Payment\Integrations\Tandem;
@@ -24,18 +27,18 @@ class PaymentServiceProvider extends ServiceProvider
         $this->loadRoutesFrom(__DIR__.'/../routes/web.php');
         $this->loadRoutesFrom(__DIR__.'/../routes/channels.php');
 
-        $this->loadMigrationsFrom(__DIR__ . '/../database/migrations');
+        $this->loadMigrationsFrom(__DIR__.'/../database/migrations');
 
         // Conditionally configure Sanctum if not already configured
         $this->configureSanctum();
 
         if ($this->app->runningInConsole()) {
             $this->publishes([
-                __DIR__ . '/../config/config.php' => config_path('payment.php'),
+                __DIR__.'/../config/config.php' => config_path('payment.php'),
             ], 'payment-config');
 
             $this->publishes([
-                __DIR__ . '/../database/seeders' => database_path('seeders'),
+                __DIR__.'/../database/seeders' => database_path('seeders'),
             ], 'payment-seeders');
 
             $this->publishes([
@@ -52,16 +55,22 @@ class PaymentServiceProvider extends ServiceProvider
         }
 
         $this->app->bind(PaymentHelper::class, config('payment.helper'));
+
+        Blade::directive('paymentAssets', function () {
+            return "<?php echo \Mralston\Payment\Helpers\AssetHelper::loadPackageAssets('mralston/payment', 'resources/js/app.js'); ?>";
+        });
     }
 
     public function register()
     {
-        $this->mergeConfigFrom(__DIR__ . '/../config/config.php', 'payment');
+        $this->mergeConfigFrom(__DIR__.'/../config/config.php', 'payment');
 
         $this->app->register(EventServiceProvider::class);
 
         $this->commands([
+            GetEnvironment::class,
             PollPaymentStatus::class,
+            SwitchEnvironment::class,
         ]);
 
         $this->app->singleton(PaymentHelper::class, function ($app) {
@@ -106,7 +115,7 @@ class PaymentServiceProvider extends ServiceProvider
     protected function configureSanctum()
     {
         // Check if Sanctum is already configured by looking for the config
-        if (!config('sanctum.stateful')) {
+        if (! config('sanctum.stateful')) {
             // Set default Sanctum configuration
             config([
                 'sanctum.stateful' => explode(',', env('SANCTUM_STATEFUL_DOMAINS', sprintf(
@@ -124,7 +133,7 @@ class PaymentServiceProvider extends ServiceProvider
         }
 
         // Only set the PersonalAccessToken model if it hasn't been set already
-        if (!class_exists(Sanctum::$personalAccessTokenModel)) {
+        if (! class_exists(Sanctum::$personalAccessTokenModel)) {
             Sanctum::usePersonalAccessTokenModel(PersonalAccessToken::class);
         }
     }

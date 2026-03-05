@@ -78,6 +78,10 @@ class PaymentHelper
 }
 ```
 
+## Development
+
+For information on local development, building assets, and switching between environments, see the [DEVELOPMENT.md](DEVELOPMENT.md) guide.
+
 ## Security Vulnerabilities
 
 Please [e-mail security vulnerabilities directly to me](mailto:matt@mralston.co.uk).
