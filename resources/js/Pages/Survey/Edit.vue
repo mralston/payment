@@ -65,9 +65,31 @@ const form = useForm({
     basicQuestionsCompleted: props.showBasicQuestions,
     leaseQuestionsCompleted: props.showLeaseQuestions,
     financeQuestionsCompleted: props.showFinanceQuestions,
-    customers: props.paymentSurvey.customers,
-    addresses: props.paymentSurvey.addresses,
-    financeResponses: props.paymentSurvey.finance_responses,
+    customers: props.paymentSurvey.customers ?? [],
+    addresses: props.paymentSurvey.addresses ?? [],
+    financeResponses: props.paymentSurvey.finance_responses ?? {
+        employerName: null,
+        employerAddress: {
+            houseNumber: null,
+            street: null,
+            address1: null,
+            address2: null,
+            town: null,
+            county: null,
+            postCode: null,
+        },
+        occupation: null,
+        dateStartedEmployment: null,
+        bankAccount: {
+            bankName: null,
+            accountName: null,
+            accountNumber: null,
+            sortCode: null,
+        },
+        yearlyHouseholdIncome: null,
+        monthlyMortgage: null,
+        monthlyRent: null,
+    },
     creditCheckConsent: props.paymentSurvey.credit_check_consent ? true : false,
 });
 
@@ -75,24 +97,8 @@ const navigating = ref(false);
 const submitting = ref(false);
 const skipping = ref(false);
 
-// Ensure exactly one homeAddress is selected in addresses (default to first)
-if (props.showBasicQuestions && Array.isArray(form.addresses) && form.addresses.length > 0) {
-    const anySelected = form.addresses.some(a => a && a.homeAddress === true);
-    if (!anySelected) {
-        form.addresses = form.addresses.map((a, i) => ({...a, homeAddress: i === 0}));
-    } else {
-        // Normalize others to false if more than one is true
-        let found = false;
-        form.addresses = form.addresses.map((a) => {
-            if (a && a.homeAddress === true) {
-                if (found) return {...a, homeAddress: false};
-                found = true;
-                return a;
-            }
-            return {...a, homeAddress: false};
-        });
-    }
-}
+// Removed immediate state modification to prevent hydration mismatch.
+// Logic moved to onMounted.
 
 function selectHome(index) {
     form.addresses = form.addresses.map((a, i) => ({...a, homeAddress: i === index}));
@@ -195,11 +201,30 @@ function unselectOffer() {
 }
 
 onMounted(() => {
+    // Ensure exactly one homeAddress is selected in addresses (default to first)
+    if (props.showBasicQuestions && Array.isArray(form.addresses) && form.addresses.length > 0) {
+        const anySelected = form.addresses.some(a => a && a.homeAddress === true);
+        if (!anySelected) {
+            form.addresses = form.addresses.map((a, i) => ({...a, homeAddress: i === 0}));
+        } else {
+            // Normalize others to false if more than one is true
+            let found = false;
+            form.addresses = form.addresses.map((a) => {
+                if (a && a.homeAddress === true) {
+                    if (found) return {...a, homeAddress: false};
+                    found = true;
+                    return a;
+                }
+                return {...a, homeAddress: false};
+            });
+        }
+    }
+
     if (!form.financeResponses?.yearlyHouseholdIncome || form.financeResponses?.yearlyHouseholdIncome === 0) {
         const yearlyHouseholdIncome = form.customers.reduce((acc, customer) => {
             return acc + makeNumeric(customer?.grossAnnualIncome ?? 0);
         }, 0);
-        if (yearlyHouseholdIncome > 0) {
+        if (yearlyHouseholdIncome > 0 && form.financeResponses) {
             form.financeResponses.yearlyHouseholdIncome = yearlyHouseholdIncome;
         }
     }
@@ -207,8 +232,9 @@ onMounted(() => {
 
 const employed = computed(() => {
     if (
-        form.customers[0].employmentStatus === 'full_time_employed' ||
-        form.customers[0].employmentStatus === 'part_time_employed'
+        form.customers.length > 0 &&
+        (form.customers[0].employmentStatus === 'full_time_employed' ||
+         form.customers[0].employmentStatus === 'part_time_employed')
     ) {
         return true;
     }
@@ -435,8 +461,10 @@ const employed = computed(() => {
                 <div v-for="(address, index) in form.addresses" class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-50 shadow">
                     <div class="px-3 py-2 font-bold bg-blue-50">
                         <span v-if="index === 0">Installation Address</span>
-                        <span v-else-if="form.addresses[index].homeAddress">Home Address</span>
-                        <span v-else>Previous Address</span>
+                        <template v-else>
+                            <span v-if="address.homeAddress">Home Address</span>
+                            <span v-else>Previous Address</span>
+                        </template>
                         <button type="button"
                                 class="float-end rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                                 @click="removeAddress(index)">
@@ -475,7 +503,7 @@ const employed = computed(() => {
 
         </section>
 
-        <section v-if="showFinanceQuestions" class="mb-4">
+        <section v-if="showFinanceQuestions && form.customers.length > 0" class="mb-4">
 
             <h2 class="text-xl font-bold mb-4">Section 3: Financial Information</h2>
 
