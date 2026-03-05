@@ -68,27 +68,8 @@ const form = useForm({
     customers: props.paymentSurvey.customers ?? [],
     addresses: props.paymentSurvey.addresses ?? [],
     financeResponses: props.paymentSurvey.finance_responses ?? {
-        employerName: null,
-        employerAddress: {
-            houseNumber: null,
-            street: null,
-            address1: null,
-            address2: null,
-            town: null,
-            county: null,
-            postCode: null,
-        },
-        occupation: null,
-        dateStartedEmployment: null,
-        bankAccount: {
-            bankName: null,
-            accountName: null,
-            accountNumber: null,
-            sortCode: null,
-        },
-        yearlyHouseholdIncome: null,
-        monthlyMortgage: null,
-        monthlyRent: null,
+        employerAddress: {},
+        bankAccount: {},
     },
     creditCheckConsent: props.paymentSurvey.credit_check_consent ? true : false,
 });
@@ -97,8 +78,6 @@ const navigating = ref(false);
 const submitting = ref(false);
 const skipping = ref(false);
 
-// Removed immediate state modification to prevent hydration mismatch.
-// Logic moved to onMounted.
 
 function selectHome(index) {
     form.addresses = form.addresses.map((a, i) => ({...a, homeAddress: i === index}));
@@ -224,7 +203,7 @@ onMounted(() => {
         const yearlyHouseholdIncome = form.customers.reduce((acc, customer) => {
             return acc + makeNumeric(customer?.grossAnnualIncome ?? 0);
         }, 0);
-        if (yearlyHouseholdIncome > 0 && form.financeResponses) {
+        if (yearlyHouseholdIncome > 0) {
             form.financeResponses.yearlyHouseholdIncome = yearlyHouseholdIncome;
         }
     }
@@ -232,9 +211,8 @@ onMounted(() => {
 
 const employed = computed(() => {
     if (
-        form.customers.length > 0 &&
-        (form.customers[0].employmentStatus === 'full_time_employed' ||
-         form.customers[0].employmentStatus === 'part_time_employed')
+        form.customers?.[0]?.employmentStatus === 'full_time_employed' ||
+        form.customers?.[0]?.employmentStatus === 'part_time_employed'
     ) {
         return true;
     }
@@ -250,7 +228,8 @@ const employed = computed(() => {
         <title>{{ title }}</title>
     </Head>
 
-    <div class="p-4">
+    <div class="root-wrapper">
+        <div class="p-4">
 
         <button v-if="allowSkip"
                 type="button"
@@ -461,10 +440,8 @@ const employed = computed(() => {
                 <div v-for="(address, index) in form.addresses" class="divide-y divide-gray-200 overflow-hidden rounded-lg bg-gray-50 shadow">
                     <div class="px-3 py-2 font-bold bg-blue-50">
                         <span v-if="index === 0">Installation Address</span>
-                        <template v-else>
-                            <span v-if="address.homeAddress">Home Address</span>
-                            <span v-else>Previous Address</span>
-                        </template>
+                        <span v-else-if="form.addresses[index].homeAddress">Home Address</span>
+                        <span v-else>Previous Address</span>
                         <button type="button"
                                 class="float-end rounded bg-red-600 px-1.5 py-0.5 text-xs font-bold text-white shadow-sm hover:bg-red-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-blue-600"
                                 @click="removeAddress(index)">
@@ -503,7 +480,7 @@ const employed = computed(() => {
 
         </section>
 
-        <section v-if="showFinanceQuestions && form.customers.length > 0" class="mb-4">
+        <section v-if="showFinanceQuestions" class="mb-4">
 
             <h2 class="text-xl font-bold mb-4">Section 3: Financial Information</h2>
 
@@ -743,8 +720,8 @@ const employed = computed(() => {
                 <span v-else>Continue</span>
             </button>
         </div>
-
     </div>
+</div>
 
 </template>
 

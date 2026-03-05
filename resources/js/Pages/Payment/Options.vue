@@ -577,7 +577,7 @@ function submitSurvey()
         </p>
     </Modal>
 
-    <Modal ref="errorModal" title="Error" :buttons="['ok', 'cancel']" type="danger" @ok="if (errorModalCallback) { errorModalCallback(); }">
+    <Modal ref="errorModal" title="Error" :buttons="['ok', 'cancel']" type="danger" @ok="() => { if (errorModalCallback) { errorModalCallback(); } }">
         <p class="text-sm text-gray-500 mb-4">
             There was a problem.
         </p>
@@ -586,38 +586,38 @@ function submitSurvey()
         </p>
     </Modal>
 
-    <div class="p-4">
+    <div class="root-wrapper">
+        <div class="p-4">
+            <div class="float-end">
+                <button type="button"
+                        class="rounded bg-gray-600 px-2 py-1 mr-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600 disabled:cursor-not-allowed"
+                        title="Refresh Offers"
+                        @click="resetPrequal">
+                    <ArrowPathIcon :disabled="pendingGateways.length > 0"
+                                   class="text-white h-4 w-4 inline"
+                                   :class="{'animate-spin' : pendingGateways.length > 0}" aria-hidden="true"/>
+                </button>
 
-        <div class="float-end">
-            <button type="button"
-                    class="rounded bg-gray-600 px-2 py-1 mr-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600 disabled:cursor-not-allowed"
-                    title="Refresh Offers"
-                    @click="resetPrequal">
-                <ArrowPathIcon :disabled="pendingGateways.length > 0"
-                               class="text-white h-4 w-4 inline"
-                               :class="{'animate-spin' : pendingGateways.length > 0}" aria-hidden="true"/>
-            </button>
-
-            <button type="button"
-                    class="rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
-                    @click="backToSurvey">
-                Back to Survey
-            </button>
-        </div>
-
-        <div v-if="!prequalOnLoad" class="mb-4 float-right">
-            <div class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
-                <ExclamationTriangleIcon class="text-red-500 h-6 w-6 inline mr-2" aria-hidden="true"/>
-                Auto-Prequal OFF
+                <button type="button"
+                        class="rounded bg-gray-600 px-2 py-1 text-sm font-semibold text-white shadow-sm hover:bg-gray-500 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-gray-600"
+                        @click="backToSurvey">
+                    Back to Survey
+                </button>
             </div>
 
-            <button @click="initiatePrequal" class="px-4 py-2 rounded bg-white hover:bg-gray-100 text-blue-500 border-2 border-blue-500 border-dashed">
-                Run Prequal
-            </button>
-        </div>
+            <div v-if="!prequalOnLoad" class="mb-4 float-right">
+                <div class="inline px-4 py-2 mr-2 rounded bg-white text-red-500 border-2 border-red-500 border-dashed">
+                    <ExclamationTriangleIcon class="text-red-500 h-6 w-6 inline mr-2" aria-hidden="true"/>
+                    Auto-Prequal OFF
+                </div>
+
+                <button @click="initiatePrequal" class="px-4 py-2 rounded bg-white hover:bg-gray-100 text-blue-500 border-2 border-blue-500 border-dashed">
+                    Run Prequal
+                </button>
+            </div>
 
 
-        <h1 class="text-4xl font-bold">
+            <h1 class="text-4xl font-bold">
             Payment Options
         </h1>
 
@@ -867,6 +867,7 @@ function submitSurvey()
 
     </div>
 
+    </div>
 </template>
 
 <style scoped>
